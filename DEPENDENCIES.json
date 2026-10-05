@@ -1,0 +1,305 @@
+[
+  {
+    "name": "aiohappyeyeballs",
+    "version": "2.7.1",
+    "license": "PSF-2.0",
+    "source": [
+      "Bug Tracker, https://github.com/aio-libs/aiohappyeyeballs/issues",
+      "Changelog, https://github.com/aio-libs/aiohappyeyeballs/blob/main/CHANGELOG.md",
+      "Documentation, https://aiohappyeyeballs.readthedocs.io",
+      "Repository, https://github.com/aio-libs/aiohappyeyeballs"
+    ]
+  },
+  {
+    "name": "aiohttp",
+    "version": "3.14.3",
+    "license": "Apache-2.0 AND MIT",
+    "source": [
+      "Homepage, https://github.com/aio-libs/aiohttp",
+      "Chat: Matrix, https://matrix.to/#/#aio-libs:matrix.org",
+      "Chat: Matrix Space, https://matrix.to/#/#aio-libs-space:matrix.org",
+      "CI: GitHub Actions, https://github.com/aio-libs/aiohttp/actions?query=workflow%3ACI",
+      "Coverage: codecov, https://codecov.io/github/aio-libs/aiohttp",
+      "Docs: Changelog, https://docs.aiohttp.org/en/stable/changes.html",
+      "Docs: RTD, https://docs.aiohttp.org",
+      "GitHub: issues, https://github.com/aio-libs/aiohttp/issues",
+      "GitHub: repo, https://github.com/aio-libs/aiohttp"
+    ]
+  },
+  {
+    "name": "aiosignal",
+    "version": "1.4.0",
+    "license": "Apache 2.0",
+    "source": "https://github.com/aio-libs/aiosignal"
+  },
+  {
+    "name": "anyio",
+    "version": "4.15.1",
+    "license": "MIT",
+    "source": [
+      "Documentation, https://anyio.readthedocs.io/en/latest/",
+      "Changelog, https://anyio.readthedocs.io/en/stable/versionhistory.html",
+      "Source code, https://github.com/agronholm/anyio",
+      "Issue tracker, https://github.com/agronholm/anyio/issues"
+    ]
+  },
+  {
+    "name": "attrs",
+    "version": "26.1.0",
+    "license": "MIT",
+    "source": [
+      "Documentation, https://www.attrs.org/",
+      "Changelog, https://www.attrs.org/en/stable/changelog.html",
+      "GitHub, https://github.com/python-attrs/attrs",
+      "Funding, https://github.com/sponsors/hynek",
+      "Tidelift, https://tidelift.com/subscription/pkg/pypi-attrs?utm_source=pypi-attrs&utm_medium=pypi"
+    ]
+  },
+  {
+    "name": "certifi",
+    "version": "2026.7.22",
+    "license": "MPL-2.0",
+    "source": "https://github.com/certifi/python-certifi"
+  },
+  {
+    "name": "cffi",
+    "version": "2.1.1",
+    "license": "MIT-0",
+    "source": [
+      "Documentation, https://cffi.readthedocs.io/",
+      "Changelog, https://cffi.readthedocs.io/en/latest/whatsnew.html",
+      "Download, https://github.com/python-cffi/cffi/releases",
+      "Contact, https://groups.google.com/forum/#!forum/python-cffi",
+      "Source Code, https://github.com/python-cffi/cffi",
+      "Issue Tracker, https://github.com/python-cffi/cffi/issues"
+    ]
+  },
+  {
+    "name": "click",
+    "version": "8.5.0",
+    "license": "BSD-3-Clause",
+    "source": [
+      "Changes, https://click.palletsprojects.com/page/changes/",
+      "Chat, https://discord.gg/pallets",
+      "Documentation, https://click.palletsprojects.com/",
+      "Donate, https://palletsprojects.com/donate",
+      "Source, https://github.com/pallets/click/"
+    ]
+  },
+  {
+    "name": "colorama",
+    "version": "0.4.6",
+    "license": "",
+    "source": [
+      "Homepage, https://github.com/tartley/colorama"
+    ]
+  },
+  {
+    "name": "ctranslate2",
+    "version": "4.8.2",
+    "license": "MIT",
+    "source": "https://opennmt.net"
+  },
+  {
+    "name": "faster-whisper",
+    "version": "1.2.1",
+    "license": "MIT",
+    "source": "https://github.com/SYSTRAN/faster-whisper"
+  },
+  {
+    "name": "filelock",
+    "version": "4.0.5",
+    "license": "MIT",
+    "source": [
+      "Documentation, https://py-filelock.readthedocs.io",
+      "Homepage, https://github.com/tox-dev/py-filelock",
+      "Source, https://github.com/tox-dev/py-filelock",
+      "Tracker, https://github.com/tox-dev/py-filelock/issues"
+    ]
+  },
+  {
+    "name": "flatbuffers",
+    "version": "25.12.19",
+    "license": "Apache 2.0",
+    "source": "https://google.github.io/flatbuffers/"
+  },
+  {
+    "name": "frozenlist",
+    "version": "1.8.0",
+    "license": "Apache-2.0",
+    "source": "https://github.com/aio-libs/frozenlist"
+  },
+  {
+    "name": "fsspec",
+    "version": "2026.9.0",
+    "license": "BSD-3-Clause",
+    "source": [
+      "Changelog, https://filesystem-spec.readthedocs.io/en/latest/changelog.html",
+      "Documentation, https://filesystem-spec.readthedocs.io/en/latest/",
+      "Homepage, https://github.com/fsspec/filesystem_spec"
+    ]
+  },
+  {
+    "name": "h11",
+    "version": "0.16.0",
+    "license": "MIT",
+    "source": "https://github.com/python-hyper/h11"
+  },
+  {
+    "name": "hf-xet",
+    "version": "1.6.0",
+    "license": "Apache-2.0",
+    "source": [
+      "Documentation, https://huggingface.co/docs/hub/xet/index",
+      "Homepage, https://github.com/huggingface/xet-core",
+      "Issues, https://github.com/huggingface/xet-core/issues",
+      "Repository, https://github.com/huggingface/xet-core.git"
+    ]
+  },
+  {
+    "name": "httpcore",
+    "version": "1.0.9",
+    "license": "BSD-3-Clause",
+    "source": [
+      "Documentation, https://www.encode.io/httpcore",
+      "Homepage, https://www.encode.io/httpcore/",
+      "Source, https://github.com/encode/httpcore"
+    ]
+  },
+  {
+    "name": "httpx",
+    "version": "0.28.1",
+    "license": "BSD-3-Clause",
+    "source": [
+      "Changelog, https://github.com/encode/httpx/blob/master/CHANGELOG.md",
+      "Documentation, https://www.python-httpx.org",
+      "Homepage, https://github.com/encode/httpx",
+      "Source, https://github.com/encode/httpx"
+    ]
+  },
+  {
+    "name": "huggingface_hub",
+    "version": "1.33.0",
+    "license": "Apache-2.0",
+    "source": "https://github.com/huggingface/huggingface_hub"
+  },
+  {
+    "name": "idna",
+    "version": "3.20",
+    "license": "BSD-3-Clause",
+    "source": [
+      "Changelog, https://github.com/kjd/idna/blob/master/HISTORY.md",
+      "Issue tracker, https://github.com/kjd/idna/issues",
+      "Source, https://github.com/kjd/idna"
+    ]
+  },
+  {
+    "name": "multidict",
+    "version": "6.9.1",
+    "license": "Apache License 2.0",
+    "source": "https://github.com/aio-libs/multidict"
+  },
+  {
+    "name": "numpy",
+    "version": "2.5.3",
+    "license": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+    "source": [
+      "homepage, https://numpy.org",
+      "documentation, https://numpy.org/doc/",
+      "source, https://github.com/numpy/numpy",
+      "download, https://pypi.org/project/numpy/#files",
+      "tracker, https://github.com/numpy/numpy/issues",
+      "release notes, https://numpy.org/doc/stable/release"
+    ]
+  },
+  {
+    "name": "onnxruntime",
+    "version": "1.30.0",
+    "license": "MIT License",
+    "source": "https://onnxruntime.ai"
+  },
+  {
+    "name": "packaging",
+    "version": "26.3",
+    "license": "Apache-2.0 OR BSD-2-Clause",
+    "source": [
+      "Documentation, https://packaging.pypa.io/",
+      "Source, https://github.com/pypa/packaging"
+    ]
+  },
+  {
+    "name": "propcache",
+    "version": "0.5.4",
+    "license": "Apache-2.0",
+    "source": "https://github.com/aio-libs/propcache"
+  },
+  {
+    "name": "protobuf",
+    "version": "7.36.2",
+    "license": "3-Clause BSD License",
+    "source": "https://developers.google.com/protocol-buffers/"
+  },
+  {
+    "name": "pycparser",
+    "version": "3.0",
+    "license": "BSD-3-Clause",
+    "source": [
+      "Homepage, https://github.com/eliben/pycparser"
+    ]
+  },
+  {
+    "name": "PyYAML",
+    "version": "6.0.3",
+    "license": "MIT",
+    "source": "https://pyyaml.org/"
+  },
+  {
+    "name": "sounddevice",
+    "version": "0.5.6",
+    "license": "MIT",
+    "source": [
+      "Documentation, https://python-sounddevice.readthedocs.io/",
+      "Repository, https://github.com/spatialaudio/python-sounddevice/",
+      "Issues, https://github.com/spatialaudio/python-sounddevice/issues"
+    ]
+  },
+  {
+    "name": "tokenizers",
+    "version": "0.23.2",
+    "license": "",
+    "source": [
+      "Homepage, https://github.com/huggingface/tokenizers",
+      "Source, https://github.com/huggingface/tokenizers"
+    ]
+  },
+  {
+    "name": "tqdm",
+    "version": "4.70.1",
+    "license": "MPL-2.0 AND MIT",
+    "source": [
+      "homepage, https://tqdm.github.io",
+      "repository, https://github.com/tqdm/tqdm",
+      "changelog, https://tqdm.github.io/releases",
+      "wiki, https://github.com/tqdm/tqdm/wiki"
+    ]
+  },
+  {
+    "name": "typing_extensions",
+    "version": "4.16.0",
+    "license": "PSF-2.0",
+    "source": [
+      "Bug Tracker, https://github.com/python/typing_extensions/issues",
+      "Changes, https://github.com/python/typing_extensions/blob/main/CHANGELOG.md",
+      "Documentation, https://typing-extensions.readthedocs.io/",
+      "Home, https://github.com/python/typing_extensions",
+      "Q & A, https://github.com/python/typing/discussions",
+      "Repository, https://github.com/python/typing_extensions"
+    ]
+  },
+  {
+    "name": "yarl",
+    "version": "1.25.1",
+    "license": "Apache-2.0",
+    "source": "https://github.com/aio-libs/yarl"
+  }
+]

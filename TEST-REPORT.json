@@ -1,0 +1,14 @@
+{
+  "result": "passed",
+  "platform": "win32",
+  "pythonRequiredForEndUser": false,
+  "localModelsInitialise": true,
+  "syntheticPhraseRecognised": true,
+  "freshMicrophoneSelection": true,
+  "installerTests": "PASS: fresh install, paths with spaces/Unicode, wrong-client rejection, path traversal, integrity, update rollback, startup opt-out, keyboard-only, uninstall, preferences, other add-ons, reinstall.",
+  "osIntegration": "startup and registration simulated in isolated test folders",
+  "limitations": [
+    "No second physical PC/clean Windows image tested",
+    "No real microphone or public chat used in release smoke tests"
+  ]
+}

@@ -1,0 +1,88 @@
+PADCHAT FOR WOW FOREVER — 0.2.0 preview 1
+
+INSTALL
+Run PadChat-Setup.exe, select the WoW Forever folder containing WowB.exe and
+Data (usually World of Warcraft\_classic_beta_), then click Install.
+Close WoW first. If Windows protects the game folder, approve the installer
+administrator prompt using your SAME Windows account.
+Choose your host PC microphone when prompted. Start WoW, enable PadChat in
+AddOns, and disable ControllerKeyboard / ControllerKeyboardTouchpad if present.
+Do not run an older WoW Voice helper alongside PadChat Voice.
+
+No Python installation, API key, model download or paid speech account needed.
+The installer includes English speech models. Allow about 2 GB of free space
+for installation and updates. Start voice automatically is an optional checkbox.
+With startup enabled, no extra app needs to be opened after Windows sign-in.
+If you exit the helper, open PadChat Voice from the Windows Start menu to resume.
+
+KEYBOARD AND VOICE
+F9 or /padchat: open keyboard, outside combat.
+Tap F8: cycle Say, Yell, General, Party, Raid, Guild and available Reply targets.
+Hold F8: speak. Release: sends recognised words to the selected channel.
+Hold Create/Share on a PlayStation controller, or Back/View on an Xbox input:
+same voice action. Tap that button to change channels.
+Voice also works without a controller. First test in Say, somewhere quiet.
+Release-to-send sends chat immediately: keep messages short and check previews.
+Speech can mishear names. Party invitations require an unambiguous matching
+friend/character; use the list if a spoken name is ambiguous.
+
+GAMEPAD KEYBOARD
+PlayStation touchpad CLICK: open. Finger sliding is not supported.
+Hold Options + Triangle for half a second: alternative open.
+For Xbox-compatible streamed input, hold Start + Y instead.
+D-pad / left stick: step through keys. Release the stick to keep a selection.
+X / A: select. Square / X: delete. Triangle / Y: space. Circle / B: close.
+L1 / LB: channel. R1 / RB: suggestions. L2 / LT: shift. R2 / RT: letters/numbers.
+Options / Start: send. The keyboard closes and releases bindings in combat.
+
+SUPPORTED
+Host: Windows 10/11 x64, WoW Forever 1.60.x (Interface 16001), English voice.
+One controller at a time: native Sony controller or XInput / Xbox-compatible
+input, including Sunshine's virtual controller. F8 works independently.
+Keep WoW and the voice helper at the same normal user privilege level.
+For local or remote Moonlight, the controller must reach Windows and work in
+WoW first. PadChat does not configure Bluetooth, Sunshine, drivers or networking.
+This preview is not certified on every controller, client patch or processor.
+Retail WoW, older Classic, macOS and Linux are not supported by this package.
+
+MICROPHONES AND STREAMING
+Voice uses the chosen microphone on the HOST Windows PC, not the viewing device.
+Direct headset/USB/built-in PC microphones work if Windows exposes an input.
+Moonlight on iPad does not forward the iPad or its controller microphone.
+TV USB receiver audio/mic bridges are separate configurations, not bundled here.
+An already configured remote microphone link can be chosen if it appears in
+Windows as an input. Game audio playback is independent of PadChat.
+Connect or change a microphone, then choose "Choose microphone" from the Start
+menu or PadChat's tray icon. No silent switch to a different microphone occurs.
+Missing/ambiguous devices stop recognition and show settings; nothing is sent.
+If capture is denied, allow desktop microphone access in Windows Privacy settings.
+
+UPDATE / REPAIR / REMOVE
+Close WoW; rerun the installer to update or repair the same game folder.
+Your microphone selection and WoW PadChatDB settings are preserved.
+Remove from Windows Settings > Apps > PadChat for WoW Forever, or Start menu >
+PadChat > Uninstall PadChat. Only PadChat's addon, helper and startup entries are
+removed. Your microphone settings, documentation and WoW SavedVariables stay.
+Do not manually move the installed game folder without uninstalling first.
+
+PRIVACY
+Speech recognition runs on the PC using bundled models, without online requests.
+The microphone opens only while push-to-talk is held. Speech buffers/transcripts
+are kept in memory, not written to logs. PadChat learns words from sent messages
+in its WoW SavedVariables; /pc clear clears the draft, not the learned dictionary.
+Voice sending briefly uses/restores the clipboard for verified WoW chat input.
+backend-error.txt contains dependency failures only; voice-health.json contains
+process status. Settings are in %LOCALAPPDATA%\PadChat.
+
+SOURCE AND LICENSES
+PadChat original code is MIT-licensed; see LICENSE.txt.
+Bundled Python, speech engines and models have separate licenses under Licenses.
+Blizzard assets used by the addon are referenced from the installed game; none
+are shipped in this package. PadChat is not affiliated with Blizzard, Valve,
+Sony, Microsoft, Moonlight, Sunshine or OpenAI.
+
+PREVIEW TEST SCOPE
+Installer fresh/update/rollback/uninstall tests and bundled speech inference
+are tested in isolated folders on Windows 11. A second physical PC and fresh
+player account still need real gameplay checks before claiming broad support.
+The installer is unsigned; Windows may display an unknown-publisher warning.
