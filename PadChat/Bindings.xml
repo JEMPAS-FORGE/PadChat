@@ -1,0 +1,5 @@
+<Bindings>
+ <Binding name="PADCHAT_TOGGLE" header="PADCHAT" category="ADDONS">
+  PadChat_Toggle()
+ </Binding>
+</Bindings>

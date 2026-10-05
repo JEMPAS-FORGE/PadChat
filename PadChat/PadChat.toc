@@ -1,0 +1,12 @@
+## Interface: 16001
+## Title: PadChat
+## Notes: A simple controller chat keyboard with local voice support.
+## Author: Josh
+## Version: 0.2.0-preview.1
+## SavedVariables: PadChatDB
+Core.lua
+Model.lua
+UI.lua
+VoicePTT.lua
+Invites.lua
+Events.lua
