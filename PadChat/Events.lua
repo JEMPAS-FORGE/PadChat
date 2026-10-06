@@ -39,7 +39,7 @@ local function bindOpen() P:ApplyOpenBindings() end
 P.openBindingOwner=owner
 owner:SetScript('OnUpdate',function(_,dt) if P.db and not P.conflictingAddon then P:PollOpeningChord(dt) end end)
 local function sent(text,kind,language,target)
- if not P.db then return end
+ if not P.db or not P.IsString(text) or not P.IsString(kind) or not P.IsReadable(target) then return end
  P.justSent=true;P:Learn(text);P:RememberVoiceChannel(kind,target)
 end
 SLASH_PADCHAT1='/padchat';SLASH_PADCHAT2='/pc'
@@ -64,7 +64,7 @@ SlashCmdList.PADCHATVOICE=function(text)
  elseif cmd=='reply' and arg~='' then P:SelectVoiceReply(arg)
  else P:Print('Open: /padchat or F9. Tap F8: channel. Hold F8: speak.') end
 end
-for _,event in ipairs({'ADDON_LOADED','PLAYER_LOGIN','PLAYER_LOGOUT','PLAYER_REGEN_DISABLED','PLAYER_REGEN_ENABLED','PLAYER_ENTERING_WORLD','GAME_PAD_ACTIVE_CHANGED','GAME_PAD_CONNECTED','GAME_PAD_DISCONNECTED','GROUP_ROSTER_UPDATE','ADDON_ACTION_BLOCKED','ADDON_ACTION_FORBIDDEN'}) do owner:RegisterEvent(event) end
+for _,event in ipairs({'ADDON_LOADED','PLAYER_LOGIN','PLAYER_LOGOUT','PLAYER_REGEN_DISABLED','PLAYER_REGEN_ENABLED','PLAYER_ENTERING_WORLD','GAME_PAD_ACTIVE_CHANGED','GAME_PAD_CONNECTED','GAME_PAD_DISCONNECTED','GROUP_ROSTER_UPDATE','ADDON_ACTION_BLOCKED','ADDON_ACTION_FORBIDDEN'}) do P.RegisterOptionalEvent(owner,event) end
 owner:SetScript('OnEvent',function(_,event,addon)
  if P.conflictingAddon then return end
  if event=='ADDON_LOADED' and addon==name then P:InitDB()
@@ -74,8 +74,10 @@ owner:SetScript('OnEvent',function(_,event,addon)
    P.conflictingAddon=true;P:Print('Disable ControllerKeyboard and ControllerKeyboardTouchpad, then restart WoW to use PadChat.');return
   end
   P:BuildUI();P:InitPTT();bindOpen()
-  if SendChatMessage then hooksecurefunc('SendChatMessage',sent) end
-  if C_ChatInfo and C_ChatInfo.SendChatMessage then hooksecurefunc(C_ChatInfo,'SendChatMessage',sent) end
+  -- The old global may forward to the namespace. Hook one route, so a sent
+  -- word is learned once on clients retaining the deprecated wrapper.
+  if C_ChatInfo and C_ChatInfo.SendChatMessage then hooksecurefunc(C_ChatInfo,'SendChatMessage',sent)
+  elseif SendChatMessage then hooksecurefunc('SendChatMessage',sent) end
   local key,pad=P:BindingDescription()
   P:Print('Ready. %s / %s: keyboard. /padchat options: settings. Voice shortcuts require the companion.',key,pad)
  elseif event=='PLAYER_REGEN_DISABLED' then

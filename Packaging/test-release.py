@@ -9,7 +9,7 @@ import tempfile
 import zipfile
 
 ROOT = Path(__file__).resolve().parent
-DIST = ROOT.parent/'releases'/'0.2.1-preview.1'
+DIST = ROOT.parent/'releases'/'0.3.0-preview.1'
 WORK = ROOT/'release-tests'
 WORK.mkdir(exist_ok=True)
 def run(args, **kw):
@@ -47,7 +47,7 @@ def main():
     output=run([DIST/'PadChat-Setup.exe','--self-test',stage,'embedded','embedded'],cwd=data,env=env)
     print(output.strip())
     # The included source can reproduce all public addon mock tests.
-    for name in ('test-padchat.py','test-runtime.py','test-invites.py','test-options.py'):
+    for name in ('test-padchat.py','test-runtime.py','test-invites.py','test-options.py','test-clients.py'):
         text=(ROOT.parent/name).read_text()
         text=text.replace("root/'PadChat/Model.lua'", "root/'packaging/payload/PadChat/Model.lua'")
         text=text.replace("root/'PadChat'", "root/'packaging/payload/PadChat'")

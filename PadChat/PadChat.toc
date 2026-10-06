@@ -1,10 +1,11 @@
-## Interface: 16001
+## Interface: 16001, 120100, 50504, 11509, 20506
 ## Title: PadChat
 ## Notes: A simple controller chat keyboard with local voice support.
 ## Author: Josh
-## Version: 0.2.1-preview.1
+## Version: 0.3.0-preview.1
 ## SavedVariables: PadChatDB
 Core.lua
+Compat.lua
 Model.lua
 Options.lua
 UI.lua

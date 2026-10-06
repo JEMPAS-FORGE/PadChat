@@ -1,13 +1,9 @@
-# PadChat 0.2.1-preview.1
+# PadChat 0.3.0 Preview 1 — Client compatibility
 
-- Added controller-selectable Options and Close keys on the keyboard bottom row.
-- Added D-pad navigation/value changes, X/A activation and Circle/B dismissal inside Options.
-- Fixed Escape/Close handling, draft preservation and hidden control hints.
-- Added saved opening bindings with optional held shoulder/trigger modifiers and conflict notices.
-- Fixed Send with both WoW key-down preferences.
-- Repaired native PS5 Create/Share detection in the Windows companion; tap cycles channels and hold dictates. Controller support is bundled and does not require Steam.
-- Keyboard F8 voice typing and optional automatic startup remain supported.
+- Multi-interface addon for current Retail, Classic Era/Hardcore, Anniversary, progression Classic and Forever.
+- Capability-based modern/legacy friend lists and chat hooks; localised General channels.
+- Skip secret chat/friend values and respect chat lockdown.
+- Voice companion recognises all current WoW executable names and still requires the addon handshake.
+- Installer accepts those client families and can install into multiple game folders with one shared voice companion. Migration, rollback and removal checks cover multiple client folders.
 
-Voice users must also update the Windows companion. The CurseForge ZIP installs the addon only. The complete Windows package below installs both parts; extract and run PadChat-Setup.exe with WoW closed, then choose your game folder and Windows microphone.
-
-Automated addon, bundled speech and installer checks pass. The original user confirmed the repaired controller controls in live play. This remains an unsigned preview; a second clean PC has not been tested.
+Experimental compatibility, not universal certification: upstream API checks and automated profiles pass; new client families still need live gameplay checks. Historical original/private-server clients, future interfaces and macOS/Linux voice are outside this preview. Existing 0.2.1 remains the published Forever release.

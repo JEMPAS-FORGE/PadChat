@@ -1,0 +1,36 @@
+{
+  "result": "passed",
+  "profiles": [
+    {
+      "client": "retail",
+      "apiMockTests": "passed",
+      "upstreamCommit": "09b9db7948abc9b9648dedaab51eb0cf3ee67b31",
+      "liveGameplay": "not tested here"
+    },
+    {
+      "client": "classic",
+      "apiMockTests": "passed",
+      "upstreamCommit": "a53b9b28857fd11184573f8dda6a746a789abc0e",
+      "liveGameplay": "not tested here"
+    },
+    {
+      "client": "era",
+      "apiMockTests": "passed",
+      "upstreamCommit": "8165d4cd6e48d606369336cc3a7977902310e81e",
+      "liveGameplay": "not tested here"
+    },
+    {
+      "client": "anniversary",
+      "apiMockTests": "passed",
+      "upstreamCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+      "liveGameplay": "not tested here"
+    },
+    {
+      "client": "forever",
+      "apiMockTests": "passed",
+      "upstreamCommit": "a84e2b1b41d3d4137127c07e4da448aa3251d6f1",
+      "liveGameplay": "not tested here"
+    }
+  ],
+  "scope": "current official client families; not historical or private-server clients"
+}

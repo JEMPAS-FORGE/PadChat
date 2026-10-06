@@ -1,8 +1,9 @@
-PADCHAT FOR WOW FOREVER — 0.2.1 preview 1
+PADCHAT FOR WOW FOREVER â€” 0.2.1 preview 1
 
 INSTALL
-Run PadChat-Setup.exe, select the WoW Forever folder containing WowB.exe and
-Data (usually World of Warcraft\_classic_beta_), then click Install.
+Run PadChat-Setup.exe, select a WoW client folder containing its Wow executable
+and Data (such as _retail_, _classic_ or _classic_era_), then click Install.
+Repeat for each installed client. One shared voice helper serves those clients.
 Close WoW first. If Windows protects the game folder, approve the installer
 administrator prompt using your SAME Windows account.
 Choose your host PC microphone when prompted. Start WoW, enable PadChat in
@@ -48,14 +49,18 @@ L1 / LB: channel. R1 / RB: suggestions. L2 / LT: shift. R2 / RT: letters/numbers
 Options / Start: send. The keyboard closes and releases bindings in combat.
 
 SUPPORTED
-Host: Windows 10/11 x64, WoW Forever 1.60.x (Interface 16001), English voice.
+Targets: Retail 12.x, progression Classic 5.5.x, Era/Hardcore 1.15.x,
+Anniversary 2.5.x and Forever 1.60.x. Windows 10/11 x64; English voice.
+Compatibility preview: API checks pass; new client families need live gameplay
+checks before stable support. See COMPATIBILITY.md for audited builds.
 One controller at a time: native Sony controller or XInput / Xbox-compatible
 input. F8 works independently.
 Keep WoW and the voice helper at the same normal user privilege level.
 The controller must work in WoW first. PadChat does not configure controller
 hardware, drivers or networking.
 This preview is not certified on every controller, client patch or processor.
-Retail WoW, older Classic, macOS and Linux are not supported by this package.
+Historical original/private-server clients and future interfaces need separate
+ports/checks. The Windows voice companion does not support macOS or Linux.
 
 MICROPHONES
 Voice uses the chosen microphone on the Windows PC.
@@ -68,10 +73,11 @@ Missing/ambiguous devices stop recognition and show settings; nothing is sent.
 If capture is denied, allow desktop microphone access in Windows Privacy settings.
 
 UPDATE / REPAIR / REMOVE
-Close WoW; rerun the installer to update or repair the same game folder.
+Close all WoW clients; rerun Setup for EACH game folder to update or repair it.
+Microphone and voice/startup preferences are shared between client folders.
 Your microphone selection and WoW PadChatDB settings are preserved.
-Remove from Windows Settings > Apps > PadChat for WoW Forever, or Start menu >
-PadChat > Uninstall PadChat. Only PadChat's addon, helper and startup entries are
+Remove from Windows Settings > Apps > PadChat for World of Warcraft, or Start menu >
+PadChat > Uninstall PadChat. Only PadChat's addon in all recorded client folders, helper and startup entries are
 removed. Your microphone settings, documentation and WoW SavedVariables stay.
 Do not manually move the installed game folder without uninstalling first.
 

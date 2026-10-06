@@ -1,6 +1,7 @@
 # PadChat public package
 
-Target: WoW Forever 1.60.x / Interface 16001, Windows 10/11 x64.
+Targets: current Retail, Era/Hardcore, Anniversary, progression Classic and
+Forever; see COMPATIBILITY.md for audited interfaces. Voice: Windows 10/11 x64.
 This is a preview release, not a claim of support for every WoW client or device.
 
 The running personal helper and live WoW addon are never changed by this build.

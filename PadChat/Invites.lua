@@ -1,7 +1,7 @@
 local _, CK = ...
 
 local function clean(name)
-    if type(name)~='string' or #name>120 or name:find('[%c/;|]') then return end
+    if not CK.IsString(name) or #name>120 or name:find('[%c/;|]') then return end
     name=name:match('^%s*(.-)%s*$')
     if name~='' then return name end
 end
@@ -16,6 +16,7 @@ local function characterAddress(name)
 end
 
 function CK:InviteUnavailable(game)
+    if not self:ReadableGameAccount(game) then return 'Friend details unavailable' end
     if not game or not game.isOnline or game.isAppearOffline then return 'Offline' end
     if game.clientProgram~=(BNET_CLIENT_WOW or 'WoW') then return 'Playing another game' end
     if game.wowProjectID~=WOW_PROJECT_ID then return 'Different WoW version' end
@@ -41,6 +42,7 @@ end
 
 function CK:InviteRoster()
     local list,byKey={},{}
+    if C_ChatInfo and C_ChatInfo.InChatMessagingLockdown and C_ChatInfo.InChatMessagingLockdown() then return list end
     local function add(entry)
         if not entry or not clean(entry.label) then return end
         local key=entry.key:lower()
@@ -58,30 +60,28 @@ function CK:InviteRoster()
             and not (UnitInParty and UnitInParty(unit)) and not (UnitInRaid and UnitInRaid(unit)) then
             local name,realm
             if UnitFullName then name,realm=UnitFullName(unit) elseif UnitName then name=UnitName(unit) end
-            if name then character(realm and realm~='' and name..'-'..realm or name) end
+            if self.IsString(name) and self.IsReadable(realm) then character(realm and realm~='' and name..'-'..realm or name) end
         end
     end
     -- Include offline character friends too. Do not use the online-only chat roster here.
-    if C_FriendList and C_FriendList.GetNumFriends and C_FriendList.GetFriendInfoByIndex then
-        for i=1,C_FriendList.GetNumFriends() do
-            local friend=C_FriendList.GetFriendInfoByIndex(i)
-            if friend then character(friend.name,not friend.connected and 'Offline' or nil) end
-        end
-    end
+    for _,friend in ipairs(self:CharacterFriends()) do character(friend.name,not friend.connected and 'Offline' or nil) end
     for _,name in ipairs(self:KnownNames()) do character(name) end
     for _,entry in ipairs(self.voiceRecentWhispers or {}) do character(entry.name) end
     if C_BattleNet and C_BattleNet.GetFriendAccountInfo and BNGetNumFriends then
         for i=1,BNGetNumFriends() do
             local account=C_BattleNet.GetFriendAccountInfo(i)
-            if account then
+            if self.IsReadable(account) and type(account)=='table' and self.IsReadable(account.bnetAccountID) then
                 local tag=clean(account.battleTag) or clean(account.accountName) or 'Battle.net friend'
                 local games={}
                 local count=C_BattleNet.GetFriendNumGameAccounts and C_BattleNet.GetFriendNumGameAccounts(i) or 0
                 for j=1,count do
                     local game=C_BattleNet.GetFriendGameAccountInfo(i,j)
-                    if game then games[#games+1]=game end
+                    if self:ReadableGameAccount(game) then games[#games+1]=game end
                 end
-                if #games==0 then games[1]=account.gameAccountInfo or {} end
+                if #games==0 and self.IsReadable(account.gameAccountInfo) then
+                    if account.gameAccountInfo==nil then games[1]={}
+                    elseif self:ReadableGameAccount(account.gameAccountInfo) then games[1]=account.gameAccountInfo end
+                end
                 for _,game in ipairs(games) do
                     local id=tonumber(game.gameAccountID) or 0
                     local accountID=tonumber(account.bnetAccountID) or 0

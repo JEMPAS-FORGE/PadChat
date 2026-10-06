@@ -5,7 +5,7 @@ local prefix = {SAY='/s', YELL='/y', PARTY='/p', RAID='/ra', GUILD='/g',
     OFFICER='/o', INSTANCE_CHAT='/i', RAID_WARNING='/rw', EMOTE='/e'}
 
 function CK:RememberVoiceChannel(kind, target, replyType)
-    if not kind then return end
+    if not self.IsString(kind) or not self.IsReadable(target) or not self.IsReadable(replyType) then return end
     local previous=self.voiceLastChannel
     -- Keep the selected Reply destination after our own successful whisper.
     if previous and previous.chatType=='REPLY' and previous.target==target and previous.replyType==kind then return end
@@ -16,8 +16,9 @@ function CK:VoiceReplyTarget()
     local name,kind
     if ChatFrameUtil and ChatFrameUtil.GetLastTellTarget then name,kind=ChatFrameUtil.GetLastTellTarget()
     elseif ChatEdit_GetLastTellTarget then name,kind=ChatEdit_GetLastTellTarget() end
+    if not self.IsString(name) or not self.IsReadable(kind) then return end
     kind=kind or 'WHISPER'
-    if type(name)~='string' or name=='' or #name>100 or name:find('[%c/|;]') then return end
+    if not CK.IsString(name) or name=='' or #name>100 or name:find('[%c/|;]') then return end
     if kind~='WHISPER' then return end
     return name,kind
 end
@@ -26,7 +27,7 @@ local function whisperAddress(name)
     -- Forever accepts First-Last as the unambiguous full character name.
     -- Use an explicit recipient, never /r, which could switch recipients if
     -- another whisper arrives between the handshake and native text entry.
-    if type(name)~='string' or name=='' or #name>100 or name:find('[%c/|;]') then return end
+    if not CK.IsString(name) or name=='' or #name>100 or name:find('[%c/|;]') then return end
     if name:find('%s') then
         if not (RegionalUniqueNamesEnabled and RegionalUniqueNamesEnabled()) or not name:match('^[^%s]+ [^%s]+$') then return end
         name=name:gsub(' ','-')
@@ -37,7 +38,7 @@ end
 function CK:VoiceReplyChoices()
     local choices,seen={},{}
     local function add(name,kind)
-        if kind~='WHISPER' then return false end
+        if not self.IsReadable(kind) or kind~='WHISPER' then return false end
         local address=whisperAddress(name)
         if not address or seen[address:lower()] then return false end
         seen[address:lower()]=true
@@ -48,7 +49,7 @@ function CK:VoiceReplyChoices()
     local nextTell=ChatFrameUtil and ChatFrameUtil.GetNextTellTarget or ChatEdit_GetNextTellTarget
     local visited={}
     for i=1,20 do
-        if type(name)~='string' or name=='' then break end
+        if not self.IsString(name) or not self.IsReadable(kind) or name=='' then break end
         local key=tostring(kind)..':'..name:lower()
         if visited[key] then break end
         visited[key]=true;add(name,kind)
@@ -84,13 +85,7 @@ function CK:SelectVoiceReply(name)
 end
 
 function CK:QuickGeneralChannel()
-    local channels = {GetChannelList()}
-    for i=1,#channels,3 do
-        local id,name=channels[i],channels[i+1]
-        if type(name)=='string' and (name=='General' or name:match('^General%s*%-')) then
-            return id
-        end
-    end
+    return self:GeneralChannelID()
 end
 
 function CK:VoiceChannelNotice(message)
@@ -233,14 +228,17 @@ function CK:InitPTT()
         SetOverrideBinding(owner,true,'CTRL-SHIFT-F9','OPENCHAT')
         SetOverrideBindingClick(owner,true,'CTRL-SHIFT-F8',cycle:GetName())
         SetOverrideBindingClick(owner,true,'CTRL-SHIFT-F7',exit:GetName())
-        SetOverrideBinding(owner,true,'CTRL-SHIFT-F6','TOGGLEUIFOCUS')
+        -- Forever's native UI-focus toggle is not a binding in every client.
+        if GamepadMode and GamepadMode.FrameControlsManager then
+            SetOverrideBinding(owner,true,'CTRL-SHIFT-F6','TOGGLEUIFOCUS')
+        end
         SetOverrideBindingClick(owner,true,'CTRL-SHIFT-F4',invite:GetName())
         SetOverrideBindingClick(owner,true,'CTRL-SHIFT-F3',characterInvite:GetName())
         -- Create is reserved for voice. Touchpad click remains PADBACK.
         SetOverrideBindingClick(owner,true,'PADSOCIAL',noop:GetName())
     end
     owner:RegisterEvent('PLAYER_ENTERING_WORLD');owner:RegisterEvent('PLAYER_REGEN_ENABLED')
-    owner:RegisterEvent('GAME_PAD_ACTIVE_CHANGED')
+    CK.RegisterOptionalEvent(owner,'GAME_PAD_ACTIVE_CHANGED')
     owner:RegisterEvent('CHAT_MSG_WHISPER')
     owner:SetScript('OnEvent',function(_,event,message,sender)
         if event=='CHAT_MSG_WHISPER' then CK:RememberIncomingVoiceWhisper(sender)

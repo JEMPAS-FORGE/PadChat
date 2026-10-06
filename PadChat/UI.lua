@@ -100,8 +100,9 @@ function P:BuildUI()
   if not P.open then return end
   if P.repeatAction and GetTime()>=P.repeatAt then P:Act(P.repeatAction);P.repeatAt=GetTime()+.18 end
   P.pollAt=(P.pollAt or 0)+dt
-  if not P.stickEvents and P.pollAt>=.03 and C_GamePad and C_GamePad.GetDeviceMappedState then
-   P.pollAt=0;local id=C_GamePad.GetActiveDeviceID();local state=id and C_GamePad.GetDeviceMappedState(id)
+  if not P.stickEvents and P.pollAt>=.03 and C_GamePad and C_GamePad.GetDeviceMappedState and C_GamePad.GetActiveDeviceID then
+   P.pollAt=0;local id=C_GamePad.GetActiveDeviceID();local ok,state=pcall(C_GamePad.GetDeviceMappedState,id)
+   if not ok then return end
    local stick=state and state.sticks and state.sticks[1]
    if stick and P.model:Stick(stick.x or 0,stick.y or 0,GetTime()) then P:Refresh() end
   end

@@ -14,9 +14,9 @@ using Microsoft.Win32;
 using File=LongFile;
 using Directory=LongDirectory;
 
-class InstallState { public string Game,Version; public bool Voice,Startup; }
+class InstallState { public string Game,Version; public string[] Games; public bool Voice,Startup; }
 class Engine {
-  public const string Version="0.2.1-preview.1";
+  public const string Version="0.3.0-preview.1";
  public readonly string Root; public readonly bool Test;
  static readonly JavaScriptSerializer Json=new JavaScriptSerializer();
  public Engine(string root,bool test){Root=Path.GetFullPath(root);Test=test;}
@@ -35,16 +35,17 @@ class Engine {
  }
  public void ValidateGame(string game){
   game=Path.GetFullPath(game);AssertNoLinks(game);
-  string exe=Path.Combine(game,"WowB.exe");
-  if(!File.Exists(exe)||!Directory.Exists(Path.Combine(game,"Data")))throw new IOException("Select the WoW Forever game folder containing WowB.exe and Data (usually _classic_beta_).");
+  string exe=WoWClients.FindExecutable(game);
+  if(exe==null||!Directory.Exists(Path.Combine(game,"Data")))throw new IOException("Select a WoW client folder containing its Wow executable and Data, such as _retail_ or _classic_era_.");
   if(!Test){
    var v=FileVersionInfo.GetVersionInfo(exe);
-   if(!SupportedVersion(v.FileVersion))throw new IOException("This release supports WoW Forever 1.60.x only. It does not support Retail or Classic clients.");
-   if(Process.GetProcessesByName("WowB").Length!=0)throw new IOException("Close WoW before installing or updating PadChat.");
+   if(!SupportedVersion(v.FileVersion))throw new IOException("This preview targets current Retail (12.x), Era (1.15.x), Anniversary (2.5.x), progression Classic (5.5.x) and Forever (1.60.x). Older or unknown clients need a separate compatibility check.");
+   if(WoWClients.AnyRunning())throw new IOException("Close all WoW clients before installing or updating PadChat.");
   }
   AssertNoLinks(Path.Combine(game,"Interface","AddOns","PadChat"));
  }
- public static bool SupportedVersion(string value){return (value??"").StartsWith("1.60.",StringComparison.Ordinal);}
+ public static bool SupportedVersion(string value){return WoWClients.SupportsVersion(value);}
+ static string[] GameFolders(InstallState s){return s==null?new string[0]:s.Games??new[]{s.Game};}
  static void CopyTree(string from,string to){
   Directory.CreateDirectory(to);
   foreach(string file in Directory.GetFiles(from)){File.Copy(file,Path.Combine(to,Path.GetFileName(file)),true);}
@@ -85,7 +86,6 @@ class Engine {
  public void Install(string game,bool voice,bool startup,string payloadPath,string uninstallerPath,bool failAfterSwap){
   game=Path.GetFullPath(game);ValidateGame(game);AssertNoLinks(Root);Directory.CreateDirectory(Root);
   var previous=ReadState();
-  if(previous!=null&&!string.Equals(previous.Game,game,StringComparison.OrdinalIgnoreCase))throw new IOException("PadChat is already installed for another game folder. Uninstall it first to switch folders.");
   string work=Path.Combine(Root,"stage-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(work);
   string addon=Path.Combine(game,"Interface","AddOns","PadChat"), app=Path.Combine(Root,"App");
   string addonNew=addon+".padchat-new", addonOld=addon+".padchat-backup", appNew=app+".new", appOld=app+".backup";
@@ -100,7 +100,8 @@ class Engine {
    if(hadAddon)Directory.Move(addon,addonOld);movedAddon=true;Directory.Move(addonNew,addon);
    if(hadApp)Directory.Move(app,appOld);movedApp=true;if(voice)Directory.Move(appNew,app);
    if(failAfterSwap)throw new IOException("Injected update failure");
-   var state=new InstallState{Game=game,Voice=voice,Startup=voice&&startup,Version=Version};
+   var games=new List<string>(GameFolders(previous));if(!games.Contains(game,StringComparer.OrdinalIgnoreCase))games.Add(game);
+   var state=new InstallState{Game=game,Games=games.ToArray(),Voice=voice,Startup=voice&&startup,Version=Version};
    File.WriteAllText(StatePath,Json.Serialize(state));
    File.Copy(uninstallerPath,Path.Combine(Root,"Uninstall.exe"),true);
    CopyTree(Path.Combine(work,"Docs"),Path.Combine(Root,"Docs"));
@@ -144,7 +145,7 @@ class Engine {
   if(s.Voice){Shortcut(MenuPath,"PadChat Voice",Path.Combine(Root,"App","PadChatVoice.exe"),"");Shortcut(MenuPath,"Choose microphone",Path.Combine(Root,"App","PadChatVoice.exe"),"--microphone");if(s.Startup)Shortcut(StartupPath,"PadChat",Path.Combine(Root,"App","PadChatVoice.exe"),"");}
   Shortcut(MenuPath,"PadChat Help",Path.Combine(Root,"Docs","START-HERE.txt"),"");Shortcut(MenuPath,"Uninstall PadChat",Path.Combine(Root,"Uninstall.exe"),"");
   using(var key=Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\PadChat")){
-   key.SetValue("DisplayName","PadChat for WoW Forever");key.SetValue("DisplayVersion",Version);key.SetValue("Publisher","PadChat contributors");key.SetValue("UninstallString","\""+Path.Combine(Root,"Uninstall.exe")+"\"");key.SetValue("InstallLocation",Root);key.SetValue("NoModify",1);key.SetValue("NoRepair",1);
+   key.SetValue("DisplayName","PadChat for World of Warcraft");key.SetValue("DisplayVersion",Version);key.SetValue("Publisher","PadChat contributors");key.SetValue("UninstallString","\""+Path.Combine(Root,"Uninstall.exe")+"\"");key.SetValue("InstallLocation",Root);key.SetValue("NoModify",1);key.SetValue("NoRepair",1);
   }
  }
  void RemoveIntegration(){
@@ -155,11 +156,12 @@ class Engine {
  public void Uninstall(){
   var s=ReadState();if(s==null)throw new IOException("No PadChat installation record was found.");
   // Validate recorded paths again before removing just our two managed folders.
-  if(!Test&&Process.GetProcessesByName("WowB").Length!=0)throw new IOException("Close WoW before uninstalling PadChat.");
-  if(string.IsNullOrWhiteSpace(s.Game)||!Path.IsPathRooted(s.Game))throw new IOException("The saved game folder is invalid.");
-  AssertNoLinks(s.Game);AssertNoLinks(Root);StopHelper();
-  string addon=Path.Combine(s.Game,"Interface","AddOns","PadChat");
-  DeleteOwnedTree(addon);DeleteOwnedTree(Path.Combine(Root,"App"));
+  if(!Test&&WoWClients.AnyRunning())throw new IOException("Close all WoW clients before uninstalling PadChat.");
+  var games=GameFolders(s);
+  foreach(string game in games){if(string.IsNullOrWhiteSpace(game)||!Path.IsPathRooted(game))throw new IOException("The saved game folder is invalid.");AssertNoLinks(game);AssertNoLinks(Path.Combine(game,"Interface","AddOns","PadChat"));}
+  AssertNoLinks(Root);StopHelper();
+  foreach(string game in games)DeleteOwnedTree(Path.Combine(game,"Interface","AddOns","PadChat"));
+  DeleteOwnedTree(Path.Combine(Root,"App"));
   RemoveIntegration();File.Delete(StatePath);
   // Keep microphone choice, learned words / WoW SavedVariables and documentation.
  }
@@ -170,11 +172,11 @@ class SetupForm:Form {
  public SetupForm(Engine e,string[] args){
   engine=e;Text="PadChat Setup — "+Engine.Version;ClientSize=new Size(740,445);Font=new Font("Segoe UI",10);StartPosition=FormStartPosition.CenterScreen;FormBorderStyle=FormBorderStyle.FixedDialog;MaximizeBox=false;
   var title=new Label{Text="Controller chat and local voice typing",Location=new Point(24,18),Size=new Size(690,35),Font=new Font("Segoe UI",17,FontStyle.Bold)};
-  var expl=new Label{Text="For WoW Forever 1.60.x on Windows 10/11 (64-bit). Close WoW first.\nInstalls for your Windows account. No Python, drivers or administrator prompt needed unless the game folder is protected.",Location=new Point(24,66),Size=new Size(690,68)};
-  var fLabel=new Label{Text="WoW Forever folder (contains WowB.exe and Data)",Location=new Point(24,142),Size=new Size(670,24)};
+  var expl=new Label{Text="Retail / Era / Hardcore / Anniversary / progression Classic / Forever. Windows 10/11 (64-bit). Close all WoW clients first. Preview compatibility; new clients need live verification. Repeat Setup for each game folder; one shared voice helper.",Location=new Point(24,66),Size=new Size(690,68)};
+  var fLabel=new Label{Text="WoW client folder (contains its Wow executable and Data)",Location=new Point(24,142),Size=new Size(670,24)};
   folder=new TextBox{Location=new Point(24,170),Size=new Size(572,28)};browse=new Button{Text="Browse…",Location=new Point(612,167),Size=new Size(103,32)};
   var old=e.ReadState();folder.Text=old!=null?old.Game:FindGame();
-  browse.Click+=(s,a)=>{using(var dialog=new FolderBrowserDialog{Description="Select the WoW Forever _classic_beta_ folder",SelectedPath=folder.Text})if(dialog.ShowDialog()==DialogResult.OK)folder.Text=dialog.SelectedPath;};
+  browse.Click+=(s,a)=>{using(var dialog=new FolderBrowserDialog{Description="Select the WoW client folder, such as _retail_ or _classic_era_",SelectedPath=folder.Text})if(dialog.ShowDialog()==DialogResult.OK)folder.Text=dialog.SelectedPath;};
   voice=new CheckBox{Text="Install voice typing (English, processed locally; includes speech models)",Checked=old==null||old.Voice,Location=new Point(24,218),Size=new Size(690,28)};
   startup=new CheckBox{Text="Start voice helper automatically when I sign in to Windows",Checked=old==null||old.Startup,Location=new Point(24,250),Size=new Size(690,28)};
   voice.CheckedChanged+=(s,a)=>startup.Enabled=voice.Checked;startup.Enabled=voice.Checked;
@@ -186,9 +188,10 @@ class SetupForm:Form {
  }
  static string FindGame(){
   var paths=new List<string>();
-  foreach(string basePath in new[]{Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)})paths.Add(Path.Combine(basePath,"World of Warcraft","_classic_beta_"));
+  foreach(string basePath in new[]{Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)})foreach(string client in WoWClients.Folders)paths.Add(Path.Combine(basePath,"World of Warcraft",client));
   foreach(var hive in new[]{Registry.LocalMachine,Registry.CurrentUser})try{using(var k=hive.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall")){if(k!=null)foreach(string name in k.GetSubKeyNames())using(var app=k.OpenSubKey(name)){string p=app.GetValue("InstallLocation","") as string;if(!string.IsNullOrEmpty(p)){paths.Add(p);paths.Add(Path.Combine(p,"_classic_beta_"));}}}}catch{}
-  return paths.FirstOrDefault(p=>File.Exists(Path.Combine(p,"WowB.exe")))??"";
+  foreach(var parent in paths.ToArray())foreach(var client in WoWClients.Folders)paths.Add(Path.Combine(parent,client));
+  return paths.FirstOrDefault(p=>WoWClients.FindExecutable(p)!=null)??"";
  }
  async void Install(object sender,EventArgs args){
   string game=folder.Text;bool withVoice=voice.Checked,auto=withVoice&&startup.Checked;
@@ -249,7 +252,9 @@ class Program {
   string game=Path.Combine(root,"Games — fresh user","WoW Forever"),data=Path.Combine(root,"User Profile","PadChat");
   Directory.CreateDirectory(Path.Combine(game,"Data"));File.WriteAllText(Path.Combine(game,"WowB.exe"),"TEST-FIXTURE");
   var e=new Engine(data,true);bool rejected=false;try{e.ValidateGame(root);}catch(IOException){rejected=true;}Check(rejected,"Wrong game folder accepted");
-  Check(Engine.SupportedVersion("1.60.1.70205")&&!Engine.SupportedVersion("11.2.0")&&!Engine.SupportedVersion("1.61.0")&&!Engine.SupportedVersion(null),"Client compatibility check");
+  foreach(string version in new[]{"1.60.1.70235","12.1.0.69933","5.5.4.70032","1.15.9.70003","2.5.6.69795"})Check(Engine.SupportedVersion(version),"Client rejected: "+version);
+  foreach(string version in new[]{"11.2.0","1.61.0","1.12.1","3.3.5","99.1.0",null})Check(!Engine.SupportedVersion(version),"Unknown client accepted");
+  Check(WoWClients.IsProcess("Wow")&&WoWClients.IsProcess("WowClassic")&&WoWClients.IsProcess("WowB")&&WoWClients.IsProcess("WowT")&&!WoWClients.IsProcess("notepad")&&!WoWClients.IsProcess("WowHelper"),"Foreground process allowlist");
   foreach(string bad in new[]{"../escape","/escape",@"C:\escape"}){rejected=false;try{Engine.SafeChild(root,bad);}catch(IOException){rejected=true;}Check(rejected,"Unsafe path accepted");}
   // Clean install from the identical payload and engine used by the GUI.
   e.Install(game,true,true,payload,uninstaller,false);Check(e.ReadState().Voice,"Voice install state");
@@ -265,7 +270,15 @@ class Program {
   rejected=false;try{e.Install(game,true,true,payload,uninstaller,true);}catch(IOException){rejected=true;}Check(rejected&&File.ReadAllText(Path.Combine(addon,"PadChat.toc"))==original,"Failed update did not roll back");
   e.Install(game,true,false,payload,uninstaller,false);Check(!File.Exists(Path.Combine(data,"test-os","Startup","PadChat.lnk")),"Startup opt-out ignored");Check(File.Exists(Path.Combine(data,"voice-microphone.json")),"Mic preference lost on update");
   e.Install(game,false,false,payload,uninstaller,false);Check(!Directory.Exists(Path.Combine(data,"App")),"Keyboard-only upgrade kept helper");
+  // Migrate an older one-folder record, then add another client with rollback.
+  var legacy=e.ReadState();legacy.Games=null;File.WriteAllText(e.StatePath,new JavaScriptSerializer().Serialize(legacy));
+  string second=Path.Combine(root,"Games — fresh user","Retail");Directory.CreateDirectory(Path.Combine(second,"Data"));File.WriteAllText(Path.Combine(second,"Wow.exe"),"TEST-FIXTURE");
+  rejected=false;try{e.Install(second,false,false,payload,uninstaller,true);}catch(IOException){rejected=true;}
+  Check(rejected&&File.Exists(Path.Combine(addon,"PadChat.toc"))&&!Directory.Exists(Path.Combine(second,"Interface","AddOns","PadChat"))&&e.ReadState().Games==null,"Second-client rollback damaged legacy installation");
+  e.Install(second,false,false,payload,uninstaller,false);
+  Check(e.ReadState().Games.Length==2&&File.Exists(Path.Combine(addon,"PadChat.toc"))&&File.Exists(Path.Combine(second,"Interface","AddOns","PadChat","PadChat.toc")),"Side-by-side client installation failed");
   e.Uninstall();Check(!Directory.Exists(addon)&&!File.Exists(e.StatePath),"Uninstall left managed addon/state");Check(File.Exists(Path.Combine(data,"voice-microphone.json")),"Uninstall lost settings");Check(File.Exists(Path.Combine(game,"Interface","AddOns","OtherAddon","keep.txt")),"Other addon was changed");
+  Check(!Directory.Exists(Path.Combine(second,"Interface","AddOns","PadChat")),"Second client left installed after uninstall");
   e.Install(game,true,true,payload,uninstaller,false);Check(e.ReadState().Voice,"Reinstall failed");e.Uninstall();
   Console.WriteLine("PASS: fresh install, paths with spaces/Unicode, wrong-client rejection, path traversal, integrity, update rollback, startup opt-out, keyboard-only, uninstall, preferences, other add-ons, reinstall.");return 0;
  }

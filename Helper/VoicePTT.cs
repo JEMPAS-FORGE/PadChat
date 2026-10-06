@@ -35,7 +35,7 @@ partial class VoicePTT {
   if(SendInput((uint)inputs.Count,inputs.ToArray(),Marshal.SizeOf(typeof(Input)))!=inputs.Count)throw new Exception("Windows rejected keyboard input");
  }
  static void Bridge(ushort key){Keys(0x11,0x10,key);}
- static bool IsGame(IntPtr hwnd){uint pid;GetWindowThreadProcessId(hwnd,out pid);try{return Process.GetProcessById((int)pid).ProcessName=="WowB";}catch{return false;}}
+ static bool IsGame(IntPtr hwnd){uint pid;GetWindowThreadProcessId(hwnd,out pid);try{return WoWClients.IsProcess(Process.GetProcessById((int)pid).ProcessName);}catch{return false;}}
  class Caption:Label {
   protected override void OnPaint(PaintEventArgs e){
    var flags=TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter|TextFormatFlags.WordBreak|TextFormatFlags.NoPrefix;

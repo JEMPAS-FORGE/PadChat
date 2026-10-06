@@ -41,6 +41,7 @@ for name in ('VoicePTT.cs', 'VoiceKeyboard.cs', 'VoiceMicrophone.cs', 'VoiceCont
         text = text.replace('  microphoneEnumeration.Start();microphoneEnumeration.BeginOutputReadLine();microphoneEnumeration.BeginErrorReadLine();', '''  try{microphoneEnumeration.Start();microphoneEnumeration.BeginOutputReadLine();microphoneEnumeration.BeginErrorReadLine();}
   catch(Exception ex){microphoneInfo.Text="Could not start microphone settings: "+ex.Message;}''')
     elif name == 'VoicePTT.cs':
+        text = text.replace('Process.GetProcessById((int)pid).ProcessName=="WowB"', 'WoWClients.IsProcess(Process.GetProcessById((int)pid).ProcessName)')
         # A random WinMM joystick must not have button 9 treated as Share.
         text = text.replace(' static uint NormalizeXInput(ushort buttons)', ''' [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)] struct JoyCaps {
   public ushort manufacturer,product;

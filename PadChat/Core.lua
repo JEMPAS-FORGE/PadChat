@@ -11,7 +11,7 @@ end
 function P:Print(message,...)
  DEFAULT_CHAT_FRAME:AddMessage('|cff7ee7d6PadChat|r: '..string.format(message,...))
 end
-function P.Normalize(value) return string.lower(value or '') end
+function P.Normalize(value) return P.IsString(value) and string.lower(value) or '' end
 function P:InitDB()
  PadChatDB=PadChatDB or {};self.db=PadChatDB
  self.db.words=self.db.words or {};self.db.draft=self.db.draft or ''
@@ -32,6 +32,7 @@ function P:KnownNames()
  return names
 end
 function P:Learn(text)
+ if not self.IsString(text) then return end
  for word in string.lower(text):gmatch("[%a][%a\128-\255'-]*") do
   if #word>=2 and #word<=30 then self.db.words[word]=(self.db.words[word] or 0)+1 end
  end

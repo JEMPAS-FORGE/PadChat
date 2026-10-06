@@ -11,7 +11,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parent
 PERSONAL = ROOT.parent.parent / 'controller-keyboard'
 PAYLOAD = ROOT / 'payload'
-VERSION = '0.2.1-preview.1'
+VERSION = '0.3.0-preview.1'
 DIST = ROOT.parent / 'releases' / VERSION
 CSC = Path(r'C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe')
 
@@ -66,7 +66,8 @@ def main():
     addon=PAYLOAD/'PadChat'
     shutil.copytree(ROOT.parent/'PadChat',addon)
     toc=addon/'PadChat.toc'
-    toc.write_text(toc.read_text().replace('## Version: 0.1.0','## Version: '+VERSION),encoding='utf-8')
+    import re
+    toc.write_text(re.sub(r'(?m)^## Version: .*$', '## Version: '+VERSION, toc.read_text()),encoding='utf-8')
     # Conflict guards are in the tested canonical addon source. Shipping those
     # exact sources avoids accumulating duplicated guards during packaging.
     app=PAYLOAD/'App';app.mkdir()
@@ -88,6 +89,8 @@ def main():
     docs=PAYLOAD/'Docs';docs.mkdir()
     shutil.copyfile(ROOT/'START-HERE.txt',docs/'START-HERE.txt')
     shutil.copyfile(ROOT/'LICENSE.txt',docs/'LICENSE.txt')
+    shutil.copyfile(ROOT.parent/'COMPATIBILITY.md',docs/'COMPATIBILITY.md')
+    shutil.copyfile(ROOT.parent/'COMPAT-TEST-REPORT.json',docs/'COMPAT-TEST-REPORT.json')
     license_inventory(docs/'Licenses')
     shutil.copyfile(native/'LICENSE.txt',docs/'Licenses'/'SDL3-LICENSE.txt')
     # PyInstaller's own redistribution notices from isolated build tools.
@@ -109,6 +112,7 @@ def main():
         for f in addon.iterdir():
             if f.is_file():zip.write(f,'PadChat/'+f.name)
         zip.write(ROOT/'START-HERE.txt','START-HERE.txt');zip.write(ROOT/'LICENSE.txt','LICENSE.txt')
+        zip.write(ROOT.parent/'COMPATIBILITY.md','COMPATIBILITY.md')
     for name in ('START-HERE.txt','LICENSE.txt'):shutil.copyfile(ROOT/name,DIST/name)
     # Small source distribution for both MIT code and native dependency source pointers.
     with zipfile.ZipFile(DIST/'PadChat-source.zip','w',zipfile.ZIP_DEFLATED) as zip:
@@ -120,6 +124,8 @@ def main():
             zip.write(ROOT/f,'Packaging/'+f)
         zip.write(docs/'Licenses'/'DEPENDENCIES.json','DEPENDENCIES.json')
         zip.write(native/'LICENSE.txt','Packaging/SDL3-LICENSE.txt')
+        zip.write(ROOT.parent/'COMPATIBILITY.md','Packaging/COMPATIBILITY.md')
+        zip.write(ROOT.parent/'COMPAT-TEST-REPORT.json','Packaging/COMPAT-TEST-REPORT.json')
     hashes={f.name:hashlib.file_digest(f.open('rb'),'sha256').hexdigest() for f in DIST.iterdir() if f.is_file() and f.name!='SHA256.json'}
     (DIST/'SHA256.json').write_text(json.dumps(hashes,indent=2),encoding='utf-8')
     print('Built',DIST)
