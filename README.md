@@ -4,10 +4,10 @@ Controller chat keyboard and optional **keyboard or controller voice-to-text** f
 
 ## Download and install
 
-Open this project's **Releases** page and select **0.2.0-preview.1**.
+Open this project's **Releases** page and select **0.2.1-preview.1**.
 
-- **PadChat-Windows-Voice-0.2.0-preview.1.zip**: complete Windows package. Extract, close WoW, run PadChat-Setup.exe, select the Forever game folder and a Windows host microphone. Installs both the addon and local speech companion. No Python, API key, paid speech account or model download needed.
-- **PadChat-0.2.0-preview.1.zip**: addon only. Place the PadChat folder in Interface/AddOns and restart WoW. Installs the controller keyboard; it does not capture microphone audio.
+- **PadChat-Windows-Voice-0.2.1-preview.1.zip**: complete Windows package. Extract, close WoW, run PadChat-Setup.exe, select the Forever game folder and a Windows host microphone. Installs both the addon and local speech companion. No Python, API key, paid speech account or model download needed.
+- **PadChat-0.2.1-preview.1.zip**: addon only. Place the PadChat folder in Interface/AddOns and restart WoW. Installs the controller keyboard; it does not capture microphone audio.
 
 The CurseForge addon download is also addon-only. Voice is optional and requires the Windows package above. See INSTALL.txt for complete instructions and removal.
 
@@ -30,12 +30,26 @@ In the keyboard, D-pad or left stick selects keys. X/A confirms, Square/X delete
 
 Chat channels include Say, Yell, General, Party, Raid, Guild and available whisper reply targets. Friend and recent-whisper lists support guarded invitations. The keyboard closes and releases temporary bindings in combat. PadChat does not replace combat bindings or enable native gamepad support.
 
+## Opening options
+
+Click **Options** in PadChat or use **/padchat options**. Choose the keyboard shortcut, controller button and optional held trigger/shoulder modifier; save or reset defaults. Existing binding conflicts are shown. These settings only change opening the keyboard. Voice shortcuts belong to the optional companion and are not changed by this panel.
+
+## Options with a controller
+
+Select **Options** on the keyboard's bottom row with the D-pad or stick, then press **X/A**. Inside Options, D-pad up/down selects a setting; left/right changes its value; X/A activates; Circle/B closes without saving. You can also click the header Options button or type **/padchat options**.
+
+Choose a keyboard opening shortcut, controller button and optional held shoulder/trigger modifier. Save for the current player or reset defaults. Opening settings do not change voice shortcuts or combat bindings.
+
+## Changes in this preview
+
+The keyboard now has selectable Options/Close keys, visible hints and reliable dismissal/send handling. The Windows companion repairs native PS5 Create/Share detection and bundles its controller support; Steam is not required. Voice users must update the companion as well as the CurseForge addon.
+
 ## Supported setup
 
 - WoW Forever **1.60.1**, Interface **16001**. Retail and older Classic are not supported by this preview.
 - Windows **10/11 x64** for the optional companion; local English recognition.
 - One native Sony controller or one XInput input. The controller must already reach Windows and work in WoW.
-- Microphone must be available on the host Windows PC. Moonlight on iPad does not forward the iPad or controller microphone. Separately configured microphone links work only if exposed as Windows inputs.
+- Choose a microphone available on the Windows PC, such as a built-in microphone or USB headset. The addon and companion do not configure game audio playback.
 
 Disable ControllerKeyboard / ControllerKeyboardTouchpad before using PadChat. Do not run older WoW voice helpers alongside PadChat Voice. Voice startup at Windows sign-in is optional in Setup.
 
@@ -60,4 +74,4 @@ Packaging scripts document the original development-folder layout and model inpu
 
 ## License
 
-Original PadChat code is MIT licensed. Bundled speech dependencies and models retain their own licenses and notices in the installed package. Blizzard UI assets are referenced from the installed game and are not shipped. PadChat is not affiliated with Blizzard, Sony, Microsoft, Valve, Moonlight, Sunshine or OpenAI.
+Original PadChat code is MIT licensed. Bundled speech dependencies and models retain their own licenses and notices in the installed package. Blizzard UI assets are referenced from the installed game and are not shipped. PadChat is not affiliated with Blizzard, Sony or Microsoft.

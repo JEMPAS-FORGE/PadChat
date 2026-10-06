@@ -22,6 +22,11 @@ converted CTranslate2 models from SYSTRAN's model repositories.
    sounddevice and onnxruntime. See freeze-backend.ps1 for exact arguments.
 3. Put the converted model folders and official model licenses in the configured
    folders. These build inputs are already present in this workspace.
+   Native Sony input also uses official SDL 3.2.28 x64. Download
+   https://github.com/libsdl-org/SDL/releases/download/release-3.2.28/SDL3-3.2.28-win32-x64.zip
+   and verify SHA-256 fb620c8a98f66ac46a9c9a4ea486c53eae82c5bbe1625cf55e87fd96e7a00d04.
+   Extract SDL3.dll and LICENSE.txt into native/SDL3-3.2.28. Ship both; do not
+   depend on Steam's installation or copy its private development build.
 4. Run build-package.py. It uses explicit inputs, adds original addon code,
    dependency/license notices and SHA-256 manifest, creates keyboard-only/source
    ZIPs, then embeds the verified ZIP in PadChat-Setup.exe.
@@ -42,7 +47,7 @@ a fresh account, and test F8/Share, keyboard sending, combat, whisper recipients
 and friend invites. Test both native Sony and streamed XInput. The isolated
 tests simulate OS integration rather than modifying the developer's Startup or
 registry. Sign the installer with a publisher certificate when distributing
-widely; this preview is unsigned. Release publication is separate from these local validation checks.
+widely; this preview is unsigned. No website/upload has been performed.
 
 Sources: PyInstaller usage https://pyinstaller.org/en/stable/usage.html ;
 Whisper https://github.com/openai/whisper ; Distil-Whisper

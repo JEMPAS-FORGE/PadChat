@@ -64,7 +64,7 @@ partial class VoicePTT {
   var heading=new Label{Text="Microphone for keyboard and controller voice typing",Location=new Point(22,18),Size=new Size(655,38),Font=new Font("Segoe UI",14,FontStyle.Bold)};
   microphoneChoices=new ComboBox{DropDownStyle=ComboBoxStyle.DropDownList,Location=new Point(24,73),Size=new Size(650,34)};
   microphoneChoices.SelectedIndexChanged+=(s,e)=>{microphoneSave.Enabled=microphoneChoices.SelectedItem is MicrophoneChoice;};
-  var explanation=new Label{Text="Only microphones available on the Windows host PC are listed. Moonlight does not forward the iPad microphone; connect a microphone to the host or use a separate microphone link.\n\nSaving does not record. Hold F8 or Share afterwards to speak.",Location=new Point(24,123),Size=new Size(650,100)};
+  var explanation=new Label{Text="Choose a microphone connected to the Windows PC, such as a built-in microphone or USB headset. PadChat does not configure game audio playback.\n\nSaving does not record. Hold F8 or Share afterwards to speak.",Location=new Point(24,123),Size=new Size(650,100)};
   microphoneInfo=new Label{Text="Looking for microphones...",Location=new Point(24,224),Size=new Size(650,36)};
   microphoneSave=new Button{Text="Use this microphone",Location=new Point(445,276),Size=new Size(228,38),Enabled=false};
   microphoneSave.Click+=(s,e)=>SaveMicrophone();

@@ -16,7 +16,7 @@ using Directory=LongDirectory;
 
 class InstallState { public string Game,Version; public bool Voice,Startup; }
 class Engine {
- public const string Version="0.2.0-preview.1";
+  public const string Version="0.2.1-preview.1";
  public readonly string Root; public readonly bool Test;
  static readonly JavaScriptSerializer Json=new JavaScriptSerializer();
  public Engine(string root,bool test){Root=Path.GetFullPath(root);Test=test;}
@@ -40,7 +40,7 @@ class Engine {
   if(!Test){
    var v=FileVersionInfo.GetVersionInfo(exe);
    if(!SupportedVersion(v.FileVersion))throw new IOException("This release supports WoW Forever 1.60.x only. It does not support Retail or Classic clients.");
-   if(Process.GetProcessesByName("WowB").Length!=0)throw new IOException("Close WoW before installing or updating PadChat. Your stream can stay open.");
+   if(Process.GetProcessesByName("WowB").Length!=0)throw new IOException("Close WoW before installing or updating PadChat.");
   }
   AssertNoLinks(Path.Combine(game,"Interface","AddOns","PadChat"));
  }
@@ -179,7 +179,7 @@ class SetupForm:Form {
   startup=new CheckBox{Text="Start voice helper automatically when I sign in to Windows",Checked=old==null||old.Startup,Location=new Point(24,250),Size=new Size(690,28)};
   voice.CheckedChanged+=(s,a)=>startup.Enabled=voice.Checked;startup.Enabled=voice.Checked;
   if(args.Length==4&&args[0]=="--elevated-install"){folder.Text=args[1];voice.Checked=args[2]=="1";startup.Checked=args[3]=="1";Shown+=(s,a)=>Install(null,EventArgs.Empty);}
-  var conflict=new Label{Text="Use one controller and one voice helper. Disable ControllerKeyboard and ControllerKeyboardTouchpad in WoW if installed. An iPad microphone is not forwarded by Moonlight.",Location=new Point(24,290),Size=new Size(690,56)};
+  var conflict=new Label{Text="Use one controller and one voice helper. Disable older keyboard add-ons if installed. Voice typing uses a microphone available on this Windows PC.",Location=new Point(24,290),Size=new Size(690,56)};
   status=new Label{Text="Choose your game folder, then install. Settings are kept on updates.",Location=new Point(24,354),Size=new Size(690,38)};
   install=new Button{Text=old==null?"Install PadChat":"Update / repair",Location=new Point(508,400),Size=new Size(206,34)};install.Click+=Install;
   Controls.AddRange(new Control[]{title,expl,fLabel,folder,browse,voice,startup,conflict,status,install});

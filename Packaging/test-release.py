@@ -9,7 +9,7 @@ import tempfile
 import zipfile
 
 ROOT = Path(__file__).resolve().parent
-DIST = ROOT.parent/'releases'/'0.2.0-preview.1'
+DIST = ROOT.parent/'releases'/'0.2.1-preview.1'
 WORK = ROOT/'release-tests'
 WORK.mkdir(exist_ok=True)
 def run(args, **kw):
@@ -34,12 +34,20 @@ def main():
     assert p.returncode==0 and any(json.loads(line).get('type')=='ready' for line in stdout.splitlines()),stderr
     assert not (data/'voice-microphone.json').exists()
     run([ROOT/'payload'/'App'/'PadChatVoice.exe','--self-test'],cwd=data,env=env)
+    # Native Sony input must be shipped, not borrowed from Steam or PATH.
+    import ctypes
+    native=ROOT/'payload'/'App'/'SDL3.dll'
+    assert native.is_file() and (native.parent/'SDL3-LICENSE.txt').is_file()
+    library=ctypes.CDLL(str(native.resolve()))
+    library.SDL_GetVersion.restype=ctypes.c_int
+    assert library.SDL_GetVersion()==3002028
+    assert hashlib.file_digest(native.open('rb'),'sha256').hexdigest()==hashlib.file_digest((ROOT/'native/SDL3-3.2.28/SDL3.dll').open('rb'),'sha256').hexdigest()
     # Fresh user folder, mixed spaces/Unicode, identical actual payload.
     stage=WORK/('Installer '+next(tempfile._get_candidate_names()))
     output=run([DIST/'PadChat-Setup.exe','--self-test',stage,'embedded','embedded'],cwd=data,env=env)
     print(output.strip())
     # The included source can reproduce all public addon mock tests.
-    for name in ('test-padchat.py','test-runtime.py','test-invites.py'):
+    for name in ('test-padchat.py','test-runtime.py','test-invites.py','test-options.py'):
         text=(ROOT.parent/name).read_text()
         text=text.replace("root/'PadChat/Model.lua'", "root/'packaging/payload/PadChat/Model.lua'")
         text=text.replace("root/'PadChat'", "root/'packaging/payload/PadChat'")
@@ -57,6 +65,10 @@ def main():
             local before=P.open
             SlashCmdList.PADCHAT('');assert(P.open==before)
             ''')
+    # Every shipping Lua/XML file must be exactly the tested canonical source.
+    for path in (ROOT.parent/'PadChat').iterdir():
+        if path.suffix in ('.lua','.xml'):
+            assert path.read_bytes()==(ROOT/'payload/PadChat'/path.name).read_bytes(),path.name
     # Explicit payload allowlist excludes personal state, clips and recordings.
     manifest=json.loads((ROOT/'payload'/'manifest.json').read_text())
     banned=('voice-microphone.json','voice-health.json','voice-routing-error.json','.wav','.pyc','__pycache__')

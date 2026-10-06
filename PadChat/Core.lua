@@ -15,6 +15,7 @@ function P.Normalize(value) return string.lower(value or '') end
 function P:InitDB()
  PadChatDB=PadChatDB or {};self.db=PadChatDB
  self.db.words=self.db.words or {};self.db.draft=self.db.draft or ''
+ self:InitOptions()
  self.model=self:NewModel(self.db.draft);self.open=false
 end
 function P:IsOpen() return self.open end

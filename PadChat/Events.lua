@@ -18,22 +18,26 @@ function P:ControllerBindingMode()
  end
  return found
 end
-local function bindOpen()
+function P:ApplyOpenBindings()
  if InCombatLockdown() or P.tvActionFailed then return end
  ClearOverrideBindings(owner)
- SetOverrideBindingClick(owner,true,'F9',toggle:GetName(),'LeftButton')
+ if not P.db then return end
+ SetOverrideBindingClick(owner,true,P.db.bindings.keyboard,toggle:GetName(),'LeftButton')
  SetOverrideBindingClick(owner,true,'CTRL-SHIFT-F12',toggle:GetName(),'LeftButton')
  -- Raw hardware IDs distinguish touchpad from Xbox Back, even when glyphs
  -- are overridden. Xbox Back remains exclusively Share push-to-talk.
  local mode=P:ControllerBindingMode()
+ local button,modifier=P:ControllerOpenBinding()
+ if button then SetOverrideBindingClick(owner,true,button,(modifier and noop or toggle):GetName(),'LeftButton') end
  if mode=='sony' then
-  SetOverrideBindingClick(owner,true,'PADBACK',toggle:GetName(),'LeftButton')
   -- Native PlayStation Share is Social; the companion reads the physical
   -- button separately. Consume WoW's action without changing saved bindings.
-  SetOverrideBindingClick(owner,true,'PADSOCIAL',noop:GetName(),'LeftButton')
- elseif mode=='xbox' then SetOverrideBindingClick(owner,true,'PADBACK',noop:GetName(),'LeftButton') end
+  if button~='PADSOCIAL' then SetOverrideBindingClick(owner,true,'PADSOCIAL',noop:GetName(),'LeftButton') end
+ elseif mode=='xbox' and button~='PADBACK' then SetOverrideBindingClick(owner,true,'PADBACK',noop:GetName(),'LeftButton') end
 end
+local function bindOpen() P:ApplyOpenBindings() end
 P.openBindingOwner=owner
+owner:SetScript('OnUpdate',function(_,dt) if P.db and not P.conflictingAddon then P:PollOpeningChord(dt) end end)
 local function sent(text,kind,language,target)
  if not P.db then return end
  P.justSent=true;P:Learn(text);P:RememberVoiceChannel(kind,target)
@@ -42,7 +46,8 @@ SLASH_PADCHAT1='/padchat';SLASH_PADCHAT2='/pc'
 SlashCmdList.PADCHAT=function(text)
  if P.conflictingAddon then P:Print('Disable older ControllerKeyboard add-ons and restart WoW.');return end
  C_Timer.After(0,function()
-  if text=='bindings' then
+  if text=='options' or text=='settings' then P:ShowOptions()
+  elseif text=='bindings' then
    P:Print('Controller: %s. Back: %s. Share/Social: %s.',P:ControllerBindingMode() or 'unknown',GetBindingAction('PADBACK',true) or '',GetBindingAction('PADSOCIAL',true) or '')
   elseif text=='clear' then P:SetText('')
   elseif text=='channel' then P:CycleVoiceChannel()
@@ -71,10 +76,14 @@ owner:SetScript('OnEvent',function(_,event,addon)
   P:BuildUI();P:InitPTT();bindOpen()
   if SendChatMessage then hooksecurefunc('SendChatMessage',sent) end
   if C_ChatInfo and C_ChatInfo.SendChatMessage then hooksecurefunc(C_ChatInfo,'SendChatMessage',sent) end
-  P:Print('Ready. Touchpad / F9: keyboard. Tap F8 or Share: channel; hold: voice.')
- elseif event=='PLAYER_REGEN_DISABLED' then if P.open then P:Close() end
+  local key,pad=P:BindingDescription()
+  P:Print('Ready. %s / %s: keyboard. /padchat options: settings. Voice shortcuts require the companion.',key,pad)
+ elseif event=='PLAYER_REGEN_DISABLED' then
+  if P.open then P:Close() end
+  if P.optionsFrame and P.optionsFrame:IsShown() then P.optionsFrame:Hide() end
  elseif event=='PLAYER_REGEN_ENABLED' then
   if P.cleanupPending then P.cleanupPending=nil;ClearOverrideBindings(P.keyboardOwner);P.sendButton:Hide() end
+  if P.optionOwner then ClearOverrideBindings(P.optionOwner) end
   bindOpen()
  elseif event=='PLAYER_ENTERING_WORLD' or event=='GAME_PAD_ACTIVE_CHANGED' or event=='GAME_PAD_CONNECTED' or event=='GAME_PAD_DISCONNECTED' or event=='GROUP_ROSTER_UPDATE' then C_Timer.After(.15,bindOpen)
  elseif (event=='ADDON_ACTION_BLOCKED' or event=='ADDON_ACTION_FORBIDDEN') and addon==name then

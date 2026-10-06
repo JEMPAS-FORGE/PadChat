@@ -11,7 +11,8 @@ import zipfile
 ROOT = Path(__file__).resolve().parent
 PERSONAL = ROOT.parent.parent / 'controller-keyboard'
 PAYLOAD = ROOT / 'payload'
-DIST = ROOT.parent / 'releases' / '0.2.0-preview.1'
+VERSION = '0.2.1-preview.1'
+DIST = ROOT.parent / 'releases' / VERSION
 CSC = Path(r'C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe')
 
 def run(*args):
@@ -65,17 +66,9 @@ def main():
     addon=PAYLOAD/'PadChat'
     shutil.copytree(ROOT.parent/'PadChat',addon)
     toc=addon/'PadChat.toc'
-    toc.write_text(toc.read_text().replace('## Version: 0.1.0','## Version: 0.2.0-preview.1'),encoding='utf-8')
-    # Avoid silently installing competing binding owners on public machines.
-    events=addon/'Events.lua'
-    text=events.read_text()
-    text=text.replace(" if event=='ADDON_LOADED' and addon==name then P:InitDB()", " if P.conflictingAddon then return end\n if event=='ADDON_LOADED' and addon==name then P:InitDB()")
-    text=text.replace(" elseif event=='PLAYER_LOGIN' then\n", " elseif event=='PLAYER_LOGIN' then\n  local loaded=C_AddOns and C_AddOns.IsAddOnLoaded or IsAddOnLoaded\n  if loaded and (loaded('ControllerKeyboard') or loaded('ControllerKeyboardTouchpad')) then\n   P.conflictingAddon=true;P:Print('Disable ControllerKeyboard and ControllerKeyboardTouchpad, then restart WoW to use PadChat.');return\n  end\n")
-    events.write_text(text,encoding='utf-8')
-    # Close slash entry points as well when a competing addon was detected.
-    text=events.read_text().replace("SlashCmdList.PADCHAT=function(text)\n", "SlashCmdList.PADCHAT=function(text)\n if P.conflictingAddon then P:Print('Disable older ControllerKeyboard add-ons and restart WoW.');return end\n")
-    text=text.replace("SlashCmdList.PADCHATVOICE=function(text)\n", "SlashCmdList.PADCHATVOICE=function(text)\n if P.conflictingAddon then return end\n")
-    events.write_text(text,encoding='utf-8')
+    toc.write_text(toc.read_text().replace('## Version: 0.1.0','## Version: '+VERSION),encoding='utf-8')
+    # Conflict guards are in the tested canonical addon source. Shipping those
+    # exact sources avoids accumulating duplicated guards during packaging.
     app=PAYLOAD/'App';app.mkdir()
     shutil.copytree(ROOT/'frozen'/'voice-backend',app/'Backend')
     # CTranslate2's Windows wheel loads every adjacent DLL at import time.
@@ -87,12 +80,16 @@ def main():
         dest=app/'Backend'/name;dest.mkdir(exist_ok=True)
         for file in (PERSONAL/name).iterdir():
             if file.suffix in ('.bin','.json','.txt') and file.is_file():shutil.copyfile(file,dest/file.name)
-    compile_cs(app/'PadChatVoice.exe',*(ROOT/'src'/n for n in ('VoicePTT.cs','VoiceKeyboard.cs','VoiceMicrophone.cs')))
+    compile_cs(app/'PadChatVoice.exe',*(ROOT/'src'/n for n in ('VoicePTT.cs','VoiceKeyboard.cs','VoiceMicrophone.cs','VoiceController.cs')))
+    native=ROOT/'native'/'SDL3-3.2.28'
+    shutil.copyfile(native/'SDL3.dll',app/'SDL3.dll')
+    shutil.copyfile(native/'LICENSE.txt',app/'SDL3-LICENSE.txt')
     shutil.copyfile(ROOT/'START-HERE.txt',app/'START-HERE.txt')
     docs=PAYLOAD/'Docs';docs.mkdir()
     shutil.copyfile(ROOT/'START-HERE.txt',docs/'START-HERE.txt')
     shutil.copyfile(ROOT/'LICENSE.txt',docs/'LICENSE.txt')
     license_inventory(docs/'Licenses')
+    shutil.copyfile(native/'LICENSE.txt',docs/'Licenses'/'SDL3-LICENSE.txt')
     # PyInstaller's own redistribution notices from isolated build tools.
     for d in (ROOT/'build-tools').glob('*.dist-info'):
         for f in d.rglob('*'):
@@ -122,6 +119,7 @@ def main():
         for f in ('Setup.cs','Framework.cs','LongIO.cs','prepare-public.py','build-package.py','freeze-backend.ps1','test-release.py','BUILD.md','app.manifest','START-HERE.txt','LICENSE.txt'):
             zip.write(ROOT/f,'Packaging/'+f)
         zip.write(docs/'Licenses'/'DEPENDENCIES.json','DEPENDENCIES.json')
+        zip.write(native/'LICENSE.txt','Packaging/SDL3-LICENSE.txt')
     hashes={f.name:hashlib.file_digest(f.open('rb'),'sha256').hexdigest() for f in DIST.iterdir() if f.is_file() and f.name!='SHA256.json'}
     (DIST/'SHA256.json').write_text(json.dumps(hashes,indent=2),encoding='utf-8')
     print('Built',DIST)

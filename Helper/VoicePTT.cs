@@ -166,6 +166,7 @@ partial class VoicePTT {
   if(xcount==1){inputSource="XInput:"+xindex;connected=true;return xbuttons;}
   // Do not accidentally dictate using another player's controller.
   if(xcount>1){inputSource="ambiguous";connected=false;return 0;}
+  uint nativeButtons;if(ReadNativeSony(out connected,out nativeButtons))return nativeButtons;
   JoyState state=new JoyState{size=(uint)Marshal.SizeOf(typeof(JoyState)),flags=0xFF};
   if(joystick!=uint.MaxValue&&SupportedNativeController(joystick)&&joyGetPosEx(joystick,ref state)==0){inputSource="WinMM:"+joystick;connected=true;return state.buttons;}
   joystick=uint.MaxValue;uint candidate=0;int count=0;
@@ -230,6 +231,7 @@ partial class VoicePTT {
   }
   if(args.Length>0&&args[0]=="--self-test"){
    TestKeyboardVoice();
+   TestNativeSony();
    if(Marshal.SizeOf(typeof(XState))!=16||!Chord(NormalizeXInput(0x0020))||!Chord(NormalizeXInput(0x8020)))throw new Exception("XInput Share mapping failed");
    for(int bit=0;bit<16;bit++)if(bit!=5&&Chord(NormalizeXInput((ushort)(1<<bit))))throw new Exception("Non-Share button triggered dictation");
    if(!Chord(0x100)||Chord(0x208)||Chord(0x8)||!ValidPrefix("/p")||ValidPrefix("/run")||ValidPrefix("/w Bad\nName")||Clean("hi\nthere |",100)!="hi there")throw new Exception("PTT safety test failed");
@@ -265,7 +267,7 @@ partial class VoicePTT {
    try{StartWorker();}catch(Exception ex){WorkerError(ex.Message);Status("PadChat voice could not start. Run Setup again to repair.\n"+ex.Message,8000);}
    if((args.Length>0&&args[0]=="--microphone")||!File.Exists(Path.Combine(dataRoot,"voice-microphone.json")))ShowMicrophones();
    timer=new Timer{Interval=20};timer.Tick+=Tick;timer.Start();
-   try{Application.Run();}finally{RemoveKeyboardVoice();StopWorker();if(microphoneTray!=null)microphoneTray.Dispose();microphoneEvent.Dispose();stopEvent.Dispose();}
+   try{Application.Run();}finally{RemoveKeyboardVoice();CloseNativeSony();StopWorker();if(microphoneTray!=null)microphoneTray.Dispose();microphoneEvent.Dispose();stopEvent.Dispose();}
   }
  }
 }

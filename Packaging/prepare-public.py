@@ -5,7 +5,7 @@ root = Path(__file__).resolve().parent
 personal = root.parent.parent / 'controller-keyboard'
 out = root / 'src'
 out.mkdir(exist_ok=True)
-for name in ('VoicePTT.cs', 'VoiceKeyboard.cs', 'VoiceMicrophone.cs',
+for name in ('VoicePTT.cs', 'VoiceKeyboard.cs', 'VoiceMicrophone.cs', 'VoiceController.cs',
              'voice_worker.py', 'microphone_inputs.py'):
     text = (personal / name).read_text(encoding='utf-8-sig')
     if name.endswith('.cs'):
@@ -32,7 +32,7 @@ for name in ('VoicePTT.cs', 'VoiceKeyboard.cs', 'VoiceMicrophone.cs',
  }
 ''' + text[end:]
         text = text.replace('worker.ErrorDataReceived+=(s,e)=>{};', 'worker.ErrorDataReceived+=(s,e)=>WorkerError(e.Data);')
-        text = text.replace('Only inputs available on the laptop are listed. An iPad or a PS5 controller connected to the iPad needs a separate microphone link to the laptop.', 'Only microphones available on the Windows host PC are listed. Moonlight does not forward the iPad microphone; connect a microphone to the host or use a separate microphone link.')
+        text = text.replace('Only inputs available on the laptop are listed. An iPad or a PS5 controller connected to the iPad needs a separate microphone link to the laptop.', 'Choose a microphone connected to the Windows PC, such as a built-in microphone or USB headset. PadChat does not configure game audio playback.')
         text = text.replace('WoW Voice Microphone', 'PadChat Microphone')
         text = text.replace('WoW voice — hold F8 / Share', 'PadChat — hold F8 / Share')
         text = text.replace('  microphoneTray=new NotifyIcon', '''  menu.Items.Add("Help / supported connections",null,(s,e)=>Process.Start(Path.Combine(voiceRoot,"START-HERE.txt")));

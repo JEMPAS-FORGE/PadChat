@@ -21,7 +21,8 @@ function Model:Rows(words)
   rows[r+1]={};for i=1,#chars do local ch=chars:sub(i,i);rows[r+1][i]={label=self.shift and ch:upper() or ch,char=ch} end
  end
  rows[5]={{label='Space',action='space'},{label=self.shift and 'SHIFT' or 'Shift',action='shift'},
-  {label=self.numbers and 'ABC' or '123',action='symbols'},{label='Invite',action='invite'},{label='Send',action='send'}}
+  {label=self.numbers and 'ABC' or '123',action='symbols'},{label='Invite',action='invite'},{label='Send',action='send'},
+  {label='Options',action='options'},{label='Close',action='close'}}
  self.rows=rows;self.col=math.min(self.col,#rows[self.row]);return rows
 end
 function Model:Move(dx,dy)

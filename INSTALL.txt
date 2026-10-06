@@ -1,4 +1,4 @@
-PADCHAT FOR WOW FOREVER — 0.2.0 preview 1
+PADCHAT FOR WOW FOREVER — 0.2.1 preview 1
 
 INSTALL
 Run PadChat-Setup.exe, select the WoW Forever folder containing WowB.exe and
@@ -26,10 +26,22 @@ Release-to-send sends chat immediately: keep messages short and check previews.
 Speech can mishear names. Party invitations require an unambiguous matching
 friend/character; use the list if a spoken name is ambiguous.
 
+OPENING OPTIONS
+Select the Options key in PadChat's bottom row with the D-pad and X / A,
+click the header Options button, or type /padchat options. Inside Options,
+D-pad up/down selects a setting, left/right changes it, X / A activates the
+selected button, and Circle / B closes. Choose a keyboard key,
+controller button and optional held trigger/shoulder modifier. Save or reset
+defaults. Conflicts with existing bindings and the companion Share shortcut
+are shown. These settings do not change voice shortcuts or combat actions.
+Hold the modifier first, then press the opening button.
+Escape, the visible Close button or the chosen keyboard key closes PadChat
+while keeping the draft.
+
 GAMEPAD KEYBOARD
 PlayStation touchpad CLICK: open. Finger sliding is not supported.
 Hold Options + Triangle for half a second: alternative open.
-For Xbox-compatible streamed input, hold Start + Y instead.
+For Xbox-compatible input, hold Start + Y instead.
 D-pad / left stick: step through keys. Release the stick to keep a selection.
 X / A: select. Square / X: delete. Triangle / Y: space. Circle / B: close.
 L1 / LB: channel. R1 / RB: suggestions. L2 / LT: shift. R2 / RT: letters/numbers.
@@ -38,20 +50,18 @@ Options / Start: send. The keyboard closes and releases bindings in combat.
 SUPPORTED
 Host: Windows 10/11 x64, WoW Forever 1.60.x (Interface 16001), English voice.
 One controller at a time: native Sony controller or XInput / Xbox-compatible
-input, including Sunshine's virtual controller. F8 works independently.
+input. F8 works independently.
 Keep WoW and the voice helper at the same normal user privilege level.
-For local or remote Moonlight, the controller must reach Windows and work in
-WoW first. PadChat does not configure Bluetooth, Sunshine, drivers or networking.
+The controller must work in WoW first. PadChat does not configure controller
+hardware, drivers or networking.
 This preview is not certified on every controller, client patch or processor.
 Retail WoW, older Classic, macOS and Linux are not supported by this package.
 
-MICROPHONES AND STREAMING
-Voice uses the chosen microphone on the HOST Windows PC, not the viewing device.
+MICROPHONES
+Voice uses the chosen microphone on the Windows PC.
 Direct headset/USB/built-in PC microphones work if Windows exposes an input.
-Moonlight on iPad does not forward the iPad or its controller microphone.
-TV USB receiver audio/mic bridges are separate configurations, not bundled here.
-An already configured remote microphone link can be chosen if it appears in
-Windows as an input. Game audio playback is independent of PadChat.
+Choose any connected microphone that Windows exposes as an input.
+Game audio playback is independent of PadChat.
 Connect or change a microphone, then choose "Choose microphone" from the Start
 menu or PadChat's tray icon. No silent switch to a different microphone occurs.
 Missing/ambiguous devices stop recognition and show settings; nothing is sent.
@@ -76,10 +86,11 @@ process status. Settings are in %LOCALAPPDATA%\PadChat.
 
 SOURCE AND LICENSES
 PadChat original code is MIT-licensed; see LICENSE.txt.
-Bundled Python, speech engines and models have separate licenses under Licenses.
+Bundled Python, SDL3 controller input, speech engines and models have separate
+licenses under Licenses. SDL3 is included; Steam is not needed for its input.
 Blizzard assets used by the addon are referenced from the installed game; none
 are shipped in this package. PadChat is not affiliated with Blizzard, Valve,
-Sony, Microsoft, Moonlight, Sunshine or OpenAI.
+Sony or Microsoft.
 
 PREVIEW TEST SCOPE
 Installer fresh/update/rollback/uninstall tests and bundled speech inference
