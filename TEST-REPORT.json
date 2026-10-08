@@ -1,14 +1,56 @@
 {
-  "result": "passed",
-  "platform": "win32",
-  "pythonRequiredForEndUser": false,
-  "localModelsInitialise": true,
-  "syntheticPhraseRecognised": true,
-  "freshMicrophoneSelection": true,
-  "installerTests": "PASS: fresh install, paths with spaces/Unicode, wrong-client rejection, path traversal, integrity, update rollback, startup opt-out, keyboard-only, uninstall, preferences, other add-ons, reinstall.",
-  "osIntegration": "startup and registration simulated in isolated test folders",
-  "limitations": [
-    "No second physical PC/clean Windows image tested",
-    "No real microphone or public chat used in release smoke tests"
-  ]
+  "addon": [
+    {
+      "name": "test-padchat.py",
+      "passed": true
+    },
+    {
+      "name": "test-runtime.py",
+      "passed": true
+    },
+    {
+      "name": "test-options.py",
+      "passed": true
+    },
+    {
+      "name": "test-invites.py",
+      "passed": true
+    },
+    {
+      "name": "test-voice-options.py",
+      "passed": true
+    },
+    {
+      "name": "responsive panels, controller onboarding, status ownership, test non-delivery, review settings",
+      "passed": true
+    }
+  ],
+  "package": [
+    {
+      "name": "shipping companion self-test",
+      "passed": true
+    },
+    {
+      "name": "shipping installer discovery",
+      "passed": true
+    },
+    {
+      "name": "shipping installer full isolated install/update/rollback/uninstall",
+      "passed": true
+    },
+    {
+      "name": "clean microphone enumeration",
+      "passed": true
+    },
+    {
+      "name": "bundled synthetic speech",
+      "passed": true
+    },
+    {
+      "name": "embedded payload/source/addon/installer bundle consistency",
+      "passed": true
+    }
+  ],
+  "corruptInstallMetadata": "four cases passed; originals byte-preserved",
+  "liveGameplayVerified": false
 }

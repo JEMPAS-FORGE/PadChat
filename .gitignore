@@ -1,8 +1,5 @@
-*.exe
-*.dll
-*.zip
+dist/
+Payload/
 __pycache__/
-*.pyc
-voice-health.json
-voice-microphone.json
-backend-error.txt
+*.exe
+payload.zip

@@ -1,99 +1,71 @@
-PADCHAT FOR WOW FOREVER — 0.2.1 preview 1
+PadChat 0.2.2 Preview 1 — WoW Forever 1.60.1 / Interface 16001
+Windows voice companion: Windows 10/11 x64, English, local recognition.
 
-INSTALL
-Run PadChat-Setup.exe, select the WoW Forever folder containing WowB.exe and
-Data (usually World of Warcraft\_classic_beta_), then click Install.
-Close WoW first. If Windows protects the game folder, approve the installer
-administrator prompt using your SAME Windows account.
-Choose your host PC microphone when prompted. Start WoW, enable PadChat in
-AddOns, and disable ControllerKeyboard / ControllerKeyboardTouchpad if present.
-Do not run an older WoW Voice helper alongside PadChat Voice.
+INSTALL BOTH PARTS
+1. Close WoW. Run PadChat-Setup.exe. Choose the Forever client folder containing
+   WowB.exe and Data (usually World of Warcraft\_classic_beta_).
+   An arbitrary E:\Padchat folder is not a WoW game folder.
+2. Keep Install voice typing enabled if you want speech. Choose whether the
+   companion starts when you sign in to Windows, then Install.
+3. Select a microphone Windows detects on the gaming PC. Start WoW and enable
+   PadChat. Disable older ControllerKeyboard addons and old voice helpers.
+4. Click PadChat's controller/chat-bubble minimap icon to open Options.
 
-No Python installation, API key, model download or paid speech account needed.
-The installer includes English speech models. Allow about 2 GB of free space
-for installation and updates. Start voice automatically is an optional checkbox.
-With startup enabled, no extra app needs to be opened after Windows sign-in.
-If you exit the helper, open PadChat Voice from the Windows Start menu to resume.
+ADDON ONLY
+The CurseForge ZIP installs the keyboard and in-game Options, not the Windows
+speech engine. Download the matching PadChat-Setup.exe from:
+https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.1
 
-KEYBOARD AND VOICE
-F9 or /padchat: open keyboard, outside combat.
-Tap F8: cycle Say, Yell, General, Party, Raid, Guild and available Reply targets.
-Hold F8: speak. Release: sends recognised words to the selected channel.
-Hold Create/Share on a PlayStation controller, or Back/View on an Xbox input:
-same voice action. Tap that button to change channels.
-Voice also works without a controller. First test in Say, somewhere quiet.
-Release-to-send sends chat immediately: keep messages short and check previews.
-Speech can mishear names. Party invitations require an unambiguous matching
-friend/character; use the list if a spoken name is ambiguous.
+KEYBOARD AND CONTROLLER
+F9 or /padchat opens/closes the keyboard. Native PlayStation touchpad click
+opens it too. Finger sliding is not supported. Other controller identities get
+a first-use Options panel you can navigate with D-pad and A/X. Choose an opening
+button (for example R3) and an optional held trigger. Hold the modifier first.
+Save opening controls. Share/Create/Back is reserved for voice by default.
+Choose a combination that does not overlap your combat actions.
+Inside Options, D-pad changes/selects, A/X activates, B/Circle closes.
+The keyboard has selectable Options and Close keys; Escape also keeps the draft.
 
-OPENING OPTIONS
-Select the Options key in PadChat's bottom row with the D-pad and X / A,
-click the header Options button, or type /padchat options. Inside Options,
-D-pad up/down selects a setting, left/right changes it, X / A activates the
-selected button, and Circle / B closes. Choose a keyboard key,
-controller button and optional held trigger/shoulder modifier. Save or reset
-defaults. Conflicts with existing bindings and the companion Share shortcut
-are shown. These settings do not change voice shortcuts or combat actions.
-Hold the modifier first, then press the opening button.
-Escape, the visible Close button or the chosen keyboard key closes PadChat
-while keeping the draft.
+VOICE SETTINGS IN THE GAME
+Click the minimap icon > Voice settings, or type /padchat voice.
+Click Bind push-to-talk, then press your preferred key or middle/side mouse
+button. Ctrl/Alt/Shift modifiers are supported. Controller voice button and held
+trigger/shoulder are separate choices. Select Microphone to cycle Windows inputs
+reported by WoW; Refresh lists hotplug changes. "Keep current" preserves the
+companion's existing input. A missing/ambiguous input is refused.
+Save & reload UI applies voice choices through WoW's SavedVariables. Do this
+somewhere safe. Pending edits are not the active shortcut until saved and applied.
 
-GAMEPAD KEYBOARD
-PlayStation touchpad CLICK: open. Finger sliding is not supported.
-Hold Options + Triangle for half a second: alternative open.
-For Xbox-compatible input, hold Start + Y instead.
-D-pad / left stick: step through keys. Release the stick to keep a selection.
-X / A: select. Square / X: delete. Triangle / Y: space. Circle / B: close.
-L1 / LB: channel. R1 / RB: suggestions. L2 / LT: shift. R2 / RT: letters/numbers.
-Options / Start: send. The keyboard closes and releases bindings in combat.
+TEST VOICE WITHOUT SENDING
+Open Voice settings, click Test microphone / check companion, then hold your
+CURRENT saved PTT shortcut while this panel stays open. Speak and release.
+The companion reports ready/loading, shows the level/recognised words, and does
+not submit chat or invitations. Closing the panel during a test still prevents
+that test from being sent. If nothing responds, start PadChat Voice from Windows
+Start, check the saved shortcut and microphone permissions, then try again.
+The in-game status reflects the last acknowledged check, not a permanent promise
+that the companion is still running. Tests are foreground-only.
 
-SUPPORTED
-Host: Windows 10/11 x64, WoW Forever 1.60.x (Interface 16001), English voice.
-One controller at a time: native Sony controller or XInput / Xbox-compatible
-input. F8 works independently.
-Keep WoW and the voice helper at the same normal user privilege level.
-The controller must work in WoW first. PadChat does not configure controller
-hardware, drivers or networking.
-This preview is not certified on every controller, client patch or processor.
-Retail WoW, older Classic, macOS and Linux are not supported by this package.
+SEND A MESSAGE
+Outside Voice settings, tap your voice shortcut to cycle channels; hold to speak
+and release to send. Default: F8 or PlayStation Create/Share, Xbox Back/View.
+Select Say for your first real message. Say/Yell/General/Party/Raid/Guild and
+available whisper reply targets are supported. Offline/ambiguous invites are
+guarded; use the friend list if recognition mishears a name.
 
-MICROPHONES
-Voice uses the chosen microphone on the Windows PC.
-Direct headset/USB/built-in PC microphones work if Windows exposes an input.
-Choose any connected microphone that Windows exposes as an input.
-Game audio playback is independent of PadChat.
-Connect or change a microphone, then choose "Choose microphone" from the Start
-menu or PadChat's tray icon. No silent switch to a different microphone occurs.
-Missing/ambiguous devices stop recognition and show settings; nothing is sent.
-If capture is denied, allow desktop microphone access in Windows Privacy settings.
+OPTIONAL REVIEW
+In Voice settings change Send to "review, then press PTT again", Save & reload.
+After dictating, inspect the preview, then press PTT again to send.
+Escape or controller B/Circle cancels. Focus loss/disconnect also cancels.
+Automatic release-to-send remains the default and existing choice is preserved.
 
-UPDATE / REPAIR / REMOVE
-Close WoW; rerun the installer to update or repair the same game folder.
-Your microphone selection and WoW PadChatDB settings are preserved.
-Remove from Windows Settings > Apps > PadChat for WoW Forever, or Start menu >
-PadChat > Uninstall PadChat. Only PadChat's addon, helper and startup entries are
-removed. Your microphone settings, documentation and WoW SavedVariables stay.
-Do not manually move the installed game folder without uninstalling first.
-
-PRIVACY
-Speech recognition runs on the PC using bundled models, without online requests.
-The microphone opens only while push-to-talk is held. Speech buffers/transcripts
-are kept in memory, not written to logs. PadChat learns words from sent messages
-in its WoW SavedVariables; /pc clear clears the draft, not the learned dictionary.
-Voice sending briefly uses/restores the clipboard for verified WoW chat input.
-backend-error.txt contains dependency failures only; voice-health.json contains
-process status. Settings are in %LOCALAPPDATA%\PadChat.
-
-SOURCE AND LICENSES
-PadChat original code is MIT-licensed; see LICENSE.txt.
-Bundled Python, SDL3 controller input, speech engines and models have separate
-licenses under Licenses. SDL3 is included; Steam is not needed for its input.
-Blizzard assets used by the addon are referenced from the installed game; none
-are shipped in this package. PadChat is not affiliated with Blizzard, Valve,
-Sony or Microsoft.
-
-PREVIEW TEST SCOPE
-Installer fresh/update/rollback/uninstall tests and bundled speech inference
-are tested in isolated folders on Windows 11. A second physical PC and fresh
-player account still need real gameplay checks before claiming broad support.
-The installer is unsigned; Windows may display an unknown-publisher warning.
+REPAIR / PRIVACY / LIMITS
+Close WoW and rerun Setup for update/repair. Microphone, voice preferences,
+learned words and other addons are preserved. Malformed discovery metadata is
+skipped rather than closing Setup; use Browse if automatic discovery is empty.
+Recognition runs locally: no API key, model download or paid speech account.
+No recordings or recognition history are written by the microphone test. The
+companion uses/restores the clipboard only for bounded addon-owned handshakes
+and normal native chat delivery. Game sound is independent of PadChat.
+This is an unsigned preview. Automated checks pass; live 70291 acceptance and a
+separate clean PC still need verification. No other WoW client support claimed.

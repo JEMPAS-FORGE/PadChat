@@ -103,6 +103,7 @@ function CK:VoiceChannelNotice(message)
 end
 
 function CK:CycleVoiceChannel()
+    if self.voiceOptionsFrame and self.voiceOptionsFrame:IsShown() or self.optionsFrame and self.optionsFrame:IsShown() then return end
     if self.tvActionFailed or (GetCurrentKeyBoardFocus and GetCurrentKeyBoardFocus()) then return end
     local current=self.voiceLastChannel or {chatType='SAY'}
     local general=self:QuickGeneralChannel()
@@ -121,8 +122,8 @@ function CK:CycleVoiceChannel()
     local nextChannel=choices[index%#choices+1]
     self:RememberVoiceChannel(nextChannel.chatType,nextChannel.target,nextChannel.replyType)
     local label=nextChannel.label
-    if current.chatType=='YELL' and not general then label=label..' — General unavailable here' end
-    self:VoiceChannelNotice('Chat: '..label..'\nTap F8 / Share: channel | Hold: talk')
+    if current.chatType=='YELL' and not general then label=label..' â€” General unavailable here' end
+    self:VoiceChannelNotice('Chat: '..label..'\nTap your voice shortcut: channel | Hold: talk')
 end
 
 function CK:VoiceDestination()
@@ -174,6 +175,7 @@ function CK:ReturnPTTToGame()
 end
 
 function CK:PreparePTT(invite)
+    if self.voiceOptionsFrame and self.voiceOptionsFrame:IsShown() or self.optionsFrame and self.optionsFrame:IsShown() then return end
     -- Never overwrite an existing input field/draft or reopen the full keyboard.
     local focus=GetCurrentKeyBoardFocus and GetCurrentKeyBoardFocus()
     if focus and focus~=self.pttBox then return end
@@ -206,11 +208,12 @@ function CK:InitPTT()
     notice.text:SetAllPoints();notice:Hide();self.pttNotice=notice
     local box=CK.NewFrame('EditBox',nil,UIParent)
     box:SetSize(1,1);box:SetPoint('BOTTOMLEFT',UIParent,'BOTTOMLEFT',0,0)
-    box:SetFontObject(GameFontNormal);box:SetAutoFocus(false);box:SetMaxLetters(240);box:SetAlpha(0)
+    box:SetFontObject(GameFontNormal);box:SetAutoFocus(false);box:SetMaxLetters(2400);box:SetAlpha(0)
     box:SetScript('OnKeyDown',function(_,key)
         if key=='F10' then CK:PreparePTT() elseif key=='F11' then CK:PTTReleaseFocus() end
     end)
     box:SetScript('OnEscapePressed',function() CK:PTTReleaseFocus() end)
+    box:SetScript('OnTextChanged',function() CK:ReadVoiceStatus(box:GetText()) end)
     box:Hide();self.pttBox=box
     local prepare=CK.NewFrame('Button','PadChatPTTPrepare')
     prepare:RegisterForClicks('AnyUp');prepare:SetScript('OnClick',function() CK:PreparePTT() end)
@@ -226,8 +229,10 @@ function CK:InitPTT()
     invite:RegisterForClicks('AnyUp');invite:SetScript('OnClick',function() CK:PreparePTT(true) end)
     local characterInvite=CK.NewFrame('Button','PadChatPTTCharacterInvite')
     characterInvite:RegisterForClicks('AnyUp');characterInvite:SetScript('OnClick',function() CK:PreparePTT('character') end)
+    local probe=CK.NewFrame('Button','PadChatVoiceProbe');probe:RegisterForClicks('AnyUp');probe:SetScript('OnClick',function() CK:PrepareVoiceProbe() end)
     local function bind()
         if InCombatLockdown() or CK.tvActionFailed then return end
+        SetOverrideBindingClick(owner,true,'CTRL-SHIFT-F2',probe:GetName())
         SetOverrideBindingClick(owner,true,'CTRL-SHIFT-F10',prepare:GetName())
         SetOverrideBindingClick(owner,true,'CTRL-SHIFT-F11',finish:GetName())
         SetOverrideBinding(owner,true,'CTRL-SHIFT-F9','OPENCHAT')
@@ -237,7 +242,7 @@ function CK:InitPTT()
         SetOverrideBindingClick(owner,true,'CTRL-SHIFT-F4',invite:GetName())
         SetOverrideBindingClick(owner,true,'CTRL-SHIFT-F3',characterInvite:GetName())
         -- Create is reserved for voice. Touchpad click remains PADBACK.
-        SetOverrideBindingClick(owner,true,'PADSOCIAL',noop:GetName())
+        -- Device-aware voice reservations are owned by Events/VoiceOptions.
     end
     owner:RegisterEvent('PLAYER_ENTERING_WORLD');owner:RegisterEvent('PLAYER_REGEN_ENABLED')
     owner:RegisterEvent('GAME_PAD_ACTIVE_CHANGED')
@@ -247,4 +252,25 @@ function CK:InitPTT()
         else C_Timer.After(.1,bind) end
     end)
     bind()
+end
+
+function CK:PrepareVoiceProbe()
+ local focus=GetCurrentKeyBoardFocus and GetCurrentKeyBoardFocus()
+ if focus and focus~=self.pttBox or self.voiceCapture then return end
+ self.voiceProbeToken=tostring(GetTime());self.voiceProbeDeadline=GetTime()+3
+ local mode=self.voiceOptionsFrame and self.voiceOptionsFrame:IsShown() and 'TEST' or 'NORMAL'
+ self.pttBox:SetText('PCVQ1;'..self.voiceProbeToken..';'..mode)
+ self.pttBox:Show();self.pttBox:SetFocus();self.pttBox:HighlightText()
+end
+function CK:ReadVoiceStatus(value)
+ if type(value)~='string' or #value>2200 then return end
+ local token,state,level,words=value:match('^PCVS1;([0-9.]+);([a-z]+);(%d+);([A-Za-z0-9%% ._-]*)$')
+ if not token or token~=self.voiceProbeToken or not self.voiceProbeDeadline or GetTime()>self.voiceProbeDeadline or not ({ready=true,loading=true,disabled=true,error=true,test=true})[state] then return end
+ words=words:gsub('%%(%x%x)',function(hex) return string.char(tonumber(hex,16)) end)
+ if words:find('[%c|]') then return end
+ self.voiceProbeDeadline=nil;self.voiceProbeToken=nil;self.voiceCheckDeadline=nil
+ self.voiceCompanionStatus='Companion: '..state..' | Microphone level: '..math.min(100,tonumber(level))..'%'
+ if words~='' then self.voiceCompanionStatus=self.voiceCompanionStatus..'\nTest recognised: '..words..' (nothing sent)' end
+ if self.voiceInfo then self.voiceInfo:SetText(self.voiceCompanionStatus) end
+ self:PTTReleaseFocus()
 end

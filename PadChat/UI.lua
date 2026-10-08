@@ -17,7 +17,7 @@ end
 function P:BuildUI()
  if self.frame then return end
  local f=self.NewFrame('Frame','PadChatKeyboard',UIParent);self.frame=f
- f:SetSize(780,480);f:SetPoint('BOTTOM',UIParent,'BOTTOM',0,165);f:SetFrameStrata('DIALOG');f:EnableMouse(true)
+ f:SetSize(780,480);P:FitPanel(f,780,480,165);f:SetFrameStrata('DIALOG');f:EnableMouse(true)
  -- Escape uses WoW's normal special-frame handling. Hiding by any route must
  -- also release our temporary controller bindings and keep the draft.
  UISpecialFrames=UISpecialFrames or {};table.insert(UISpecialFrames,'PadChatKeyboard')
@@ -78,6 +78,10 @@ function P:BuildUI()
   local b=self.NewFrame('Button','PadChatAction'..key);b:RegisterForClicks('AnyDown','AnyUp')
   b:SetScript('OnClick',function(button,_,down)
    if not P.open then return end
+   if P.openingRelease==key then
+    if not down then P.openingRelease=nil end
+    return
+   end
    -- Some clients dispatch binding clicks only on release, or omit down.
    -- Handle those too, without acting twice on a full down/up sequence.
    if down then
@@ -110,6 +114,7 @@ function P:BuildUI()
 end
 function P:Refresh()
  if not self.frame then return end
+ local first,second=self:ControllerHelp();self.hint:SetText('D-pad / stick: move   '..first);self.hint2:SetText(second)
  self.db.draft=self:GetText();self.preview:SetText(self:GetText()=='' and 'Choose a letter or a ready word...' or self:GetText())
  self.keyboardHint:SetText('Keyboard / mouse: click keys   '..self.db.bindings.keyboard..': toggle   Esc or Close: close (keeps draft)')
  local _,destination=self:VoiceDestination();self.channel:SetText(destination or 'Unavailable channel')
@@ -213,6 +218,7 @@ function P:ConfirmInviteTarget(name)
  self.invitePicking=nil;self.inviteReady=true;self:SetText('/invite '..name);return true
 end
 function PadChat_Toggle()
- if P.optionsFrame and P.optionsFrame:IsShown() then P.optionsFrame:Hide()
+ if P.voiceOptionsFrame and P.voiceOptionsFrame:IsShown() then P.voiceOptionsFrame:Hide()
+ elseif P.optionsFrame and P.optionsFrame:IsShown() then P.optionsFrame:Hide()
  elseif P.open then P:Close() else P:Open() end
 end

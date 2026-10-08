@@ -5,8 +5,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 partial class VoicePTT {
- // Reserve unmodified F8 only in foreground WoW. Modified bridge shortcuts
- // (including CTRL-SHIFT-F8) and keys in all other applications pass through.
+ // Observe the saved physical shortcut only in foreground WoW. The addon
+ // reserves its game action, so its binding capture still receives the key.
+ // Injected protocol shortcuts and keys in other applications pass through.
  [StructLayout(LayoutKind.Sequential)] struct HookKey {public uint key,scan,flags,time;public UIntPtr extra;}
  delegate IntPtr KeyboardHook(int code,IntPtr message,IntPtr data);
  [DllImport("user32.dll",SetLastError=true)] static extern IntPtr SetWindowsHookEx(int type,KeyboardHook callback,IntPtr module,uint thread);
@@ -34,32 +35,41 @@ partial class VoicePTT {
  static bool ShouldCycleTap(string source,bool connected,bool latched,long held,long now,string state,bool sameGame){
   return (source=="keyboard"||source=="controller"&&connected)&&!latched&&held!=0&&now-held<300&&state=="idle"&&sameGame;
  }
- static string TalkButton(){return recordSource=="keyboard"?"F8":"Create / Share";}
+ static string TalkButton(){return recordSource=="keyboard"?ShortcutName(voiceShortcut):ControllerVoiceName();}
  static bool CanCaptureF8(uint key,bool game,bool modified,bool wasDown){return key==0x77&&game&&!modified&&!wasDown;}
  static IntPtr OnKeyboard(int code,IntPtr message,IntPtr data){
   if(code>=0){
    var key=(HookKey)Marshal.PtrToStructure(data,typeof(HookKey));
-   if(key.key==0x77){
-    int msg=message.ToInt32();bool down=msg==0x100||msg==0x104,up=msg==0x101||msg==0x105;
+   bool injected=(key.flags&0x10)!=0;
+   if(!injected&&key.key==0x1B&&message.ToInt32()==0x100&&phase=="review"&&SameGame()){Cancel("Review cancelled; nothing sent");return new IntPtr(1);}
+   int msg=message.ToInt32();bool down=msg==0x100||msg==0x104,up=msg==0x101||msg==0x105;
+   if(down&&!injected&&ShortcutCaptureOwnsFocus()){
+    if(key.key==0x1B){CancelShortcutCapture();return new IntPtr(1);}
+    if(!IsModifierKey((int)key.key)){
+     SetCapturedShortcut(new VoiceShortcut{key=(int)key.key,modifiers=CurrentShortcutModifiers()});return new IntPtr(1);
+    }
+   }
+   if(voiceEnabled&&!injected&&voiceShortcut.kind=="keyboard"&&key.key==voiceShortcut.key){
     if(down){
-     bool modified=(GetAsyncKeyState(0x10)<0)||(GetAsyncKeyState(0x11)<0)||(GetAsyncKeyState(0x12)<0);
-     if(CanCaptureF8(key.key,IsGame(GetForegroundWindow()),modified,keyboardPhysicalDown))keyboardHeld=true;
+     if(CanCaptureShortcut(voiceShortcut,"keyboard",key.key,IsGame(GetForegroundWindow()),CurrentShortcutModifiers(),keyboardPhysicalDown,false))keyboardHeld=true;
      keyboardPhysicalDown=true;
-     if(keyboardHeld)return new IntPtr(1);
+     /* The addon reserves the action; capture still sees the key. */
     }else if(up){
-     bool captured=keyboardHeld;keyboardHeld=false;keyboardPhysicalDown=false;
-     if(captured)return new IntPtr(1);
+     keyboardHeld=false;keyboardPhysicalDown=false;
+     /* Releases reach the in-game capture frame. */
     }
    }
   }
   return CallNextHookEx(keyboardHook,code,message,data);
  }
  static void InstallKeyboardVoice(){
-  keyboardPhysicalDown=GetAsyncKeyState(0x77)<0;
+  keyboardPhysicalDown=GetAsyncKeyState(voiceShortcut.key)<0;
   keyboardHook=SetWindowsHookEx(13,keyboardCallback,GetModuleHandle(null),0);
-  if(keyboardHook==IntPtr.Zero)throw new Exception("Could not enable F8 voice typing: "+Marshal.GetLastWin32Error());
+  if(keyboardHook==IntPtr.Zero)throw new Exception("Could not enable voice shortcut: "+Marshal.GetLastWin32Error());
+  mouseHook=SetWindowsHookEx(14,mouseCallback,GetModuleHandle(null),0);
+  if(mouseHook==IntPtr.Zero){RemoveKeyboardVoice();throw new Exception("Could not enable mouse voice shortcut: "+Marshal.GetLastWin32Error());}
  }
- static void RemoveKeyboardVoice(){if(keyboardHook!=IntPtr.Zero)UnhookWindowsHookEx(keyboardHook);keyboardHook=IntPtr.Zero;}
+ static void RemoveKeyboardVoice(){if(keyboardHook!=IntPtr.Zero)UnhookWindowsHookEx(keyboardHook);keyboardHook=IntPtr.Zero;if(mouseHook!=IntPtr.Zero)UnhookWindowsHookEx(mouseHook);mouseHook=IntPtr.Zero;}
  static int RetryDelay(int failures){return (int)Math.Min(30000,2000*Math.Pow(2,Math.Min(failures-1,4)));}
  static void MaintainWorker(){
   if(worker!=null&&!worker.HasExited)return;
@@ -74,7 +84,7 @@ partial class VoicePTT {
   // Health only: never audio, recognised words, clipboard or chat recipients.
   try{File.WriteAllText(Path.Combine(dataRoot,"voice-health.json"),json.Serialize(new {
    state=state,pid=Process.GetCurrentProcess().Id,session=Process.GetCurrentProcess().SessionId,
-   workerPid=worker!=null&&!worker.HasExited?worker.Id:0,keyboard="F8",controller="Share",updated=DateTime.UtcNow.ToString("o")
+   workerPid=worker!=null&&!worker.HasExited?worker.Id:0,keyboard=ShortcutName(voiceShortcut),controller=ControllerVoiceName(),inGameConfigured=gameSettingsManaged,inGameSettings=gameSettingsStatus,voiceEnabled=voiceEnabled,updated=DateTime.UtcNow.ToString("o")
   }),new UTF8Encoding(false));}catch(IOException){}catch(UnauthorizedAccessException){}
  }
  static void TestKeyboardVoice(){

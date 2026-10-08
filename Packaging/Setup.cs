@@ -16,12 +16,18 @@ using Directory=LongDirectory;
 
 class InstallState { public string Game,Version; public bool Voice,Startup; }
 class Engine {
-  public const string Version="0.2.1-preview.1";
+  public const string Version="0.2.2-preview.1";
  public readonly string Root; public readonly bool Test;
  static readonly JavaScriptSerializer Json=new JavaScriptSerializer();
  public Engine(string root,bool test){Root=Path.GetFullPath(root);Test=test;}
  public string StatePath{get{return Path.Combine(Root,"install.json");}}
- public InstallState ReadState(){return File.Exists(StatePath)?Json.Deserialize<InstallState>(File.ReadAllText(StatePath)):null;}
+ public string StateWarning;
+ public InstallState ReadState(){
+  if(!File.Exists(StatePath))return null;
+  try{var state=Json.Deserialize<InstallState>(File.ReadAllText(StatePath));if(state==null||InstallerDiscovery.Normalize(state.Game)==null)throw new ArgumentException("Invalid install record");return state;}
+  catch(ArgumentException){StateWarning="Previous install record is unreadable. Select your game folder to repair; microphone and WoW settings are kept.";return null;}
+  catch(InvalidOperationException){StateWarning="Previous install record is unreadable. Select your game folder to repair; microphone and WoW settings are kept.";return null;}
+ }
  public static string SafeChild(string root,string relative){
   if(string.IsNullOrEmpty(relative)||Path.IsPathRooted(relative))throw new IOException("Invalid package path");
   string basePath=Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar)+Path.DirectorySeparatorChar;
@@ -180,16 +186,11 @@ class SetupForm:Form {
   voice.CheckedChanged+=(s,a)=>startup.Enabled=voice.Checked;startup.Enabled=voice.Checked;
   if(args.Length==4&&args[0]=="--elevated-install"){folder.Text=args[1];voice.Checked=args[2]=="1";startup.Checked=args[3]=="1";Shown+=(s,a)=>Install(null,EventArgs.Empty);}
   var conflict=new Label{Text="Use one controller and one voice helper. Disable older keyboard add-ons if installed. Voice typing uses a microphone available on this Windows PC.",Location=new Point(24,290),Size=new Size(690,56)};
-  status=new Label{Text="Choose your game folder, then install. Settings are kept on updates.",Location=new Point(24,354),Size=new Size(690,38)};
+  status=new Label{Text=e.StateWarning??"Choose your game folder, then install. Settings are kept on updates.",Location=new Point(24,354),Size=new Size(690,38)};
   install=new Button{Text=old==null?"Install PadChat":"Update / repair",Location=new Point(508,400),Size=new Size(206,34)};install.Click+=Install;
   Controls.AddRange(new Control[]{title,expl,fLabel,folder,browse,voice,startup,conflict,status,install});
  }
- static string FindGame(){
-  var paths=new List<string>();
-  foreach(string basePath in new[]{Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)})paths.Add(Path.Combine(basePath,"World of Warcraft","_classic_beta_"));
-  foreach(var hive in new[]{Registry.LocalMachine,Registry.CurrentUser})try{using(var k=hive.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall")){if(k!=null)foreach(string name in k.GetSubKeyNames())using(var app=k.OpenSubKey(name)){string p=app.GetValue("InstallLocation","") as string;if(!string.IsNullOrEmpty(p)){paths.Add(p);paths.Add(Path.Combine(p,"_classic_beta_"));}}}}catch{}
-  return paths.FirstOrDefault(p=>File.Exists(Path.Combine(p,"WowB.exe")))??"";
- }
+ static string FindGame(){return InstallerDiscovery.FindGame();}
  async void Install(object sender,EventArgs args){
   string game=folder.Text;bool withVoice=voice.Checked,auto=withVoice&&startup.Checked;
   try{engine.ValidateGame(game);if(!Environment.Is64BitOperatingSystem)throw new IOException("64-bit Windows is required.");}catch(Exception ex){MessageBox.Show(this,ex.Message,"PadChat",MessageBoxButtons.OK,MessageBoxIcon.Information);return;}
@@ -220,6 +221,7 @@ class Program {
   AppContext.SetSwitch("Switch.System.IO.UseLegacyPathHandling",false);
   AppContext.SetSwitch("Switch.System.IO.BlockLongPaths",false);
   try{
+   if(args.Length==1&&args[0]=="--discovery-test"){InstallerDiscovery.SelfTest();return 0;}
    if(args.Length==4&&args[0]=="--self-test")return SelfTest(args[1],args[2],args[3]);
    Application.EnableVisualStyles();string root=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"PadChat");
    var e=new Engine(root,false);

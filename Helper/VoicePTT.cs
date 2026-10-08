@@ -35,7 +35,7 @@ partial class VoicePTT {
   if(SendInput((uint)inputs.Count,inputs.ToArray(),Marshal.SizeOf(typeof(Input)))!=inputs.Count)throw new Exception("Windows rejected keyboard input");
  }
  static void Bridge(ushort key){Keys(0x11,0x10,key);}
- static bool IsGame(IntPtr hwnd){uint pid;GetWindowThreadProcessId(hwnd,out pid);try{return Process.GetProcessById((int)pid).ProcessName=="WowB";}catch{return false;}}
+ static bool IsGame(IntPtr hwnd){uint pid;GetWindowThreadProcessId(hwnd,out pid);try{return WoWClients.IsProcess(Process.GetProcessById((int)pid).ProcessName);}catch{return false;}}
  class Caption:Label {
   protected override void OnPaint(PaintEventArgs e){
    var flags=TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter|TextFormatFlags.WordBreak|TextFormatFlags.NoPrefix;
@@ -69,7 +69,7 @@ partial class VoicePTT {
  static void Status(string message,int ms){badge.label.Text=message;badge.Show();hideAt=ms==0?0:Now+ms;}
  static string PreviewTail(){return preview.Length>220?"..."+preview.Substring(preview.Length-220):preview;}
  static void RecordingStatus(){
-  badge.label.Text=preview.Length>0?"Live preview — release "+TalkButton()+" to send\n"+PreviewTail():
+  badge.label.Text=microphoneTest?"Microphone test — nothing will be sent | Level: "+level+"%\n"+PreviewTail():preview.Length>0?"Live preview — release "+TalkButton()+" to send\n"+PreviewTail():
    "Recording — "+(level<4?"waiting for speech":level<16?"quiet microphone signal":"voice detected")+"\nWords will appear here as you speak";
  }
  static void WriteWorker(string cmd){if(worker!=null&&!worker.HasExited){worker.StandardInput.WriteLine(json.Serialize(new {cmd=cmd,id=sid}));worker.StandardInput.Flush();}}
@@ -107,15 +107,18 @@ partial class VoicePTT {
  }
  [DllImport("winmm.dll",CharSet=CharSet.Unicode)] static extern uint joyGetDevCapsW(UIntPtr id,out JoyCaps caps,uint size);
  static bool SupportedNativeController(uint id){JoyCaps caps;return joyGetDevCapsW(new UIntPtr(id),out caps,(uint)Marshal.SizeOf(typeof(JoyCaps)))==0&&caps.manufacturer==0x054c;}
- static uint NormalizeXInput(ushort buttons){return ((buttons&0x0020)!=0?0x100u:0u)|((buttons&0x0010)!=0?0x200u:0u)|((buttons&0x8000)!=0?0x8u:0u);}
- static void Cancel(string reason){WriteWorker("cancel");sid++;phase="idle";stage=0;released=false;
+ static uint NormalizeXInput(ushort buttons){return ((buttons&0x2000)!=0?2u:0u)|((buttons&0x0020)!=0?0x100u:0u)|((buttons&0x0010)!=0?0x200u:0u)|((buttons&0x8000)!=0?0x8u:0u)|((buttons&0x0100)!=0?0x10u:0u)|((buttons&0x0200)!=0?0x20u:0u)|((buttons&0x0040)!=0?0x400u:0u)|((buttons&0x0080)!=0?0x800u:0u);}
+ static void Cancel(string reason){probeStage=0;RestoreProbeClipboard();pendingTestWords="";WriteWorker("cancel");sid++;phase="idle";stage=0;released=false;
   if(SameGame())Bridge(0x7A);Status(reason,4000);}
  static void Start(){
+  target=GetForegroundWindow();if(!IsGame(target))return;recordSource=pressSource;BeginVoiceProbe(false);
+ }
+ static void BeginRecording(){
   target=GetForegroundWindow();if(!IsGame(target))return;
   if(!ready){Status("The offline speech model is still loading",2500);return;}
   recordSource=pressSource;
   sid++;phase="recording";released=false;level=0;preview="";started=Now;WriteWorker("start");
-  Status("Hold "+TalkButton()+" and speak\nRelease to send to your last chat channel",0);
+  Status(microphoneTest?"Microphone test: hold and speak; release to see results. Nothing is sent.":"Hold "+TalkButton()+" and speak\nRelease to "+(voiceReview?"review your message":"send to your last chat channel"),0);
  }
  static void Stop(){if(phase!="recording")return;released=true;phase="processing";WriteWorker("stop");
   Status("Finishing your message locally..."+(preview.Length>0?"\n"+PreviewTail():""),0);}
@@ -162,7 +165,7 @@ partial class VoicePTT {
  }
  static uint ReadButtons(out bool connected){
   XState xs;uint xbuttons=0,xindex=0;int xcount=0;
-  for(uint i=0;i<4;i++)if(XInputGetState(i,out xs)==0){xcount++;xindex=i;xbuttons=NormalizeXInput(xs.gamepad.buttons);}
+  for(uint i=0;i<4;i++)if(XInputGetState(i,out xs)==0){xcount++;xindex=i;xbuttons=NormalizeXInput(xs.gamepad.buttons)|(xs.gamepad.leftTrigger>128?0x40u:0u)|(xs.gamepad.rightTrigger>128?0x80u:0u);}
   if(xcount==1){inputSource="XInput:"+xindex;connected=true;return xbuttons;}
   // Do not accidentally dictate using another player's controller.
   if(xcount>1){inputSource="ambiguous";connected=false;return 0;}
@@ -178,7 +181,7 @@ partial class VoicePTT {
   try{
    string message;while(messages.TryDequeue(out message)){
     var data=json.Deserialize<Dictionary<string,object>>(message);string kind=(string)data["type"];
-    if(kind=="microphones"){UpdateMicrophones(data);continue;}
+    if(kind=="microphones"){ApplyGameMicrophoneList(data);UpdateMicrophones(data);continue;}
     if(kind=="ready"){ready=true;workerFailures=0;WriteHealth("ready");continue;}
     if(!data.ContainsKey("id")||Convert.ToInt32(data["id"])!=sid)continue;
     if(kind=="level"){level=Convert.ToInt32(data["level"]);if(phase=="recording")RecordingStatus();}
@@ -190,22 +193,28 @@ partial class VoicePTT {
     else if(kind=="result"){
      if(phase!="processing")continue;text=(string)data["text"];
      if(text.Trim().Length==0){Cancel("No clear speech recognised; nothing sent");continue;}
-     phase="result";Status("Recognised: "+text+"\nSending to your last chat channel...",0);
+     if(microphoneTest){pendingTestWords=text;BeginVoiceProbe(true);}
+     else if(RequiresReview(false,voiceReview)){phase="review";reviewWaitingRelease=true;Status("Review — press PTT again to send, Escape to cancel\n"+Clean(text,700),0);}
+     else {phase="result";Status("Recognised: "+text+"\nSending to your last chat channel...",0);}
     }else if(kind=="error"){
      Cancel("Voice: "+(string)data["message"]);
-     if(data.ContainsKey("microphone")&&Convert.ToBoolean(data["microphone"]))ShowMicrophones();
+     if(data.ContainsKey("microphone")&&Convert.ToBoolean(data["microphone"]))Status("Microphone unavailable. Open /padchat voice to choose an input.",8000);
     }
    }
    if(hideAt!=0&&Now>=hideAt){badge.Hide();hideAt=0;}
-   MaintainWorker();
+   PollGameSettings();
+   if(voiceEnabled)MaintainWorker();
    string previousSource=inputSource;
-   bool connected;uint buttons=ReadButtons(out connected);bool controllerChord=connected&&Chord(buttons);
+   bool connected;uint buttons=ReadButtons(out connected);bool controllerChord=connected&&ControllerVoiceChord(buttons);
    PollKeyboardToggle(connected,buttons,previousSource==inputSource);
-   bool keyboardChord=keyboardHeld;
+   if(phase=="review"&&connected&&(buttons&2)!=0){Cancel("Review cancelled; nothing sent");return;}
+   if(!voiceEnabled){heldAt=0;latched=true;return;}
+   bool keyboardChord=voiceEnabled&&keyboardHeld;
    bool chord=pressSource=="keyboard"?keyboardChord:pressSource=="controller"?controllerChord:keyboardChord||controllerChord;
+   if(bindingEvent!=null&&bindingEvent.WaitOne(0))ShowVoiceBindings();
    if(stopEvent!=null&&stopEvent.WaitOne(0)){Application.Exit();return;}
    if(microphoneEvent!=null&&microphoneEvent.WaitOne(0))ShowMicrophones();
-   if(microphoneWindow!=null&&!microphoneWindow.IsDisposed){heldAt=0;latched=chord;return;}
+   if(microphoneWindow!=null&&!microphoneWindow.IsDisposed||shortcutWindow!=null&&!shortcutWindow.IsDisposed){heldAt=0;latched=chord;return;}
    if(previousSource!=inputSource){
     if(phase!="idle"&&recordSource=="controller")Cancel("Message cancelled: controller changed");
     if(pressSource!="keyboard"&&!keyboardChord){heldAt=0;latched=controllerChord;pressSource=controllerChord?"controller":"";chord=controllerChord;}
@@ -220,16 +229,22 @@ partial class VoicePTT {
     else if(Now-heldAt>=300){latched=true;if(phase=="idle"&&pressWindow==GetForegroundWindow())Start();}
    }
    if(phase=="recording"&&Now-started>29000)Cancel("Recording limit reached; try a shorter message");
+   if(phase=="review"){if(!chord)reviewWaitingRelease=false;else if(!reviewWaitingRelease){reviewWaitingRelease=true;BeginDelivery();}}
+   AdvanceVoiceProbe(chord);
    if(phase=="result"&&!chord)BeginDelivery();
    if(stage!=0&&Now>=deadline)AdvanceDelivery();
   }catch(Exception ex){try{Cancel("Voice error: "+ex.Message);}catch{phase="idle";stage=0;}}
  }
  [STAThread] static void Main(string[] args){
+  if(args.Length==2&&args[0]=="--render-bindings"){RenderVoiceBindingWindow(args[1]);return;}
   if(args.Length>0&&args[0]=="--probe-input"){
    bool connected;uint buttons=ReadButtons(out connected);
    Console.WriteLine("Controller="+inputSource+" connected="+connected+" Share="+Chord(buttons));return;
   }
   if(args.Length>0&&args[0]=="--self-test"){
+   TestVoiceDiagnostics();
+   TestGameVoiceSettings();
+   TestVoiceBindings();
    TestKeyboardVoice();
    TestNativeSony();
    if(Marshal.SizeOf(typeof(XState))!=16||!Chord(NormalizeXInput(0x0020))||!Chord(NormalizeXInput(0x8020)))throw new Exception("XInput Share mapping failed");
@@ -255,6 +270,9 @@ partial class VoicePTT {
   }
   bool created;using(var mutex=new System.Threading.Mutex(true,"PadChat.Voice.v1",out created)){
    if(!created){
+    if(args.Length>0&&args[0]=="--bindings"){
+     using(var request=System.Threading.EventWaitHandle.OpenExisting("PadChat.Bindings.v1"))request.Set();
+    }
     if(args.Length>0&&args[0]=="--microphone"){
      using(var request=System.Threading.EventWaitHandle.OpenExisting("PadChat.Microphone.v1"))request.Set();
     }
@@ -262,12 +280,14 @@ partial class VoicePTT {
    }
    Application.EnableVisualStyles();badge=new Badge();var h=badge.Handle;
    microphoneEvent=new System.Threading.EventWaitHandle(false,System.Threading.EventResetMode.AutoReset,"PadChat.Microphone.v1");
+   bindingEvent=new System.Threading.EventWaitHandle(false,System.Threading.EventResetMode.AutoReset,"PadChat.Bindings.v1");
    stopEvent=new System.Threading.EventWaitHandle(false,System.Threading.EventResetMode.AutoReset,"PadChat.Stop.v1");
-   SetupMicrophoneMenu();InstallKeyboardVoice();
-   try{StartWorker();}catch(Exception ex){WorkerError(ex.Message);Status("PadChat voice could not start. Run Setup again to repair.\n"+ex.Message,8000);}
-   if((args.Length>0&&args[0]=="--microphone")||!File.Exists(Path.Combine(dataRoot,"voice-microphone.json")))ShowMicrophones();
+   LoadVoiceShortcut();LoadGameVoiceSettings();SetupMicrophoneMenu();InstallKeyboardVoice();
+   try{if(voiceEnabled)StartWorker();}catch(Exception ex){WorkerError(ex.Message);Status("PadChat voice could not start. Run Setup again to repair.\n"+ex.Message,8000);}
+   if(args.Length>0&&args[0]=="--bindings")ShowVoiceBindings();
+   if(args.Length>0&&args[0]=="--microphone")ShowMicrophones();
    timer=new Timer{Interval=20};timer.Tick+=Tick;timer.Start();
-   try{Application.Run();}finally{RemoveKeyboardVoice();CloseNativeSony();StopWorker();if(microphoneTray!=null)microphoneTray.Dispose();microphoneEvent.Dispose();stopEvent.Dispose();}
+   try{Application.Run();}finally{RemoveKeyboardVoice();CloseNativeSony();StopWorker();if(microphoneTray!=null)microphoneTray.Dispose();microphoneEvent.Dispose();bindingEvent.Dispose();stopEvent.Dispose();}
   }
  }
 }

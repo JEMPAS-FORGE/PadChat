@@ -1,6 +1,6 @@
 local _,P=...
 local keys={'F9','F6','F7','F12','CTRL-F9','SHIFT-F9','ALT-F9'}
-local buttons={'AUTO','NONE','PADBACK','PADLSTICK','PADRSTICK','PADSOCIAL'}
+local buttons={'AUTO','NONE','PADBACK','PADLSTICK','PADRSTICK','PADSOCIAL','PADFORWARD'}
 local modifiers={'NONE','PADLTRIGGER','PADRTRIGGER','PADLSHOULDER','PADRSHOULDER'}
 local names={AUTO='Automatic',NONE='None',PADBACK='Touchpad / Back',PADSOCIAL='Share / Create',
  PADFORWARD='Options / Start',PADLSTICK='L3 / left stick',PADRSTICK='R3 / right stick',
@@ -13,6 +13,7 @@ function P:InitOptions()
  if not contains(buttons,s.button) then s.button='AUTO' end
  if not contains(modifiers,s.modifier) then s.modifier='NONE' end
  if s.button=='AUTO' or s.button=='NONE' then s.modifier='NONE' end
+ if self.InitVoiceOptions then self:InitVoiceOptions() end
 end
 function P:ControllerOpenBinding()
  local s=self.db.bindings
@@ -37,6 +38,7 @@ function P:BindingWarning()
    end
   end
  end
+ if s.button=='AUTO' and not button then warnings[#warnings+1]='No automatic opening button for this controller. Choose L3 or R3 and an optional held trigger, then Save. Share / Back remains available for voice.' end
  return #warnings>0 and table.concat(warnings,'\n') or 'No existing binding conflicts detected.'
 end
 function P:SaveOpeningBindings(key,button,modifier)
@@ -70,7 +72,7 @@ function P:PollOpeningChord(dt)
  local pressed=down and not self.openPrimaryDown;self.openPrimaryDown=down
  if pressed and self:MappedButtonDown(state,modifier) and not InCombatLockdown()
   and not self.conflictingAddon and not self.tvActionFailed
-  and not (self.optionsFrame and self.optionsFrame:IsShown()) and not GetCurrentKeyBoardFocus() then PadChat_Toggle() end
+  and not (self.optionsFrame and self.optionsFrame:IsShown()) and not (self.voiceOptionsFrame and self.voiceOptionsFrame:IsShown()) and not GetCurrentKeyBoardFocus() then self.openingRelease=modifier;PadChat_Toggle() end
 end
 local function text(parent,value,size)
  local label=parent:CreateFontString(nil,'OVERLAY');label:SetFont('Fonts\\FRIZQT__.TTF',size or 16,'OUTLINE');label:SetText(value);label:SetTextColor(1,.89,.66);return label
@@ -83,12 +85,12 @@ end
 function P:BuildOptions()
  if self.optionsFrame then return end
  local f=self.NewFrame('Frame','PadChatOptions',UIParent);self.optionsFrame=f
- f:SetSize(690,445);f:SetPoint('CENTER');f:SetFrameStrata('FULLSCREEN_DIALOG');f:EnableMouse(true)
+ f:SetSize(690,445);self:FitPanel(f,690,445);f:SetFrameStrata('FULLSCREEN_DIALOG');f:EnableMouse(true)
  local bg=f:CreateTexture(nil,'BACKGROUND');bg:SetAllPoints();bg:SetTexture('Interface\\DialogFrame\\UI-DialogBox-Background');bg:SetAlpha(.98)
  table.insert(UISpecialFrames,'PadChatOptions')
  local title=text(f,'PadChat Options',24);title:SetPoint('TOPLEFT',20,-20)
  self.optionClose=button(f,'Close',586,-14,84,function() f:Hide() end)
- local help=text(f,'D-pad: choose / change   X: activate   Circle: close');help:SetPoint('TOPLEFT',20,-63);help:SetSize(650,28);help:SetJustifyH('LEFT')
+ local _,_,controls=self:ControllerHelp();local help=text(f,'D-pad: choose / change   '..controls);self.optionHelp=help;help:SetPoint('TOPLEFT',20,-63);help:SetSize(650,28);help:SetJustifyH('LEFT')
  self.optionKey=button(f,'',20,-100,310,function() self.pendingOptions.keyboard=nextChoice(keys,self.pendingOptions.keyboard);self:UpdateOptions(true) end)
  self.optionButton=button(f,'',20,-148,310,function() self.pendingOptions.button=nextChoice(buttons,self.pendingOptions.button);self:UpdateOptions(true) end)
  self.optionModifier=button(f,'',346,-148,324,function()
@@ -96,7 +98,7 @@ function P:BuildOptions()
   self.pendingOptions.modifier=nextChoice(modifiers,self.pendingOptions.modifier);self:UpdateOptions(true)
  end)
  self.optionWarning=text(f,'',14);self.optionWarning:SetPoint('TOPLEFT',20,-205);self.optionWarning:SetSize(650,95);self.optionWarning:SetJustifyH('LEFT')
- local voice=text(f,'Voice typing: F8 / Share uses the optional Windows companion.\nThese opening options do not change its voice shortcuts or your combat bindings.',14);voice:SetPoint('TOPLEFT',20,-315);voice:SetSize(650,42);voice:SetJustifyH('LEFT')
+ self.optionVoice=button(f,'Voice settings: binding, microphone and startup',20,-315,650,function() self:ShowVoiceOptions() end)
  self.optionSave=button(f,'Save opening controls',20,-385,235,function()
   local s=self.pendingOptions;local ok,why=self:SaveOpeningBindings(s.keyboard,s.button,s.modifier)
   if not ok then self.optionWarning:SetText(why) else self:Print('Opening controls saved. '..self:BindingWarning()) end
@@ -104,10 +106,10 @@ function P:BuildOptions()
  self.optionReset=button(f,'Reset defaults',270,-385,190,function()
   local ok,why=self:SaveOpeningBindings('F9','AUTO','NONE');if not ok then self.optionWarning:SetText(why) end
  end)
- self.optionControls={self.optionKey,self.optionButton,self.optionModifier,self.optionSave,self.optionReset,self.optionClose}
+ self.optionControls={self.optionKey,self.optionButton,self.optionModifier,self.optionSave,self.optionReset,self.optionClose,self.optionVoice}
  self.optionOwner=self.NewFrame('Frame',nil,nil,'SecureHandlerStateTemplate')
  self.optionOwner:SetFrameRef('panel',f)
- self.optionOwner:SetAttribute('_onstate-combat',[[if newstate=='active' then self:ClearBindings();self:GetFrameRef('panel'):Hide() end]])
+ self.optionOwner:SetAttribute('_onstate-combat',[[if newstate=='active' then self:ClearBindings();self:GetFrameRef('panel'):Hide();local voice=self:GetFrameRef('voice');if voice then voice:Hide() end end]])
  RegisterStateDriver(self.optionOwner,'combat','[combat] active; inactive')
  self.optionActions={}
  for key,action in pairs({PADDUP='up',PADDDOWN='down',PADDLEFT='previous',PADDRIGHT='next',PAD1='activate',PAD2='close'}) do
@@ -127,6 +129,7 @@ function P:HighlightOption()
  end
 end
 function P:OptionsAction(action)
+ if self.voiceOptionsFrame and self.voiceOptionsFrame:IsShown() then self:VoiceOptionsAction(action);return end
  if InCombatLockdown() or not self.pendingOptions or not self.optionsFrame:IsShown() then return end
  if action=='close' then self.optionsFrame:Hide();return end
  if action=='up' or action=='down' then
@@ -160,6 +163,16 @@ end
 function P:ShowOptions()
  if InCombatLockdown() then self:Print('Open Options outside combat.');return end
  if self.conflictingAddon then self:Print('Disable older keyboard add-ons first.');return end
- self:Close();self:BuildOptions();self:UpdateOptions();self.optionIndex=1;self:HighlightOption();self.optionsFrame:Show()
+ self:Close();self:BuildOptions();local _,_,help=self:ControllerHelp();self.optionHelp:SetText('D-pad: choose / change   '..help);self:UpdateOptions();self.optionIndex=1;self:HighlightOption();self.optionsFrame:Show()
  for key,control in pairs(self.optionActions) do SetOverrideBindingClick(self.optionOwner,true,key,control:GetName(),'LeftButton') end
+end
+
+function P:ControllerOnboarding()
+ if not self.db or self.db.controllerSetupSeen or self.db.bindings.button~='AUTO' or self:ControllerOpenBinding() then return end
+ if InCombatLockdown() or GetCurrentKeyBoardFocus() or self.open or self.conflictingAddon then return end
+ if not C_GamePad or not C_GamePad.GetAllDeviceIDs then return end
+ local ok,ids=pcall(C_GamePad.GetAllDeviceIDs)
+ if not ok or type(ids)~='table' or #ids==0 then return end
+ self.db.controllerSetupSeen=true;self:ShowOptions()
+ self.optionWarning:SetText('Choose an opening button using the D-pad and A / X. Add an optional held trigger, then Save opening controls. Share / Back is for voice. Your combat bindings are kept.')
 end

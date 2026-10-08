@@ -1,13 +1,19 @@
-# PadChat 0.2.1-preview.1
+# PadChat 0.2.2 Preview 1
 
-- Added controller-selectable Options and Close keys on the keyboard bottom row.
-- Added D-pad navigation/value changes, X/A activation and Circle/B dismissal inside Options.
-- Fixed Escape/Close handling, draft preservation and hidden control hints.
-- Added saved opening bindings with optional held shoulder/trigger modifiers and conflict notices.
-- Fixed Send with both WoW key-down preferences.
-- Repaired native PS5 Create/Share detection in the Windows companion; tap cycles channels and hold dictates. Controller support is bundled and does not require Steam.
-- Keyboard F8 voice typing and optional automatic startup remain supported.
+- Installer ignores malformed/unavailable game discovery entries and retains a
+  usable Browse window. Invalid previous install metadata can be repaired.
+- Ships the minimap options button and in-game voice shortcut, microphone,
+  controller modifier, startup and enable/disable choices with the matching helper.
+- First-use controller setup appears for controllers without automatic opening;
+  native PlayStation touchpad and existing custom bindings remain intact.
+- Adds a bounded companion check and microphone-test mode from Voice settings.
+  Tests show level/recognised text without submitting chat or invitations.
+- Optional review-before-send: press PTT again to submit, Escape/B/Circle cancels.
+  Existing release-to-send stays the default; legacy settings migrate.
+- Keyboard/options/voice panels fit smaller logical viewports and UI scales;
+  controller help uses the detected PlayStation/Xbox button names.
+- Opening modifier release no longer toggles keyboard Shift accidentally.
 
-Voice users must also update the Windows companion. The CurseForge ZIP installs the addon only. The complete Windows package below installs both parts; extract and run PadChat-Setup.exe with WoW closed, then choose your game folder and Windows microphone.
-
-Automated addon, bundled speech and installer checks pass. The original user confirmed the repaired controller controls in live play. This remains an unsigned preview; a second clean PC has not been tested.
+Forever 1.60.1 build 70291 / Interface 16001 only. This preview does not release
+the experimental multi-client branch. Live physical input/chat acceptance remains
+separate from the automated regression and isolated shipping package checks.

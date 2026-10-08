@@ -18,6 +18,7 @@ partial class VoicePTT {
  [DllImport("SDL3.dll",CallingConvention=CallingConvention.Cdecl)] [return:MarshalAs(UnmanagedType.I1)] static extern bool SDL_GamepadConnected(IntPtr pad);
  [DllImport("SDL3.dll",CallingConvention=CallingConvention.Cdecl)] [return:MarshalAs(UnmanagedType.I1)] static extern bool SDL_GetGamepadButton(IntPtr pad,int button);
  [DllImport("SDL3.dll",CallingConvention=CallingConvention.Cdecl)] static extern void SDL_QuitSubSystem(uint flags);
+ [DllImport("SDL3.dll",CallingConvention=CallingConvention.Cdecl)] static extern short SDL_GetGamepadAxis(IntPtr pad,int axis);
  static bool sdlAttempted,sdlReady;static IntPtr sonyPad;static uint sonyId;static int sonyCount;static long sonyScanAt;
  static bool IsSonyGamepad(ushort vendor,int type){return vendor==0x054c&&(type==5||type==6);}
  static uint NormalizeSDL(bool share,bool start,bool triangle){return (share?0x100u:0u)|(start?0x200u:0u)|(triangle?0x8u:0u);}
@@ -54,7 +55,10 @@ partial class VoicePTT {
   inputSource="SDL:"+sonyId;connected=true;
   // SDL's mapped Back is Create/Share, Start is Options, North is Triangle.
   // Guide, microphone, and touchpad are deliberately not voice triggers.
-  buttons=NormalizeSDL(SDL_GetGamepadButton(sonyPad,4),SDL_GetGamepadButton(sonyPad,6),SDL_GetGamepadButton(sonyPad,3));
+  buttons=NormalizeSDL(SDL_GetGamepadButton(sonyPad,4),SDL_GetGamepadButton(sonyPad,6),SDL_GetGamepadButton(sonyPad,3))
+   |(SDL_GetGamepadButton(sonyPad,9)?0x10u:0u)|(SDL_GetGamepadButton(sonyPad,10)?0x20u:0u)
+   |(SDL_GetGamepadAxis(sonyPad,4)>16384?0x40u:0u)|(SDL_GetGamepadAxis(sonyPad,5)>16384?0x80u:0u)
+   |(SDL_GetGamepadButton(sonyPad,7)?0x400u:0u)|(SDL_GetGamepadButton(sonyPad,8)?0x800u:0u)|(SDL_GetGamepadButton(sonyPad,1)?2u:0u);
   return true;
  }
  static void CloseNativeSony(){

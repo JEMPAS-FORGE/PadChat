@@ -29,7 +29,7 @@ def read_selection(path=SETTINGS):
 
 def resolve_selection(devices, selected):
     if not selected:
-        raise ValueError('Choose a microphone in PadChat Microphone settings.')
+        raise ValueError('Choose a microphone in /padchat voice, then Save & reload UI.')
     matches = [d for d in devices
                if d['name'] == selected['name'] and d['hostapi'] == selected['hostapi']]
     if len(matches) != 1:
