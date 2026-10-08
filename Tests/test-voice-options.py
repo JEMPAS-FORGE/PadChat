@@ -38,7 +38,7 @@ assert(not P.voiceCapture and P.pendingVoice.kind=='mouse' and P.pendingVoice.ke
 assert(P:VoiceBindingKey(P.pendingVoice)=='BUTTON5')
 assert(P.db.voiceOptions.kind=='keyboard') -- pending edits do not save
 combat=true;P.voiceSave.scripts.OnClick();assert(reloads==0 and P.db.voiceSettingsWire==nil);combat=false
-P.voiceSave.scripts.OnClick();assert(reloads==1 and P.db.voiceSettingsWire=='PCV2;mouse;6;0;Microphone %28USB%29;1;KEEP;SHARE;LTRIGGER;0')
+P.voiceSave.scripts.OnClick();assert(reloads==1 and P.db.voiceSettingsWire=='PCV3;mouse;6;0;Microphone %28USB%29;1;KEEP;SHARE;LTRIGGER;0;')
 assert(not P.voiceOptionsFrame:IsShown() and not bindings.PAD1)
 assert(bindings.BUTTON5.name=='PadChatVoiceKey')
 P:InitDB();assert(P.db.voiceOptions.kind=='mouse' and P.db.voiceOptions.key==6)

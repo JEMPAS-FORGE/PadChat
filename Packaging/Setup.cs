@@ -16,7 +16,7 @@ using Directory=LongDirectory;
 
 class InstallState { public string Game,Version; public bool Voice,Startup; }
 class Engine {
-  public const string Version="0.2.2-preview.1";
+  public const string Version="0.2.2-preview.2";
  public readonly string Root; public readonly bool Test;
  static readonly JavaScriptSerializer Json=new JavaScriptSerializer();
  public Engine(string root,bool test){Root=Path.GetFullPath(root);Test=test;}
@@ -174,11 +174,11 @@ class Engine {
 class SetupForm:Form {
  readonly Engine engine; TextBox folder;CheckBox voice,startup;Button install,browse;Label status;
  public SetupForm(Engine e,string[] args){
-  engine=e;Text="PadChat Setup — "+Engine.Version;ClientSize=new Size(740,445);Font=new Font("Segoe UI",10);StartPosition=FormStartPosition.CenterScreen;FormBorderStyle=FormBorderStyle.FixedDialog;MaximizeBox=false;
+  engine=e;Text="PadChat Setup â€” "+Engine.Version;ClientSize=new Size(740,445);Font=new Font("Segoe UI",10);StartPosition=FormStartPosition.CenterScreen;FormBorderStyle=FormBorderStyle.FixedDialog;MaximizeBox=false;
   var title=new Label{Text="Controller chat and local voice typing",Location=new Point(24,18),Size=new Size(690,35),Font=new Font("Segoe UI",17,FontStyle.Bold)};
   var expl=new Label{Text="For WoW Forever 1.60.x on Windows 10/11 (64-bit). Close WoW first.\nInstalls for your Windows account. No Python, drivers or administrator prompt needed unless the game folder is protected.",Location=new Point(24,66),Size=new Size(690,68)};
   var fLabel=new Label{Text="WoW Forever folder (contains WowB.exe and Data)",Location=new Point(24,142),Size=new Size(670,24)};
-  folder=new TextBox{Location=new Point(24,170),Size=new Size(572,28)};browse=new Button{Text="Browse…",Location=new Point(612,167),Size=new Size(103,32)};
+  folder=new TextBox{Location=new Point(24,170),Size=new Size(572,28)};browse=new Button{Text="Browseâ€¦",Location=new Point(612,167),Size=new Size(103,32)};
   var old=e.ReadState();folder.Text=old!=null?old.Game:FindGame();
   browse.Click+=(s,a)=>{using(var dialog=new FolderBrowserDialog{Description="Select the WoW Forever _classic_beta_ folder",SelectedPath=folder.Text})if(dialog.ShowDialog()==DialogResult.OK)folder.Text=dialog.SelectedPath;};
   voice=new CheckBox{Text="Install voice typing (English, processed locally; includes speech models)",Checked=old==null||old.Voice,Location=new Point(24,218),Size=new Size(690,28)};
@@ -194,7 +194,7 @@ class SetupForm:Form {
  async void Install(object sender,EventArgs args){
   string game=folder.Text;bool withVoice=voice.Checked,auto=withVoice&&startup.Checked;
   try{engine.ValidateGame(game);if(!Environment.Is64BitOperatingSystem)throw new IOException("64-bit Windows is required.");}catch(Exception ex){MessageBox.Show(this,ex.Message,"PadChat",MessageBoxButtons.OK,MessageBoxIcon.Information);return;}
-  install.Enabled=browse.Enabled=voice.Enabled=startup.Enabled=folder.Enabled=false;status.Text="Verifying and installing bundled files. This can take a minute…";
+  install.Enabled=browse.Enabled=voice.Enabled=startup.Enabled=folder.Enabled=false;status.Text="Verifying and installing bundled files. This can take a minuteâ€¦";
   string work=Path.Combine(Path.GetTempPath(),"PadChat-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(work);
   try{
    await Task.Run(()=>{
@@ -204,7 +204,7 @@ class SetupForm:Form {
    });
    status.Text="Installed. Start WoW and enable PadChat in AddOns. F9 opens the keyboard.";
    if(withVoice)Process.Start(Path.Combine(engine.Root,"App","PadChatVoice.exe"),"--microphone");
-   MessageBox.Show(this,"PadChat is installed.\n\n1. Choose your microphone in the window that opens.\n2. Start WoW and enable PadChat. Disable older ControllerKeyboard add-ons.\n3. F9 opens the keyboard. Tap F8 to cycle channels; hold to speak and release to send.\n\nThe models stay on your PC; no online account or token charges.","PadChat installed");Close();
+   MessageBox.Show(this,"PadChat is installed.\n\n1. Choose your microphone in the window that opens.\n2. Start WoW and enable PadChat. Disable older ControllerKeyboard add-ons.\n3. Click PadChat on the minimap, choose Voice, then Guided setup. Select your microphone/PTT, Save & reload, and test without sending.\n4. F9 opens the keyboard. Default voice: tap F8/Share to cycle; hold to speak and release to send. Change these in Voice options.\n\nThe models stay on your PC; no online account or token charges.","PadChat installed");Close();
   }catch(UnauthorizedAccessException){
    status.Text="Windows permission is needed for the game folder.";
    if(MessageBox.Show(this,"The game folder is protected. Allow a Windows administrator prompt to install there? Use your SAME Windows account. The failed attempt has been rolled back.","PadChat game-folder access",MessageBoxButtons.YesNo)==DialogResult.Yes){
@@ -248,7 +248,7 @@ class Program {
    using(var input=System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("payload.zip"))using(var output=File.Create(payload))input.CopyTo(output);
    using(var input=System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Uninstall.exe"))using(var output=File.Create(uninstaller))input.CopyTo(output);
   }
-  string game=Path.Combine(root,"Games — fresh user","WoW Forever"),data=Path.Combine(root,"User Profile","PadChat");
+  string game=Path.Combine(root,"Games â€” fresh user","WoW Forever"),data=Path.Combine(root,"User Profile","PadChat");
   Directory.CreateDirectory(Path.Combine(game,"Data"));File.WriteAllText(Path.Combine(game,"WowB.exe"),"TEST-FIXTURE");
   var e=new Engine(data,true);bool rejected=false;try{e.ValidateGame(root);}catch(IOException){rejected=true;}Check(rejected,"Wrong game folder accepted");
   Check(Engine.SupportedVersion("1.60.1.70205")&&!Engine.SupportedVersion("11.2.0")&&!Engine.SupportedVersion("1.61.0")&&!Engine.SupportedVersion(null),"Client compatibility check");

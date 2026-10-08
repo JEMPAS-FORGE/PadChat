@@ -272,5 +272,6 @@ function CK:ReadVoiceStatus(value)
  self.voiceCompanionStatus='Companion: '..state..' | Microphone level: '..math.min(100,tonumber(level))..'%'
  if words~='' then self.voiceCompanionStatus=self.voiceCompanionStatus..'\nTest recognised: '..words..' (nothing sent)' end
  if self.voiceInfo then self.voiceInfo:SetText(self.voiceCompanionStatus) end
+ if self.VoiceGuideChecked then self:VoiceGuideChecked(state,words) end
  self:PTTReleaseFocus()
 end

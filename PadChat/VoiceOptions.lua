@@ -20,6 +20,7 @@ function P:InitVoiceOptions()
  if not contains(modifiers,s.padMod) then s.padMod='NONE' end
  if s.pad=='NONE' then s.padMod='NONE' end
  if s.startup~='ON' and s.startup~='OFF' then s.startup='KEEP' end
+ s.vocabulary=type(s.vocabulary)=='string' and s.vocabulary or '';if #s.vocabulary>600 or s.vocabulary:find('[%c/;|]') then s.vocabulary='' end
  s.enabled=s.enabled~=false;s.review=s.review==true;self.db.voiceOptions=s
 end
 function P:VoiceBindingKey(s)
@@ -41,8 +42,9 @@ end
 function P:SaveVoiceOptions(s)
  if InCombatLockdown() then return false,'Save voice options outside combat.' end
  local problem=self:VoiceShortcutProblem(s);if problem then return false,problem end
+ local valid,why=self:ValidVoiceWords(s.vocabulary or '');if not valid then return false,why end
  self.db.voiceOptions=copy(s)
- self.db.voiceSettingsWire=table.concat({'PCV2',s.kind,tostring(s.key),tostring(s.mods),encode(s.mic),s.enabled and '1' or '0',s.startup,s.pad,s.padMod,s.review and '1' or '0'},';')
+ self.db.voiceSettingsWire=table.concat({'PCV3',s.kind,tostring(s.key),tostring(s.mods),encode(s.mic),s.enabled and '1' or '0',s.startup,s.pad,s.padMod,s.review and '1' or '0',encode(s.vocabulary or '')},';')
  if self.ApplyVoiceBindings then self:ApplyVoiceBindings() end
  return true
 end
@@ -79,7 +81,7 @@ function P:SetVoiceCapture(kind,key,name)
  local s=copy(self.pendingVoice);s.kind=kind;s.key=key;s.keyName=name
  s.mods=(IsControlKeyDown and IsControlKeyDown() and 1 or 0)+(IsShiftKeyDown and IsShiftKeyDown() and 2 or 0)+(IsAltKeyDown and IsAltKeyDown() and 4 or 0)
  local why=self:VoiceShortcutProblem(s);if why then self.voiceInfo:SetText(why);return end
- self.pendingVoice=s;self:EndVoiceCapture('Binding selected. Save & reload UI to apply.');self:UpdateVoiceOptions()
+ self.pendingVoice=s;self:EndVoiceCapture('Binding selected. Save & reload UI to apply.');self:UpdateVoiceOptions();local warning=self:VoiceBindingWarnings(s);if warning~='' then self.voiceInfo:SetText(warning..'\nChange the binding or explicitly accept this warning when saving.') end
 end
 function P:EndVoiceCapture(message)
  self.voiceCapture=false
@@ -92,6 +94,7 @@ function P:BeginVoiceCapture()
 end
 function P:UpdateVoiceOptions()
  local s=self.pendingVoice;if not s then return end
+ if self.voiceConflictAccepted~=self:VoiceConflictSignature(s) then self.voiceSave.text:SetText('Save & reload UI') end
  self.voiceKey.text:SetText('Bind push-to-talk: '..self:VoiceBindingKey(s))
  self.voiceMic.text:SetText(s.mic=='' and 'Microphone: keep current companion input' or 'Microphone: '..s.mic)
  self.voiceEnabled.text:SetText('Voice: '..(s.enabled and 'On' or 'Off'))
@@ -103,6 +106,7 @@ function P:UpdateVoiceOptions()
 end
 function P:VoiceOptionsAction(action)
  if InCombatLockdown() or not self.pendingVoice then return end
+ if self.voiceWordsEditing then if action=='close' then self:EndVoiceWords(false) end return end
  if self.voiceCapture then if action=='close' then self:EndVoiceCapture('Binding cancelled.') end return end
  if action=='close' then self.voiceOptionsFrame:Hide();self:ShowOptions();return end
  if action=='up' or action=='down' then self.voiceIndex=(self.voiceIndex-1+(action=='up' and -1 or 1))%#self.voiceControls+1
@@ -117,7 +121,7 @@ function P:BuildVoiceOptions()
  f:SetSize(740,640);self:FitPanel(f,740,640);f:SetFrameStrata('FULLSCREEN_DIALOG');f:EnableMouse(true)
  local bg=f:CreateTexture(nil,'BACKGROUND');bg:SetAllPoints();bg:SetTexture('Interface\\DialogFrame\\UI-DialogBox-Background');bg:SetAlpha(.98)
  table.insert(UISpecialFrames,'PadChatVoiceOptions')
- label(f,'PadChat Voice',20,-20,600,32,24)
+ label(f,'PadChat Voice',20,-20,300,32,24)
  local _,_,controls=self:ControllerHelp();self.voiceHelp=label(f,'D-pad: choose / change   '..controls,20,-64,700,25)
  self.voiceKey=button(f,'',20,-102,700,function() self:BeginVoiceCapture() end)
  self.voiceMic=button(f,'',20,-150,700,function(_,delta)
@@ -135,12 +139,10 @@ function P:BuildVoiceOptions()
  self.voiceTest=button(f,'Test microphone / check companion',20,-340,700,function() self.voiceCheckDeadline=GetTime()+8;self.voiceInfo:SetText('Hold your saved PTT shortcut while this panel is open. It tests voice without sending chat. If nothing happens, open PadChat Voice from Start.') end)
  label(f,'The Windows companion must be installed and running. Recognition stays local.\nTap your voice shortcut to cycle chat; hold to speak; release to send.\nChoose a microphone available to Windows. PadChat does not change game sound.',20,-389,700,72)
  self.voiceInfo=label(f,'Save & reload UI writes these choices for the companion to apply.\nReload only when it is safe. It does not restart the game.',20,-474,700,60)
- self.voiceSave=button(f,'Save & reload UI',20,-580,230,function()
-  local ok,why=self:SaveVoiceOptions(self.pendingVoice);if not ok then self.voiceInfo:SetText(why);return end
-  self:EndVoiceCapture();self.voiceOptionsFrame:Hide();ReloadUI()
- end)
+ self.voiceSave=button(f,'Save & reload UI',20,-580,230,function() self:SaveVoiceWithWarnings() end)
  self.voiceBack=button(f,'Back',580,-580,140,function() self:VoiceOptionsAction('close') end)
  self.voiceControls={self.voiceKey,self.voiceMic,self.voicePad,self.voicePadMod,self.voiceEnabled,self.voiceStartup,self.voiceRefresh,self.voiceReview,self.voiceTest,self.voiceSave,self.voiceBack}
+ self:BuildVoiceSetupControls(label,button)
  self.voiceCaptureFrame=self.NewFrame('Frame',nil,f);local capture=self.voiceCaptureFrame
  capture:SetAllPoints();capture:SetFrameStrata('TOOLTIP');capture:EnableMouse(true);capture:EnableKeyboard(true)
  if capture.SetPropagateKeyboardInput then capture:SetPropagateKeyboardInput(false) end
@@ -153,11 +155,11 @@ function P:BuildVoiceOptions()
   if map[key] then self:SetVoiceCapture('mouse',map[key][1],map[key][2]) end
  end)
  capture:Hide()
- f:SetScript('OnHide',function() self:EndVoiceCapture();self.pendingVoice=nil;if not InCombatLockdown() then ClearOverrideBindings(self.optionOwner) end end);f:Hide()
+ f:SetScript('OnHide',function() self:EndVoiceCapture();self:EndVoiceWords(false);self.voiceConflictAccepted=nil;self.pendingVoice=nil;if not InCombatLockdown() then ClearOverrideBindings(self.optionOwner) end end);f:Hide()
 end
 function P:ShowVoiceOptions()
  if InCombatLockdown() then return end
- self:BuildOptions();self:BuildVoiceOptions();self.optionsFrame:Hide();self.pendingVoice=copy(self.db.voiceOptions);self.voiceIndex=1;self:UpdateVoiceOptions();local _,_,help=self:ControllerHelp();self.voiceHelp:SetText('D-pad: choose / change   '..help);self.voiceInfo:SetText(self.voiceCompanionStatus or 'Companion status not checked. Hold your saved PTT here to test without sending. Save & reload applies changed settings.');self.voiceOptionsFrame:Show()
+ self:BuildOptions();self:BuildVoiceOptions();self.optionsFrame:Hide();self.pendingVoice=copy(self.db.voiceOptions);self.voiceConflictAccepted=nil;self.voiceSave.text:SetText("Save & reload UI");self.voiceIndex=1;self:UpdateVoiceOptions();local _,_,help=self:ControllerHelp();self.voiceHelp:SetText('D-pad: choose / change   '..help);self.voiceInfo:SetText(self.voiceCompanionStatus or 'Companion status not checked. Hold your saved PTT here to test without sending. Save & reload applies changed settings.');self.voiceOptionsFrame:Show();if self.db.voiceGuideStep then self.voiceGuide.text:SetText('Setup '..self.db.voiceGuideStep..'/4: next');self.voiceInfo:SetText(self:VoiceGuideText()) end
  for key,control in pairs(self.optionActions) do SetOverrideBindingClick(self.optionOwner,true,key,control:GetName(),'LeftButton') end
 end
 local voiceOwner=P.NewFrame('Frame')

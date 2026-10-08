@@ -3,7 +3,7 @@ import json,runpy
 ROOT=Path(__file__).resolve().parent
 CHECK=ROOT/"Tests"
 results=[]
-for name in ('test-padchat.py','test-runtime.py','test-options.py','test-invites.py','test-voice-options.py'):
+for name in ('test-padchat.py','test-runtime.py','test-options.py','test-invites.py','test-voice-options.py','test-voice-setup.py','test-speech-recovery.py'):
  print('Running',name,flush=True)
  runpy.run_path(str(CHECK/name));results.append({'name':name,'passed':True})
 
@@ -35,7 +35,7 @@ local before=#sent;P:PrepareVoiceProbe();P:ReadVoiceStatus('PCVS1;'..P.voiceProb
 P:PTTReleaseFocus();P.voiceOptionsFrame:Hide()
 local external=CreateFrame('EditBox');external:SetText('private draft');external:SetFocus();P:PrepareVoiceProbe();assert(focus==external and external:GetText()=='private draft');external:ClearFocus()
 P:PrepareVoiceProbe();assert(P.pttBox:GetText():find(';NORMAL$'));P:PTTReleaseFocus()
-P:ShowVoiceOptions();P.pendingVoice.review=true;assert(P:SaveVoiceOptions(P.pendingVoice));assert(P.db.voiceSettingsWire:find('^PCV2;') and P.db.voiceSettingsWire:find(';1$'))
+P:ShowVoiceOptions();P.pendingVoice.review=true;assert(P:SaveVoiceOptions(P.pendingVoice));assert(P.db.voiceSettingsWire:find('^PCV3;') and P.db.voiceSettingsWire:find(';1;$'))
 ''')
 results.append({'name':'responsive panels, controller onboarding, status ownership, test non-delivery, review settings','passed':True})
 (ROOT/'TEST-REPORT.json').write_text(json.dumps(results,indent=2))

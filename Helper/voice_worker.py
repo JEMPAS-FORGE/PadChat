@@ -13,6 +13,7 @@ import pcm_audio
 sys.modules['faster_whisper.audio'] = pcm_audio
 from faster_whisper import WhisperModel
 from microphone_inputs import input_devices, read_selection, resolve_selection
+from speech_vocabulary import recognition_prompt, custom_terms
 
 ROOT = Path(sys.executable).resolve().parent if getattr(sys, "frozen", False) else Path(__file__).resolve().parent
 output_lock = threading.Lock()
@@ -30,7 +31,7 @@ def load_model(preview=False):
                         local_files_only=True)
 
 
-def transcribe(model, audio, preview=False):
+def transcribe(model, audio, preview=False, vocabulary=""):
     if len(audio) < 4000 or float(np.max(np.abs(audio))) < .004:
         return ''
     # Gain only for this recording, never the Windows/Discord microphone level.
@@ -43,7 +44,7 @@ def transcribe(model, audio, preview=False):
                                   temperature=0, condition_on_previous_text=False,
                                   vad_filter=True, vad_parameters={'min_silence_duration_ms': 350},
                                   no_speech_threshold=.6,
-                                  initial_prompt='World of Warcraft. Party, guild, raid, quest, dungeon, mana, healing, tank, Horde, Orgrimmar, the Barrens.')
+                                  initial_prompt=recognition_prompt(vocabulary))
     return ' '.join(s.text.strip() for s in segments
                     if s.no_speech_prob < .65 and s.avg_logprob > -1.0).strip()
 
@@ -58,6 +59,7 @@ class RecognitionJobs:
         self.running = False
         self.version = 0
         self.closed = False
+        self.vocabulary = ""
         threading.Thread(target=self.run, daemon=True).start()
 
     def cancel(self):
@@ -71,7 +73,7 @@ class RecognitionJobs:
                 return False
             if kind == 'result':
                 self.version += 1  # Invalidate any preview still being decoded.
-            self.pending = (self.version, kind, sid, audio)
+            self.pending = (self.version, kind, sid, audio, self.vocabulary)
             self.condition.notify()
             return True
 
@@ -88,13 +90,13 @@ class RecognitionJobs:
                 self.condition.wait_for(lambda: self.pending is not None or self.closed)
                 if self.closed:
                     return
-                version, kind, sid, audio = self.pending
+                version, kind, sid, audio, vocabulary = self.pending
                 self.pending = None
                 self.running = True
             begin = time.monotonic()
             try:
                 model = self.preview_model if kind == 'partial' else self.model
-                text = transcribe(model, audio, preview=kind == 'partial')
+                text = transcribe(model, audio, preview=kind == 'partial', vocabulary=vocabulary)
                 message = dict(text=text, seconds=round(time.monotonic()-begin, 2))
                 output_kind = kind
             except Exception as exc:
@@ -113,12 +115,16 @@ def main():
         except Exception as exc:
             emit('microphones', devices=[], selected=None, error=str(exc))
         return
+    if len(sys.argv) > 1 and sys.argv[1] == '--check-vocabulary':
+        hints = sys.argv[2] if len(sys.argv) > 2 else ''
+        emit('vocabulary-check', prompt=recognition_prompt(hints), terms=custom_terms(hints))
+        return
     model = load_model()
     if len(sys.argv) > 1 and sys.argv[1] == '--self-test':
         # Supplied synthetic wave; no microphone is opened by this test.
         from faster_whisper.audio import decode_audio
         start = time.monotonic()
-        text = transcribe(model, decode_audio(sys.argv[2], sampling_rate=16000))
+        text = transcribe(model, decode_audio(sys.argv[2], sampling_rate=16000), vocabulary=sys.argv[3] if len(sys.argv)>3 else "")
         emit('test', text=text, seconds=round(time.monotonic()-start, 2))
         return
     commands = queue.Queue()
@@ -138,13 +144,15 @@ def main():
     finishing = False
     next_preview = 0
     last_meter = 0
+    last_callback = 0
     started = 0
 
     def callback(data, count, timing, status):
-        nonlocal last_meter
+        nonlocal last_meter, last_callback
         with lock:
             chunks.append(data[:, 0].copy())
         now = time.monotonic()
+        last_callback = now
         if now-last_meter > .15:
             last_meter = now
             rms = float(np.sqrt(np.mean(data[:, 0] ** 2)))
@@ -155,14 +163,29 @@ def main():
 
     def close_capture():
         nonlocal stream
-        if stream is not None:
-            stream.stop()
-            stream.close()
-            stream = None
+        active, stream = stream, None
+        if active is None:
+            return True
+        ok = True
+        try:
+            active.stop()
+        except Exception:
+            ok = False
+        finally:
+            try:
+                active.close()
+            except Exception:
+                ok = False
+        return ok
 
     emit('ready')
     while True:
         now = time.monotonic()
+        if stream is not None and now-last_callback > 1.5:
+            close_capture(); jobs.cancel()
+            with lock:
+                chunks.clear()
+            emit('error', id=session, microphone=True, message='Microphone stopped delivering audio; interrupted speech discarded.')
         if stream is not None and now >= next_preview:
             with lock:
                 audio = np.concatenate(chunks) if chunks else np.zeros(0, dtype=np.float32)
@@ -179,6 +202,15 @@ def main():
                 emit('error', id=session, message='Recording limit reached; release and try a shorter message.')
             continue
         action = command.get('cmd')
+        if action == 'vocabulary':
+            try:
+                hints = command.get('text', '')
+                custom_terms(hints)
+                with jobs.condition:
+                    jobs.vocabulary = hints
+            except ValueError:
+                emit('configuration-error', message='Invalid vocabulary; previous hints kept.')
+            continue
         if action == 'quit':
             close_capture()
             jobs.close()
@@ -204,6 +236,7 @@ def main():
                 with lock:
                     chunks.clear()
                 started = time.monotonic()
+                last_callback = started
                 next_preview = started + .75
                 stream = sd.InputStream(device=device_index, samplerate=16000,
                                         channels=1, dtype='float32', callback=callback)
@@ -213,7 +246,12 @@ def main():
                 close_capture()
                 emit('error', id=session, message=str(exc), microphone=True)
         elif action == 'stop' and command.get('id') == session and stream is not None:
-            close_capture()
+            if not close_capture():
+                jobs.cancel()
+                with lock:
+                    chunks.clear()
+                emit('error', id=session, microphone=True, message='Microphone disconnected; interrupted speech discarded.')
+                continue
             with lock:
                 audio = np.concatenate(chunks) if chunks else np.zeros(0, dtype=np.float32)
                 chunks.clear()

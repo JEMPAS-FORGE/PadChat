@@ -30,6 +30,10 @@ def main():
   backend_input=os.environ.get('PADCHAT_BACKEND_INPUT')
   if not backend_input:raise RuntimeError('Set PADCHAT_BACKEND_INPUT to the matching licensed shipping App folder; see BUILD.md')
   shutil.copytree(Path(backend_input),app)
+ # Match the shipping CPU-only policy: CTranslate2 imports every adjacent DLL.
+ # Optional cuDNN is not needed for int8 CPU inference and may fail to initialise.
+ cuda=app/'Backend/_internal/ctranslate2/cudnn64_9.dll'
+ if cuda.exists():cuda.unlink()
  compile(app/'PadChatVoice.exe',sorted((ROOT/'Helper').glob('*.cs')))
  (PAYLOAD/'Docs').mkdir(exist_ok=True)
  for p in ('START-HERE.txt','LICENSE.txt','VALIDATION.md','CHANGELOG.md','README.md','COMPATIBILITY.md','BUILD.md','DEPENDENCIES.json'):
@@ -44,7 +48,7 @@ def main():
    if p.is_file():z.write(p,p.relative_to(PAYLOAD).as_posix())
  compile(ROOT/'Uninstall.exe',[ROOT/'Packaging/Setup.cs',ROOT/'Packaging/Discovery.cs'],('/define:UNINSTALL',))
  compile(OUT/'PadChat-Setup.exe',[ROOT/'Packaging/Setup.cs',ROOT/'Packaging/Discovery.cs'],('/resource:'+str(archive)+',payload.zip','/resource:'+str(ROOT/'Uninstall.exe')+',Uninstall.exe'))
- with zipfile.ZipFile(OUT/'PadChat-0.2.2-preview.1.zip','w',zipfile.ZIP_DEFLATED) as z:
+ with zipfile.ZipFile(OUT/'PadChat-0.2.2-preview.2.zip','w',zipfile.ZIP_DEFLATED) as z:
   for p in (ROOT/'PadChat').iterdir():
    if p.is_file():z.write(p,'PadChat/'+p.name)
  with zipfile.ZipFile(OUT/'PadChat-source.zip','w',zipfile.ZIP_DEFLATED) as z:
@@ -53,7 +57,7 @@ def main():
     if p.is_file():z.write(p,folder+'/'+p.name)
   for p in ('build-candidate.py','run-tests.py','START-HERE.txt','VALIDATION.md','CHANGELOG.md','README.md','COMPATIBILITY.md','BUILD.md','DEPENDENCIES.json'):
    if (ROOT/p).exists():z.write(ROOT/p,p)
- with zipfile.ZipFile(OUT/'PadChat-Windows-Voice-0.2.2-preview.1.zip','w',zipfile.ZIP_DEFLATED,compresslevel=1) as z:
+ with zipfile.ZipFile(OUT/'PadChat-Windows-Voice-0.2.2-preview.2.zip','w',zipfile.ZIP_DEFLATED,compresslevel=1) as z:
   for name in ('PadChat-Setup.exe','START-HERE.txt','LICENSE.txt','VALIDATION.md'):
    if (OUT/name).exists():z.write(OUT/name,name)
  hashes={p.name:hashlib.file_digest(p.open('rb'),'sha256').hexdigest() for p in OUT.iterdir() if p.is_file() and p.name not in ('SHA256.json','checksums-sha256.txt','PadChat-Setup.exe.sha256')}

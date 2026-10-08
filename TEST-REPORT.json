@@ -21,6 +21,14 @@
       "passed": true
     },
     {
+      "name": "test-voice-setup.py",
+      "passed": true
+    },
+    {
+      "name": "test-speech-recovery.py",
+      "passed": true
+    },
+    {
       "name": "responsive panels, controller onboarding, status ownership, test non-delivery, review settings",
       "passed": true
     }
@@ -43,7 +51,27 @@
       "passed": true
     },
     {
-      "name": "bundled synthetic speech",
+      "name": "frozen vocabulary custom hints",
+      "passed": true
+    },
+    {
+      "name": "bundled speech content: default",
+      "passed": true
+    },
+    {
+      "name": "bundled speech content: Friendly-Realm",
+      "passed": true
+    },
+    {
+      "name": "bundled speech content: Thunder Bluff, Wailing Caverns",
+      "passed": true
+    },
+    {
+      "name": "bundled speech content: Friendly-Realm, Friendly Two, Friendly Three, Friendly Four",
+      "passed": true
+    },
+    {
+      "name": "bundled WoW vocabulary sample",
       "passed": true
     },
     {
@@ -51,6 +79,15 @@
       "passed": true
     }
   ],
-  "corruptInstallMetadata": "four cases passed; originals byte-preserved",
+  "corruptInstallMetadata": {
+    "passed": true,
+    "output": "PASS: malformed/wrong-type/null/invalid-path install records recover without altering their bytes.\n"
+  },
+  "frozenSource": {
+    "speechVocabularyBytecodeMatchesSource": true,
+    "workerBytecodeMatchesSource": true,
+    "cpuOnlyNoCudnn": true,
+    "backendExeSha256": "2a3922c768fe4fbdd7d7a86763ca573416882d2bd122e8a800ee43f52951b393"
+  },
   "liveGameplayVerified": false
 }

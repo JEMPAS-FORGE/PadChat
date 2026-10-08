@@ -182,7 +182,7 @@ partial class VoicePTT {
    string message;while(messages.TryDequeue(out message)){
     var data=json.Deserialize<Dictionary<string,object>>(message);string kind=(string)data["type"];
     if(kind=="microphones"){ApplyGameMicrophoneList(data);UpdateMicrophones(data);continue;}
-    if(kind=="ready"){ready=true;workerFailures=0;WriteHealth("ready");continue;}
+    if(kind=="ready"){ready=true;workerFailures=0;WriteVocabulary();if(micRecoveryPending){micRecoveryPending=false;Status("Speech helper refreshed. Reconnect the same microphone, release PTT and press again. Nothing resumed automatically.",6000);}WriteHealth("ready");continue;}
     if(!data.ContainsKey("id")||Convert.ToInt32(data["id"])!=sid)continue;
     if(kind=="level"){level=Convert.ToInt32(data["level"]);if(phase=="recording")RecordingStatus();}
     else if(kind=="partial"){
@@ -198,7 +198,7 @@ partial class VoicePTT {
      else {phase="result";Status("Recognised: "+text+"\nSending to your last chat channel...",0);}
     }else if(kind=="error"){
      Cancel("Voice: "+(string)data["message"]);
-     if(data.ContainsKey("microphone")&&Convert.ToBoolean(data["microphone"]))Status("Microphone unavailable. Open /padchat voice to choose an input.",8000);
+     if(data.ContainsKey("microphone")&&Convert.ToBoolean(data["microphone"]))RecoverMicrophone();
     }
    }
    if(hideAt!=0&&Now>=hideAt){badge.Hide();hideAt=0;}
@@ -216,8 +216,9 @@ partial class VoicePTT {
    if(microphoneEvent!=null&&microphoneEvent.WaitOne(0))ShowMicrophones();
    if(microphoneWindow!=null&&!microphoneWindow.IsDisposed||shortcutWindow!=null&&!shortcutWindow.IsDisposed){heldAt=0;latched=chord;return;}
    if(previousSource!=inputSource){
-    if(phase!="idle"&&recordSource=="controller")Cancel("Message cancelled: controller changed");
-    if(pressSource!="keyboard"&&!keyboardChord){heldAt=0;latched=controllerChord;pressSource=controllerChord?"controller":"";chord=controllerChord;}
+    ControllerRecoveryNotice(previousSource,inputSource,controllerChord);
+    if(ReconnectCancels(previousSource,inputSource,recordSource,phase))Cancel("Message cancelled: controller changed");
+    if(pressSource!="keyboard"&&!keyboardChord){heldAt=0;latched=ReconnectMustRelease(controllerChord);pressSource=controllerChord?"controller":"";chord=controllerChord;}
    }
    if(phase!="idle"&&(!SameGame()||RequiresController(recordSource)&&!connected)){Cancel(!SameGame()?"Message cancelled: WoW lost focus":"Message cancelled: controller disconnected");}
    if(!chord){
@@ -242,7 +243,7 @@ partial class VoicePTT {
    Console.WriteLine("Controller="+inputSource+" connected="+connected+" Share="+Chord(buttons));return;
   }
   if(args.Length>0&&args[0]=="--self-test"){
-   TestVoiceDiagnostics();
+   TestVoiceRecovery();TestVoiceDiagnostics();
    TestGameVoiceSettings();
    TestVoiceBindings();
    TestKeyboardVoice();

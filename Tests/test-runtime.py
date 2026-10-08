@@ -52,7 +52,7 @@ function CreateFrame(kind,name,parent,template)
  local f=setmetatable({name=name,scripts={},attrs={}},Frame);widgets[name or (#widgets+1)]=f;return f
 end
 ''')
-for name in ['Core','Model','Options','VoiceOptions','Minimap','Layout','UI','VoicePTT','Invites','Events']:
+for name in ['Core','Model','Options','VoiceOptions','VoiceSetup','Minimap','Layout','UI','VoicePTT','Invites','Events']:
  l.execute((root/'PadChat'/f'{name}.lua').read_text(encoding='utf-8-sig'),'PadChat',l.globals().P)
 l.execute('''
 P:InitDB();P.openBindingOwner.scripts.OnEvent(P.openBindingOwner,'PLAYER_LOGIN');P:Open();assert(P.open)

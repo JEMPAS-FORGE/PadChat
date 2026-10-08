@@ -1,29 +1,35 @@
-# Validation â€” 0.2.2 Preview 1
+# Validation — 0.2.2 Preview 2
 
-Passed on 9 October 2026 against the exact Forever candidate and shipping files:
+Automated checks on 9 October 2026 cover the exact release source and binaries:
 
-- Addon model, runtime, options, invites and voice-options regressions.
-- First-use controller setup, saved modifiers and release, reconnects, opening/
-  closing, draft preservation, chat preparation/focus cleanup, whisper/channel
-  destinations, combat guards and friend invites.
-- Panel fitting at 640x360, 800x450, 1280x720 and 1920x1080 logical viewports;
-  bounded status ownership, microphone-test non-delivery and review settings.
-- Shipping companion shortcut/controller/settings-migration self-tests, bounded
-  diagnostics protocol and review decisions; clean microphone enumeration.
-- Actual shipping installer discovery tests and isolated fresh install/update/
-  rollback/uninstall tests, preference preservation, startup opt-out, keyboard-
-  only installation, wrong-client rejection, traversal and integrity refusal.
-- Actual installer-state reader refuses four malformed metadata cases without
-  modifying those files. The ordinary E:\Padchat path parses, but is not a valid
-  client folder unless it actually contains the Forever game.
-- Bundled recognition of a synthetic speech sample with Python removed from PATH
-  and offline settings; embedded payload hashes, source/addon bytes and matching
-  direct installer inside the Windows ZIP.
+- Existing addon navigation/open/close/modifiers, sending preparation/focus cleanup,
+  chat/whisper destinations, combat guards, friend invites and options regressions.
+- Existing logical panel fitting, controller onboarding, owned companion status,
+  test non-delivery and review settings checks.
+- Actual Lua conflict warnings and two-step consent, changed bindings/actions,
+  dismissed consent, controller primary reservation, optional words/edit cancellation,
+  PCV3 wire encoding and guided setup/resume/owned-test completion.
+- Actual Python decoder prompt, per-job vocabulary snapshot, cancelled in-flight
+  results, simulated PortAudio stop failure and missing callback non-delivery.
+- Compiled companion PCV1/2/3 migration, bounded vocabulary, reconnect cancellation/
+  fresh-press decisions, microphone matching, shortcut/controller/review diagnostics.
+- Frozen backend vocabulary command, ordinary-speech content assertions with four
+  vocabulary choices, and synthetic speech recognition without Python
+  on PATH, with network-disabled model settings; no microphone opened by speech test.
+- Shipping installer discovery and isolated install/update/rollback/uninstall,
+  integrity/traversal refusal, preference preservation and startup opt-out checks.
+- Source/addon/embedded payload/Windows ZIP installer and published asset consistency.
 
-Installer OS registration is simulated in isolated tests. Synthetic speech does
-not open a real microphone. Source/mocked/isolated checks do not certify protected
-chat sending, physical PTT/microphone/controller operation or actual game visuals.
-Those require live acceptance in Forever 1.60.1.70291, interface 16001. A separate
-clean PC and real Windows sign-in/startup remain unverified. No running game,
-installed addon, personal microphone preferences or startup setting was changed.
-This remains an unsigned preview; the experimental multi-client branch is excluded.
+A long glossary caused repetition on the ordinary-speech fixture and was rejected;
+the final prompt is bounded to 125 UTF-8 bytes. Proper nouns can still be misheard
+(the synthetic Wailing Caverns example becomes Whaling Caverns). Hints are not
+guaranteed corrections.
+
+The build excludes the optional CUDA/cuDNN DLL, matching the prior CPU-only
+shipping policy; the frozen package check enforces this exclusion.
+
+PortAudio failures are simulated. Synthetic audio and mocked game APIs do not
+certify physical microphone/controller reconnects, protected chat sending or visuals.
+No separate clean PC, real Windows startup or live gameplay was tested. The existing
+game/addon/helper, user microphone and startup preferences were untouched.
+This remains an unsigned Forever-only preview. Experimental 0.3 is excluded.

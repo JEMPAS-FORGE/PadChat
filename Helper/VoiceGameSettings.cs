@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 partial class VoicePTT {
  class GameVoiceSettings {
   public VoiceShortcut shortcut;
-  public string microphone,startup,pad,padMod;
+  public string microphone,startup,pad,padMod,vocabulary;
   public bool enabled,review;
  }
  static bool voiceEnabled=true,gameSettingsManaged,voiceReview;
@@ -23,9 +23,9 @@ partial class VoicePTT {
   {"LSHOULDER",0x10},{"RSHOULDER",0x20},{"LTRIGGER",0x40},{"RTRIGGER",0x80}};
  static string GameSettingsPath(){return Path.Combine(dataRoot,"voice-game-settings.json");}
  static GameVoiceSettings ParseGameSettings(string wire){
-  if(wire==null||wire.Length>2200)throw new ArgumentException("Invalid voice settings size.");
+  if(wire==null||wire.Length>5000)throw new ArgumentException("Invalid voice settings size.");
   var parts=wire.Split(';');int key,mods;
-  if(!(parts.Length==9&&parts[0]=="PCV1"||parts.Length==10&&parts[0]=="PCV2"&&(parts[9]=="0"||parts[9]=="1"))||!int.TryParse(parts[2],out key)||!int.TryParse(parts[3],out mods)
+  if(!(parts.Length==9&&parts[0]=="PCV1"||(parts.Length==10&&parts[0]=="PCV2"||parts.Length==11&&parts[0]=="PCV3")&&(parts[9]=="0"||parts[9]=="1"))||!int.TryParse(parts[2],out key)||!int.TryParse(parts[3],out mods)
    ||!Regex.IsMatch(parts[4],@"^(?:[A-Za-z0-9 ._-]|%[0-9A-F]{2})*$")
    ||parts[5]!="0"&&parts[5]!="1"||parts[6]!="KEEP"&&parts[6]!="ON"&&parts[6]!="OFF"
    ||!padBits.ContainsKey(parts[7])||!padBits.ContainsKey(parts[8])
@@ -33,8 +33,9 @@ partial class VoicePTT {
   var shortcut=new VoiceShortcut{kind=parts[1],key=key,modifiers=mods};
   if(ShortcutProblem(shortcut)!=null)throw new ArgumentException(ShortcutProblem(shortcut));
   string mic=Uri.UnescapeDataString(parts[4]);
+  string vocabulary="";if(parts.Length==11){if(!Regex.IsMatch(parts[10],@"^(?:[A-Za-z0-9 ._-]|%[0-9A-F]{2})*$"))throw new ArgumentException("Invalid vocabulary encoding");vocabulary=Uri.UnescapeDataString(parts[10]);if(!ValidVocabulary(vocabulary))throw new ArgumentException("Invalid vocabulary");}
   if(mic.Length>512||Regex.IsMatch(mic,@"[\x00-\x1F\x7F]")||parts[7]==parts[8]&&parts[7]!="NONE")throw new ArgumentException("Invalid microphone or controller binding.");
-  return new GameVoiceSettings{shortcut=shortcut,microphone=mic,enabled=parts[5]=="1",startup=parts[6],pad=parts[7],padMod=parts[8],review=parts.Length==10&&parts[9]=="1"};
+  return new GameVoiceSettings{shortcut=shortcut,microphone=mic,enabled=parts[5]=="1",startup=parts[6],pad=parts[7],padMod=parts[8],review=parts.Length>=10&&parts[9]=="1",vocabulary=vocabulary};
  }
  static string ReadGameSettingsRecord(string path){
   if(new FileInfo(path).Length>4*1024*1024)throw new IOException("PadChat settings file is too large.");
@@ -42,7 +43,7 @@ partial class VoicePTT {
   string contents;
   using(var stream=new FileStream(path,FileMode.Open,FileAccess.Read,FileShare.ReadWrite|FileShare.Delete))
   using(var reader=new StreamReader(stream,Encoding.UTF8,true))contents=reader.ReadToEnd();
-  var matches=Regex.Matches(contents,@"\[""voiceSettingsWire""\]\s*=\s*""(PCV[12];[A-Za-z0-9;%. _-]{1,2200})""");
+  var matches=Regex.Matches(contents,@"\[""voiceSettingsWire""\]\s*=\s*""(PCV[123];[A-Za-z0-9;%. _-]{1,5000})""");
   if(matches.Count>1)throw new IOException("Multiple voice settings records found.");
   return matches.Count==1?matches[0].Groups[1].Value:null;
  }
@@ -125,11 +126,12 @@ partial class VoicePTT {
   if(mic!=null)AtomicVoiceFile(Path.Combine(dataRoot,"voice-microphone.json"),json.Serialize(new{name=mic.name,hostapi=mic.hostapi}));
   WriteShortcut(ShortcutPath(),s.shortcut);
   AtomicVoiceFile(GameSettingsPath(),json.Serialize(s));
-  voiceShortcut=s.shortcut;voiceEnabled=s.enabled;voiceReview=s.review;voicePad=s.pad;voicePadMod=s.padMod;gameSettingsManaged=true;
+  voiceVocabulary=s.vocabulary??"";voiceShortcut=s.shortcut;voiceEnabled=s.enabled;voiceReview=s.review;voicePad=s.pad;voicePadMod=s.padMod;gameSettingsManaged=true;
   keyboardHeld=false;keyboardPhysicalDown=GetAsyncKeyState(voiceShortcut.key)<0;heldAt=0;pressSource="";latched=true;
   if(microphoneWindow!=null&&!microphoneWindow.IsDisposed)microphoneWindow.Close();
   if(shortcutWindow!=null&&!shortcutWindow.IsDisposed)shortcutWindow.Close();
   if(!voiceEnabled){StopWorker();ready=false;}else if(mic!=null||worker==null||worker.HasExited)StartWorker();
+  if(voiceEnabled&&ready)WriteVocabulary();
   gameSettingsStatus="Applied from in-game Options";UpdateShortcutLabels();WriteHealth(voiceEnabled?(ready?"ready":"loading"):"disabled");
   Status("PadChat voice settings applied\n"+ShortcutName(voiceShortcut)+" / "+ControllerVoiceName()+" — "+(voiceEnabled?"tap: channel; hold: speak":"voice disabled"),5000);
  }
@@ -138,6 +140,7 @@ partial class VoicePTT {
    string path=GameSettingsPath();if(!File.Exists(path)||new FileInfo(path).Length>8192)return;
    var s=json.Deserialize<GameVoiceSettings>(File.ReadAllText(path));
    if(s==null||ShortcutProblem(s.shortcut)!=null||!padBits.ContainsKey(s.pad)||!padBits.ContainsKey(s.padMod))return;
+   if(!ValidVocabulary(s.vocabulary))return;voiceVocabulary=s.vocabulary??"";
    voiceEnabled=s.enabled;voiceReview=s.review;voicePad=s.pad;voicePadMod=s.padMod;gameSettingsManaged=true;gameSettingsStatus="Restored in-game settings";
   }catch{}
  }

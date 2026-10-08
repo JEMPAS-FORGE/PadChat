@@ -3,3 +3,6 @@ Payload/
 __pycache__/
 *.exe
 payload.zip
+frozen/
+freeze-build/
+*.spec

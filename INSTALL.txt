@@ -1,4 +1,4 @@
-PadChat 0.2.2 Preview 1 — WoW Forever 1.60.1 / Interface 16001
+PadChat 0.2.2 Preview 2 — WoW Forever 1.60.1 / Interface 16001
 Windows voice companion: Windows 10/11 x64, English, local recognition.
 
 INSTALL BOTH PARTS
@@ -14,7 +14,7 @@ INSTALL BOTH PARTS
 ADDON ONLY
 The CurseForge ZIP installs the keyboard and in-game Options, not the Windows
 speech engine. Download the matching PadChat-Setup.exe from:
-https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.1
+https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.2
 
 KEYBOARD AND CONTROLLER
 F9 or /padchat opens/closes the keyboard. Native PlayStation touchpad click
@@ -27,6 +27,9 @@ Inside Options, D-pad changes/selects, A/X activates, B/Circle closes.
 The keyboard has selectable Options and Close keys; Escape also keeps the draft.
 
 VOICE SETTINGS IN THE GAME
+Choose Guided setup for the four steps: select a microphone, bind PTT, save
+and reload, then speak a safe test phrase with the Voice panel still open.
+Setup resumes after reload. Nothing is sent during the test.
 Click the minimap icon > Voice settings, or type /padchat voice.
 Click Bind push-to-talk, then press your preferred key or middle/side mouse
 button. Ctrl/Alt/Shift modifiers are supported. Controller voice button and held
@@ -35,6 +38,16 @@ reported by WoW; Refresh lists hotplug changes. "Keep current" preserves the
 companion's existing input. A missing/ambiguous input is refused.
 Save & reload UI applies voice choices through WoW's SavedVariables. Do this
 somewhere safe. Pending edits are not the active shortcut until saved and applied.
+
+BINDING WARNINGS AND WOW WORDS
+A binding already used by WoW (such as F8 for a bag) shows the existing action.
+Choose a different shortcut, or explicitly accept the conflict before saving.
+Controller primary buttons are reserved even with a held trigger. Saved WoW
+bindings are not rewritten. Closing Options discards pending edits/acceptance.
+WoW words / names lets you type optional comma-separated recognition hints.
+Use up to 32 terms, 600 UTF-8 bytes total / 60 bytes per term. Put the most important names first: the decoder uses a short bounded hint list.
+These are local hints, not automatic substitutions or invite commands; accuracy can still vary.
+Save & reload applies hints. Clear them to use only the built-in WoW vocabulary.
 
 TEST VOICE WITHOUT SENDING
 Open Voice settings, click Test microphone / check companion, then hold your
@@ -58,6 +71,14 @@ In Voice settings change Send to "review, then press PTT again", Save & reload.
 After dictating, inspect the preview, then press PTT again to send.
 Escape or controller B/Circle cancels. Focus loss/disconnect also cancels.
 Automatic release-to-send remains the default and existing choice is preserved.
+
+RECONNECT A MICROPHONE OR CONTROLLER
+Interrupted audio or controller identity changes cancel affected speech; stale
+messages are discarded. Microphone errors refresh the speech helper; reconnect
+the same saved microphone, release PTT and press again. Missing/ambiguous inputs
+never silently switch to another microphone. If still missing, Refresh and select
+the input again in Voice settings. Keyboard PTT remains independent of controller
+reconnection. Only a fresh press begins another message.
 
 REPAIR / PRIVACY / LIMITS
 Close WoW and rerun Setup for update/repair. Microphone, voice preferences,
