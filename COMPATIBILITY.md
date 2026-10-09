@@ -1,4 +1,4 @@
-# Forever compatibility — 0.2.2 Preview 3
+# Forever compatibility — 0.2.2 Preview 4
 
 WoW Forever 1.60.1.70291 / interface 16001. Existing source audit pin:
 

@@ -1,0 +1,9 @@
+{
+  "pinnedSource": "9465cb273b5513495d8ecc12fbb19930dd6b8957",
+  "apiFileSha256": "feb3e6971aa320800f2bdb1bd9cfd26d4d2578359c714bd82a3cada9c143f057",
+  "oldPublicCombatSnippetReproducesInvalidHandle": true,
+  "correctedSnippetPassesPinnedValidator": true,
+  "stagedInstalledSnippetPassesPinnedValidator": true,
+  "closedKeyboardOptionsVoiceCombatCyclesPass": true,
+  "liveCombatVerified": false
+}

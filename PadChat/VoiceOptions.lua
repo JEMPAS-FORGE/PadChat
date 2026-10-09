@@ -117,7 +117,7 @@ function P:VoiceOptionsAction(action)
 end
 function P:BuildVoiceOptions()
  if self.voiceOptionsFrame then return end
- local f=self.NewFrame('Frame','PadChatVoiceOptions',UIParent);self.voiceOptionsFrame=f;self.optionOwner:SetFrameRef('voice',f)
+ local f=self.NewFrame('Frame','PadChatVoiceOptions',UIParent);self.voiceOptionsFrame=f
  f:SetSize(740,640);self:FitPanel(f,740,640);f:SetFrameStrata('FULLSCREEN_DIALOG');f:EnableMouse(true)
  local bg=f:CreateTexture(nil,'BACKGROUND');bg:SetAllPoints();bg:SetTexture('Interface\\DialogFrame\\UI-DialogBox-Background');bg:SetAlpha(.98)
  table.insert(UISpecialFrames,'PadChatVoiceOptions')

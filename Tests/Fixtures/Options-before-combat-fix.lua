@@ -108,10 +108,8 @@ function P:BuildOptions()
  end)
  self.optionControls={self.optionKey,self.optionButton,self.optionModifier,self.optionSave,self.optionReset,self.optionClose,self.optionVoice}
  self.optionOwner=self.NewFrame('Frame',nil,nil,'SecureHandlerStateTemplate')
- -- Options panels are deliberately unprotected. Restricted frame handles
- -- cannot Hide them during combat; PLAYER_REGEN_DISABLED handles those panels
- -- in Events.lua. Only release this protected owner's bindings here.
- self.optionOwner:SetAttribute('_onstate-combat',[[if newstate=='active' then self:ClearBindings() end]])
+ self.optionOwner:SetFrameRef('panel',f)
+ self.optionOwner:SetAttribute('_onstate-combat',[[if newstate=='active' then self:ClearBindings();self:GetFrameRef('panel'):Hide();local voice=self:GetFrameRef('voice');if voice then voice:Hide() end end]])
  RegisterStateDriver(self.optionOwner,'combat','[combat] active; inactive')
  self.optionActions={}
  for key,action in pairs({PADDUP='up',PADDDOWN='down',PADDLEFT='previous',PADDRIGHT='next',PAD1='activate',PAD2='close'}) do

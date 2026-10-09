@@ -1,4 +1,4 @@
-PadChat 0.2.2 Preview 3 — WoW Forever 1.60.1 / Interface 16001
+PadChat 0.2.2 Preview 4 — WoW Forever 1.60.1 / Interface 16001
 
 Windows voice companion: Windows 10/11 x64, English, local recognition.
 
@@ -26,7 +26,7 @@ The CurseForge ZIP installs the keyboard and in-game Options, not the Windows
 
 speech engine. Download the matching PadChat-Setup.exe from:
 
-https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.3
+https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.4
 
 KEYBOARD AND CONTROLLER
 

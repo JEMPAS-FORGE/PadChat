@@ -93,6 +93,7 @@ partial class VoicePTT {
   close.Click+=(s,e)=>f.Close();f.CancelButton=close;
   shortcutBind.Click+=(s,e)=>{
    shortcutArmed=true;shortcutArmAt=Now+200;shortcutBind.Text="Press your shortcut...";
+   PublishInputPolicy();
    shortcutPrompt.Text="Press a key or middle/side mouse button now.\nHold any modifier first. Escape cancels without changing your binding.\nThis shortcut is reserved while WoW is selected; other apps keep it.";
   };
   f.FormClosed+=(s,e)=>{shortcutArmed=false;shortcutWindow=null;};
@@ -111,21 +112,10 @@ partial class VoicePTT {
  }
  static IntPtr OnMouseShortcut(int code,IntPtr message,IntPtr data){
   if(code>=0){
-   var m=(HookMouse)Marshal.PtrToStructure(data,typeof(HookMouse));int msg=message.ToInt32();
+   var mouse=(HookMouse)Marshal.PtrToStructure(data,typeof(HookMouse));int msg=message.ToInt32();
    bool down=msg==0x207||msg==0x20B,up=msg==0x208||msg==0x20C;
-   uint key=msg==0x207||msg==0x208?4u:(m.data>>16)==1?5u:6u;
-   bool injected=(m.flags&1)!=0;
-   if((down||up)&&!injected){
-    if(down&&ShortcutCaptureOwnsFocus()){
-     SetCapturedShortcut(new VoiceShortcut{kind="mouse",key=(int)key,modifiers=CurrentShortcutModifiers()});return new IntPtr(1);
-    }
-    if(voiceEnabled&&voiceShortcut.kind=="mouse"&&voiceShortcut.key==key){
-     if(down){
-      if(CanCaptureShortcut(voiceShortcut,"mouse",key,IsGame(GetForegroundWindow()),CurrentShortcutModifiers(),keyboardPhysicalDown,false))keyboardHeld=true;
-      keyboardPhysicalDown=true;/* The addon reserves the action; capture still sees the key. */
-     }else{keyboardHeld=false;keyboardPhysicalDown=false;/* Releases reach the in-game capture frame. */}
-    }
-   }
+   int key=msg==0x207||msg==0x208?4:(mouse.data>>16)==1?5:6;
+   if((down||up)&&QueueVoiceInput("mouse",key,down,up,(mouse.flags&1)!=0))return new IntPtr(1);
   }
   return CallNextHookEx(mouseHook,code,message,data);
  }

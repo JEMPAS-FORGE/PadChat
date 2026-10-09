@@ -179,6 +179,8 @@ partial class VoicePTT {
  }
  static void Tick(object sender,EventArgs args){
   try{
+   MaintainInputListener();
+   DrainVoiceInputs();
    string message;while(messages.TryDequeue(out message)){
     var data=json.Deserialize<Dictionary<string,object>>(message);string kind=(string)data["type"];
     if(kind=="microphones"){ApplyGameMicrophoneList(data);UpdateMicrophones(data);continue;}
@@ -235,6 +237,7 @@ partial class VoicePTT {
    if(phase=="result"&&!chord)BeginDelivery();
    if(stage!=0&&Now>=deadline)AdvanceDelivery();
   }catch(Exception ex){try{Cancel("Voice error: "+ex.Message);}catch{phase="idle";stage=0;}}
+  finally{PublishInputPolicy();}
  }
  [STAThread] static void Main(string[] args){
   if(args.Length==2&&args[0]=="--render-bindings"){RenderVoiceBindingWindow(args[1]);return;}
@@ -242,7 +245,9 @@ partial class VoicePTT {
    bool connected;uint buttons=ReadButtons(out connected);
    Console.WriteLine("Controller="+inputSource+" connected="+connected+" Share="+Chord(buttons));return;
   }
+  if(args.Length>0&&args[0]=="--input-thread-test"){TestInputThread();return;}
   if(args.Length>0&&args[0]=="--self-test"){
+   TestInputRouting();
    TestVoiceRecovery();TestVoiceDiagnostics();
    TestGameVoiceSettings();
    TestVoiceBindings();
@@ -283,7 +288,8 @@ partial class VoicePTT {
    microphoneEvent=new System.Threading.EventWaitHandle(false,System.Threading.EventResetMode.AutoReset,"PadChat.Microphone.v1");
    bindingEvent=new System.Threading.EventWaitHandle(false,System.Threading.EventResetMode.AutoReset,"PadChat.Bindings.v1");
    stopEvent=new System.Threading.EventWaitHandle(false,System.Threading.EventResetMode.AutoReset,"PadChat.Stop.v1");
-   LoadVoiceShortcut();LoadGameVoiceSettings();SetupMicrophoneMenu();InstallKeyboardVoice();
+   LoadVoiceShortcut();LoadGameVoiceSettings();SetupMicrophoneMenu();
+   try{InstallKeyboardVoice();}catch(Exception ex){inputRetryAt=Now+5000;WorkerError("Input listener: "+ex.Message);WriteHealth("input-error");Status("Voice input could not start. Retrying shortly.\n"+ex.Message,8000);}
    try{if(voiceEnabled)StartWorker();}catch(Exception ex){WorkerError(ex.Message);Status("PadChat voice could not start. Run Setup again to repair.\n"+ex.Message,8000);}
    if(args.Length>0&&args[0]=="--bindings")ShowVoiceBindings();
    if(args.Length>0&&args[0]=="--microphone")ShowMicrophones();

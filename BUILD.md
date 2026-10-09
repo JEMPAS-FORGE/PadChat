@@ -30,7 +30,12 @@ Never reuse an existing game/user folder as a mock test root. Extract the test's
 
 shipping-payload.zip and run App/PadChatVoice.exe --self-test with a fresh
 
-PADCHAT_DATA_DIR. Also run python Tests/test-shipping-speech.py MATCHING_APP_BACKEND_FOLDER. Actual Windows startup and physical devices need separate testing.
+PADCHAT_DATA_DIR. Run App/PadChatVoice.exe --input-thread-test in that isolated
+profile for the native hook-thread stall, post-start fault cleanup and restart
+test; it does not inject physical input or control the game. Run python
+Tests/test-combat-handles.py for the pinned restricted-frame regression.
+Also run python Tests/test-shipping-speech.py MATCHING_APP_BACKEND_FOLDER.
+Actual Windows startup and physical devices need separate testing.
 
 To rebuild changed Python in an environment matching DEPENDENCIES.json plus
 

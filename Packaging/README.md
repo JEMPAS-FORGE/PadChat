@@ -8,7 +8,7 @@ guided microphone/setup testing and safer microphone/controller reconnect handli
 
 ## Install and set up voice
 
-1. Download **PadChat-Setup.exe** from [the matching release](https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.3). Close WoW and run it; choose the folder
+1. Download **PadChat-Setup.exe** from [the matching release](https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.4). Close WoW and run it; choose the folder
 
    containing **WowB.exe (the shared Data folder may be in its parent)**, keep voice enabled and select startup preference.
 
@@ -74,3 +74,17 @@ Report problems at [GitHub Issues](https://github.com/JEMPAS-FORGE/PadChat/issue
 
 For source builds and tests see BUILD.md. MIT license; dependencies retain their own notices.
 
+# Preview 4 reliability changes
+
+Keyboard and mouse push-to-talk now use a dedicated Windows listener, separate
+from speech processing. Delayed or overflowed input is cancelled and requires
+a fresh press. Failed listener startup is retried. Existing bindings and
+microphone preferences are preserved.
+
+The combat handler no longer accesses ordinary options panels through restricted
+frame handles. Secure sending and binding cleanup remain protected.
+
+This preview ships the same CPU speech backend as Preview 3. Automated tests
+cover the input queue, real Windows hook-thread stall/restart, restricted-frame
+validation, addon controls and the matching installer. They do not establish
+fresh-PC or physical controller/gameplay acceptance.

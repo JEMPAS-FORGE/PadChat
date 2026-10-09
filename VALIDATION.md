@@ -1,4 +1,17 @@
-# Validation - 0.2.2 Preview 3
+# Validation - 0.2.2 Preview 4
+
+New checks on 10 October 2026:
+- Compiled input-policy routing, keyboard/mouse modifiers, injected/repeated input,
+  capture/review cancellation, bounded queue overflow and stale-event rejection.
+- Real Windows hook installation and message pump during a 2.2-second caller
+  stall, then shutdown/restart. No physical input was injected into the game.
+- Previous public combat snippet reproduces Invalid frame handle against the
+  pinned Forever RestrictedFrames validator. Corrected snippet and options/voice
+  combat cycles pass; live protected gameplay still needs acceptance testing.
+- Matching release helper and complete isolated installer checks are rerun.
+
+Unchanged installer metadata/folder and frozen-source proof below are retained
+from Preview 3; they are not new fresh-PC tests.
 
 Installer-specific regression evidence:
 - Old production validation rejects shared-parent-Data and no-local-Data client fixtures; accepts local Data.

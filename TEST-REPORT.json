@@ -39,6 +39,10 @@
       "passed": true
     },
     {
+      "name": "shipping companion native input thread stall/restart",
+      "passed": true
+    },
+    {
       "name": "shipping installer discovery",
       "passed": true
     },
@@ -113,6 +117,49 @@
     "localDataInParent": true,
     "liveGameplayTested": false
   },
-  "firstPackageAttempt": "Failed during hidden backend startup with a colorama invalid-console-handle exception. Identical backend direct/hidden-launch probes and the full unmodified shipping installer retry passed. The transient failure is not claimed fixed.",
-  "liveGameplayVerified": false
+  "liveGameplayVerified": false,
+  "inputListener": {
+    "passed": true,
+    "tests": [
+      {
+        "mode": "--self-test",
+        "passed": true
+      },
+      {
+        "mode": "--input-thread-test",
+        "passed": true
+      }
+    ],
+    "binarySha256": "2f59d52d7d605aae0985e87e4c7c2948f7d2dd40a67d4c2e28a55ae1cc8f095e",
+    "physicalMouse5Verified": false,
+    "noGameOrMicInput": true,
+    "nativeHookThread2200msStallAndRestart": true,
+    "limits": "Real hook installation/pump tests and compiled routing fixtures do not prove physical input or all third-party hook interference."
+  },
+  "combatHandles": {
+    "pinnedSource": "9465cb273b5513495d8ecc12fbb19930dd6b8957",
+    "apiFileSha256": "feb3e6971aa320800f2bdb1bd9cfd26d4d2578359c714bd82a3cada9c143f057",
+    "oldPublicCombatSnippetReproducesInvalidHandle": true,
+    "correctedSnippetPassesPinnedValidator": true,
+    "stagedInstalledSnippetPassesPinnedValidator": true,
+    "closedKeyboardOptionsVoiceCombatCyclesPass": true,
+    "liveCombatVerified": false
+  },
+  "portableSourceBuild": {
+    "passed": true,
+    "freshIsolatedSourceBuild": true,
+    "backendInputEnvironmentUsed": true,
+    "compiledCompanionSelfTestAndNativeInputThread": true,
+    "payloadManifestVerified": true,
+    "addonMatchesShippingSource": true,
+    "personalInstallationTouched": false,
+    "installerFullRegression": "Covered separately by matching shipping package test"
+  },
+  "priorPreview3PackageAttempt": "Failed during hidden backend startup with a colorama invalid-console-handle exception. Identical backend direct/hidden-launch probes and the full unmodified shipping installer retry passed. The transient failure is not claimed fixed.",
+  "retainedUnchangedPreview3Evidence": [
+    "corruptInstallMetadata",
+    "frozenSource",
+    "installerFolderRegression",
+    "actualClientReadOnlyValidation"
+  ]
 }
