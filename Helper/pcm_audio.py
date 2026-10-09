@@ -7,7 +7,6 @@ pad_or_trim preserves the MIT faster-whisper audio API (SYSTRAN, 2023).
 import wave
 import numpy as np
 
-
 def decode_audio(input_file, sampling_rate=16000, split_stereo=False):
     with wave.open(input_file, 'rb') as f:
         if f.getsampwidth() != 2 or f.getcomptype() != 'NONE':
@@ -22,7 +21,6 @@ def decode_audio(input_file, sampling_rate=16000, split_stereo=False):
     if split_stereo:
         return audio[:, 0], audio[:, min(1, channels-1)]
     return audio.mean(axis=1)
-
 
 def pad_or_trim(array, length=3000, *, axis=-1):
     if array.shape[axis] > length:

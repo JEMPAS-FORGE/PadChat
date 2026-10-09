@@ -87,7 +87,32 @@
     "speechVocabularyBytecodeMatchesSource": true,
     "workerBytecodeMatchesSource": true,
     "cpuOnlyNoCudnn": true,
-    "backendExeSha256": "2a3922c768fe4fbdd7d7a86763ca573416882d2bd122e8a800ee43f52951b393"
+    "backendExeSha256": "2a3922c768fe4fbdd7d7a86763ca573416882d2bd122e8a800ee43f52951b393",
+    "reusedFrom": "0.2.2-preview.2",
+    "unchangedBackendManifestEntries": 543,
+    "unchangedPythonSources": true
   },
+  "installerFolderRegression": [
+    {
+      "name": "legacy",
+      "passed": true,
+      "output": "REPRODUCED REJECTION: shared-parent-data\nREPRODUCED REJECTION: no-local-data\nACCEPTED: client-local-data\n",
+      "error": ""
+    },
+    {
+      "name": "fixed",
+      "passed": true,
+      "output": "ACCEPTED: shared-parent-data\nACCEPTED: no-local-data\nACCEPTED: client-local-data\nPASS: production version checks, missing-file diagnostics and actual unshown SetupForm labels; no Data subfolder requirement.\n",
+      "error": ""
+    }
+  ],
+  "actualClientReadOnlyValidation": {
+    "passed": true,
+    "output": "PASS: Forever client folder validated; no files or settings changed.\n",
+    "readonly": true,
+    "localDataInParent": true,
+    "liveGameplayTested": false
+  },
+  "firstPackageAttempt": "Failed during hidden backend startup with a colorama invalid-console-handle exception. Identical backend direct/hidden-launch probes and the full unmodified shipping installer retry passed. The transient failure is not claimed fixed.",
   "liveGameplayVerified": false
 }

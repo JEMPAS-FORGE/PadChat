@@ -5,7 +5,6 @@ from pathlib import Path
 
 SETTINGS = Path(os.environ.get('PADCHAT_DATA_DIR', str(Path(os.environ.get('LOCALAPPDATA', str(Path.home()))) / 'PadChat'))) / 'voice-microphone.json'
 
-
 def input_devices(sd):
     # MME permits the existing 16 kHz mono capture and avoids listing each
     # Windows endpoint repeatedly through DirectSound, WASAPI and WDM-KS.
@@ -16,7 +15,6 @@ def input_devices(sd):
             and apis[d['hostapi']]['name'] == 'MME'
             and d['name'] != 'Microsoft Sound Mapper - Input']
 
-
 def read_selection(path=SETTINGS):
     try:
         value = json.loads(Path(path).read_text(encoding='utf-8-sig'))
@@ -25,7 +23,6 @@ def read_selection(path=SETTINGS):
     except (OSError, ValueError):
         pass
     return None
-
 
 def resolve_selection(devices, selected):
     if not selected:

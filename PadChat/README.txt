@@ -3,7 +3,7 @@ Windows voice companion: Windows 10/11 x64, English, local recognition.
 
 INSTALL BOTH PARTS
 1. Close WoW. Run PadChat-Setup.exe. Choose the Forever client folder containing
-   WowB.exe and Data (usually World of Warcraft\_classic_beta_).
+   WowB.exe (the shared Data folder may be in its parent) (usually World of Warcraft\_classic_beta_).
    An arbitrary E:\Padchat folder is not a WoW game folder.
 2. Keep Install voice typing enabled if you want speech. Choose whether the
    companion starts when you sign in to Windows, then Install.
@@ -14,7 +14,7 @@ INSTALL BOTH PARTS
 ADDON ONLY
 The CurseForge ZIP installs the keyboard and in-game Options, not the Windows
 speech engine. Download the matching PadChat-Setup.exe from:
-https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.2
+https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.3
 
 KEYBOARD AND CONTROLLER
 F9 or /padchat opens/closes the keyboard. Native PlayStation touchpad click

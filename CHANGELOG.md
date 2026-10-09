@@ -1,17 +1,9 @@
-# PadChat 0.2.2 Preview 2
+# PadChat 0.2.2 Preview 3
 
-- Expanded local WoW recognition vocabulary with optional user-entered word/player
-  hints in Voice settings. Bounded hints never rewrite transcripts or add commands.
-- Warns about existing WoW keyboard/controller actions before saving PTT bindings;
-  requires explicit acceptance, with cancellation/change invalidating acceptance.
-- Guided setup selects a microphone/PTT, saves/reloads, then verifies recognition
-  in the existing non-delivery test. Progress resumes after reload.
-- Interrupted microphone capture and controller source changes discard affected
-  speech. The helper refreshes audio enumeration, retains the saved input and
-  requires release plus a fresh PTT press; it never silently chooses another mic.
-- Existing settings, review mode, F8/Share tap/hold controls, installer repair,
-  minimap button and controller keyboard remain available.
+- Fixed installer rejection of valid Forever client folders when shared Data is in the parent directory. Discovery and validation no longer require a client-local Data folder.
+- Retained WowB.exe and Forever 1.60.x file-version checks, linked-folder refusal, running-game guard, payload integrity and rollback protections.
+- Fixed garbled installer title and Browse/status labels; build explicitly uses UTF-8 sources.
+- Added a read-only --validate-game PATH diagnostic with a specific missing/unreadable-executable message.
+- Installer completion instructions now describe controller opening and identify F9 as optional.
 
-Forever 1.60.1.70291 / interface 16001 only. Unsigned Windows x64 preview.
-No separate fresh-PC test was possible. Physical reconnects, microphone/controller
-PTT, live protected chat, visual layout and Windows startup remain live-test gaps.
+All Preview 2 addon/voice features are retained. Existing settings are preserved.
