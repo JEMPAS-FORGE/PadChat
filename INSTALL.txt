@@ -1,10 +1,16 @@
-PadChat 0.2.2 Preview 5 — WoW Forever 1.60.1 / Interface 16001
+PadChat 0.2.2 Preview 6 — WoW Forever 1.60.1 / Interface 16001
 
 Windows voice companion: Windows 10/11 x64, English, local recognition.
 
 INSTALL BOTH PARTS
 
-NEW IN PREVIEW 5
+NEW IN PREVIEW 6
+The voice test names your saved PTT buttons. Pending choices are labelled
+separately. Previous setup step goes back without changing settings.
+Connection errors explain when recording has not started. A Windows
+speech-engine startup failure has also been corrected.
+
+RETAINED SPEECH RECOVERY
 Escape cancels recording, processing, pending results or review in foreground
 WoW. A speech worker stuck loading/processing for two minutes is restarted and
 the affected message discarded. Release PTT and press again when ready; nothing
@@ -33,7 +39,7 @@ The CurseForge ZIP installs the keyboard and in-game Options, not the Windows
 
 speech engine. Download the matching PadChat-Setup.exe from:
 
-https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.5
+https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.6
 
 KEYBOARD AND CONTROLLER
 
@@ -97,7 +103,7 @@ Save & reload applies hints. Clear them to use only the built-in WoW vocabulary.
 
 TEST VOICE WITHOUT SENDING
 
-Open Voice settings, click Test microphone / check companion, then hold your
+Open Voice settings, click Test saved PTT / microphone (nothing sent), then hold your
 
 CURRENT saved PTT shortcut while this panel stays open. Speak and release.
 
@@ -169,3 +175,24 @@ This is an unsigned preview. Automated checks pass; live 70291 acceptance and a
 
 separate clean PC still need verification. No other WoW client support claimed.
 
+VOICE SETUP FEEDBACK / NEED HELP?
+
+The Saved in WoW box names your saved keyboard/mouse and controller PTT.
+Buttons above it are pending edits until Save & reload UI. Test uses the saved
+controls. The applied notice in the Windows overlay shows the companion's
+shortcut after it reads settings. Saved choices alone do not prove that happened.
+
+Close the Windows companion microphone/binding windows after saving, then return
+to WoW. Leave the in-game Voice panel open for a test which sends nothing.
+Previous setup step returns through the guide without rewriting settings.
+
+PC-VOICE-BRIDGE means the addon connection check failed before mic recording.
+It is not evidence of a broken microphone. Close active chat/search/editing or
+binding capture; use matching addon/companion and retry. If it persists, report
+the displayed state, whether keyboard/mouse or controller PTT was used, and
+controller model/connection at https://github.com/JEMPAS-FORGE/PadChat/issues.
+You can attach screenshots or short video to an issue, hiding names/private chat.
+
+Mic level is shown during an acknowledged recording test; an idle or last-check
+level is not a live meter. Working in WoW voice chat does not certify the input
+is selected or available to the separate PadChat companion.

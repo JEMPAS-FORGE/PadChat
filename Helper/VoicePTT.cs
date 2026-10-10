@@ -217,7 +217,10 @@ partial class VoicePTT {
    if(bindingEvent!=null&&bindingEvent.WaitOne(0))ShowVoiceBindings();
    if(stopEvent!=null&&stopEvent.WaitOne(0)){Application.Exit();return;}
    if(microphoneEvent!=null&&microphoneEvent.WaitOne(0))ShowMicrophones();
-   if(microphoneWindow!=null&&!microphoneWindow.IsDisposed||shortcutWindow!=null&&!shortcutWindow.IsDisposed){heldAt=0;latched=chord;return;}
+   if(microphoneWindow!=null&&!microphoneWindow.IsDisposed||shortcutWindow!=null&&!shortcutWindow.IsDisposed){
+    if(chord&&!latched)Status("Push-to-talk is paused while a PadChat configuration window is open.\nSave/close that window, return to WoW, release PTT and press it again.",5000);
+    heldAt=0;latched=chord;return;
+   }
    if(previousSource!=inputSource){
     ControllerRecoveryNotice(previousSource,inputSource,controllerChord);
     if(ReconnectCancels(previousSource,inputSource,recordSource,phase))Cancel("Message cancelled: controller changed");

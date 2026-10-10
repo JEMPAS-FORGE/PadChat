@@ -40,7 +40,7 @@ local function bindOpen() P:ApplyOpenBindings();if P.ApplyVoiceBindings then P:A
 P.openBindingOwner=owner
 owner:SetScript('OnUpdate',function(_,dt) if P.db and not P.conflictingAddon then P:PollOpeningChord(dt) end
  if P.voiceProbeDeadline and GetTime()>P.voiceProbeDeadline then P.voiceProbeDeadline=nil;P:PTTReleaseFocus() end
- if P.voiceCheckDeadline and GetTime()>P.voiceCheckDeadline then P.voiceCheckDeadline=nil;if P.voiceInfo then P.voiceInfo:SetText('No response yet. Start PadChat Voice and check the saved shortcut. Nothing was sent.') end end end)
+  if P.voiceCheckDeadline and GetTime()>P.voiceCheckDeadline then P.voiceCheckDeadline=nil;if P.voiceInfo then P.voiceInfo:SetText('No companion acknowledgement. Mic audio has not been tested. Start PadChat Voice; close its Windows microphone/binding windows and return to WoW. '..P:VoiceTestInstructions()) end end end)
 local function sent(text,kind,language,target)
  if not P.db then return end
  P.justSent=true;P:Learn(text);P:RememberVoiceChannel(kind,target)

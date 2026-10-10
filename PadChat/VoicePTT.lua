@@ -256,7 +256,11 @@ end
 
 function CK:PrepareVoiceProbe()
  local focus=GetCurrentKeyBoardFocus and GetCurrentKeyBoardFocus()
- if focus and focus~=self.pttBox or self.voiceCapture then return end
+ if focus and focus~=self.pttBox or self.voiceCapture then
+  self.voiceCheckDeadline=nil
+  if self.voiceInfo then self.voiceInfo:SetText(self.voiceCapture and 'Finish or cancel binding capture before testing voice. No microphone test started.' or 'A text box has focus. Close chat/search or finish editing WoW words, then test again. Your text was left untouched; no microphone test started.') end
+  return
+ end
  self.voiceProbeToken=tostring(GetTime());self.voiceProbeDeadline=GetTime()+3
  local mode=self.voiceOptionsFrame and self.voiceOptionsFrame:IsShown() and 'TEST' or 'NORMAL'
  self.pttBox:SetText('PCVQ1;'..self.voiceProbeToken..';'..mode)
@@ -269,7 +273,7 @@ function CK:ReadVoiceStatus(value)
  words=words:gsub('%%(%x%x)',function(hex) return string.char(tonumber(hex,16)) end)
  if words:find('[%c|]') then return end
  self.voiceProbeDeadline=nil;self.voiceProbeToken=nil;self.voiceCheckDeadline=nil
- self.voiceCompanionStatus='Companion: '..state..' | Microphone level: '..math.min(100,tonumber(level))..'%'
+ self.voiceCompanionStatus='Last check: companion '..state..' | Last reported mic level: '..math.min(100,tonumber(level))..'%'
  if words~='' then self.voiceCompanionStatus=self.voiceCompanionStatus..'\nTest recognised: '..words..' (nothing sent)' end
  if self.voiceInfo then self.voiceInfo:SetText(self.voiceCompanionStatus) end
  if self.VoiceGuideChecked then self:VoiceGuideChecked(state,words) end

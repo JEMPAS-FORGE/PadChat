@@ -31,8 +31,16 @@ function P:VoiceGuideText()
  if step==1 then return 'Setup 1/4: choose a Windows microphone using Microphone. Refresh if needed; then choose Setup next.' end
  if step==2 then return 'Setup 2/4: choose Bind push-to-talk or Controller / Hold first. Keep current controls with Setup next; check conflicts before saving.' end
  if step==3 then return 'Setup 3/4: Save & reload UI somewhere safe. This applies the microphone and PTT; setup resumes here after reload.' end
- if step==4 then return 'Setup 4/4: hold your SAVED PTT with Voice settings open, speak a short phrase, then release. Test sends nothing. Recognised words finish setup.' end
+ if step==4 then return 'Setup 4/4: '..self:VoiceTestInstructions() end
  return 'Choose Guided setup for microphone, PTT, apply and a safe voice test.'
+end
+function P:PreviousVoiceGuide()
+ local step=self.db.voiceGuideStep
+ if type(step)~='number' or step<1 or step>4 then self.voiceInfo:SetText('Choose Guided setup to begin. Back returns to PadChat Options.');return end
+ -- Going back changes only the guide, never saved microphone/PTT choices.
+ self.db.voiceGuideStep=math.max(1,step-1)
+ self.voiceGuide.text:SetText('Setup '..self.db.voiceGuideStep..'/4: next')
+ self.voiceInfo:SetText(self:VoiceGuideText())
 end
 function P:NextVoiceGuide()
  local step=self.db.voiceGuideStep
@@ -79,6 +87,8 @@ function P:BuildVoiceSetupControls(label,button)
  self.voiceGuide=button(f,'Guided setup',340,-16,180,function() self:NextVoiceGuide() end)
  self.voiceWords=button(f,'WoW words / names',540,-16,180,function() self:BeginVoiceWords() end)
  table.insert(self.voiceControls,self.voiceGuide);table.insert(self.voiceControls,self.voiceWords)
+ self.voicePrevious=button(f,'Previous setup step',270,-690,240,function() self:PreviousVoiceGuide() end)
+ table.insert(self.voiceControls,self.voicePrevious)
  local edit=self.NewFrame('Frame',nil,f);self.voiceWordsFrame=edit;edit:SetAllPoints();edit:SetFrameStrata('TOOLTIP');edit:EnableMouse(true)
  local shade=edit:CreateTexture(nil,'BACKGROUND');shade:SetAllPoints();shade:SetColorTexture(.08,.06,.03,.98)
  label(edit,'Optional recognition hints',24,-80,690,40,22)

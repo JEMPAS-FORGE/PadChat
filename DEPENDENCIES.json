@@ -92,7 +92,8 @@
     "license": "",
     "source": [
       "Homepage, https://github.com/tartley/colorama"
-    ]
+    ],
+    "shippingStatus": "Excluded from the Preview 6 frozen runtime; present only in the build environment inventory."
   },
   {
     "name": "ctranslate2",

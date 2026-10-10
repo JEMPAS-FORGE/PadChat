@@ -41,7 +41,7 @@ To rebuild changed Python in an environment matching DEPENDENCIES.json plus
 
 PyInstaller 6.20, run from this source folder:
 
-python -m PyInstaller --noconfirm --onedir --console --noupx --name voice-backend --distpath frozen --workpath freeze-build --specpath . --exclude-module av --exclude-module faster_whisper.audio --collect-all ctranslate2 --collect-all faster_whisper --collect-all sounddevice --collect-all onnxruntime Helper/voice_worker.py
+python -m PyInstaller --noconfirm --onedir --console --noupx --name voice-backend --distpath frozen --workpath freeze-build --specpath . --exclude-module colorama --exclude-module av --exclude-module faster_whisper.audio --collect-all ctranslate2 --collect-all faster_whisper --collect-all sounddevice --collect-all onnxruntime Helper/voice_worker.py
 
 Copy both whisper model folders and all matching license/model notices from the
 

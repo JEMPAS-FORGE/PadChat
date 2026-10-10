@@ -1,4 +1,9 @@
 {
+  "version": "0.2.2-preview.6",
+  "date": "2026-10-10",
+  "gameBuild": "1.60.1.70291",
+  "interface": 16001,
+  "sourceRef": "9465cb273b5513495d8ecc12fbb19930dd6b8957",
   "addon": [
     {
       "name": "test-padchat.py",
@@ -26,6 +31,10 @@
     },
     {
       "name": "test-speech-recovery.py",
+      "passed": true
+    },
+    {
+      "name": "test-support-setup.py",
       "passed": true
     },
     {
@@ -83,41 +92,6 @@
       "passed": true
     }
   ],
-  "corruptInstallMetadata": {
-    "passed": true,
-    "output": "PASS: malformed/wrong-type/null/invalid-path install records recover without altering their bytes.\n"
-  },
-  "frozenSource": {
-    "speechVocabularyBytecodeMatchesSource": true,
-    "workerBytecodeMatchesSource": true,
-    "cpuOnlyNoCudnn": true,
-    "backendExeSha256": "2a3922c768fe4fbdd7d7a86763ca573416882d2bd122e8a800ee43f52951b393",
-    "reusedFrom": "0.2.2-preview.2",
-    "unchangedBackendManifestEntries": 543,
-    "unchangedPythonSources": true
-  },
-  "installerFolderRegression": [
-    {
-      "name": "legacy",
-      "passed": true,
-      "output": "REPRODUCED REJECTION: shared-parent-data\nREPRODUCED REJECTION: no-local-data\nACCEPTED: client-local-data\n",
-      "error": ""
-    },
-    {
-      "name": "fixed",
-      "passed": true,
-      "output": "ACCEPTED: shared-parent-data\nACCEPTED: no-local-data\nACCEPTED: client-local-data\nPASS: production version checks, missing-file diagnostics and actual unshown SetupForm labels; no Data subfolder requirement.\n",
-      "error": ""
-    }
-  ],
-  "actualClientReadOnlyValidation": {
-    "passed": true,
-    "output": "PASS: Forever client folder validated; no files or settings changed.\n",
-    "readonly": true,
-    "localDataInParent": true,
-    "liveGameplayTested": false
-  },
-  "liveGameplayVerified": false,
   "inputListener": {
     "passed": true,
     "tests": [
@@ -130,7 +104,7 @@
         "passed": true
       }
     ],
-    "binarySha256": "5edbbeacd1d36791399a879d21f08fca90ca527e6117c5f33df39f951c45114e",
+    "binarySha256": "66635b9d4b01c2d39853fa24722859d6a5791b1d2fa0ccbae43055d23ea8bb54",
     "physicalMouse5Verified": false,
     "noGameOrMicInput": true,
     "nativeHookThread2200msStallAndRestart": true,
@@ -155,11 +129,58 @@
     "personalInstallationTouched": false,
     "installerFullRegression": "Covered separately by matching shipping package test"
   },
-  "priorPreview3PackageAttempt": "Failed during hidden backend startup with a colorama invalid-console-handle exception. Identical backend direct/hidden-launch probes and the full unmodified shipping installer retry passed. The transient failure is not claimed fixed.",
-  "retainedUnchangedPreview3Evidence": [
-    "corruptInstallMetadata",
-    "frozenSource",
-    "installerFolderRegression",
-    "actualClientReadOnlyValidation"
-  ]
+  "frozenSource": {
+    "optionalColoramaExcluded": true,
+    "tqdmAndWhisperPresent": true,
+    "modelHashesUnchanged": {
+      "whisper-tiny-en\\config.json": "14b1b421a90349bc551b881461426b561a874049cb9e4c4864f2ca384f6a7cc5",
+      "whisper-tiny-en\\model.bin": "1a5afae06a4db91c975c9a9d78be5cc110ee4ea022ad57d55492e4550e936b2a",
+      "whisper-tiny-en\\tokenizer.json": "929c5252409436dce1b38a75d1abbcb5e132d170d8e324e4e04ed915fa2d22df",
+      "whisper-tiny-en\\vocabulary.txt": "ff77588746d3a2595d32ab5b69ffd7b95ce2441ac57533cb66fc3eb575a115cf",
+      "whisper-distil-small-en\\config.json": "b571ae8022a34c1df50876a65b5f813a5c22e5ee3b87bc0e4db5662dfc9c2c3d",
+      "whisper-distil-small-en\\model.bin": "1187de3982cdcf962a2fb8f797e429fb4651b875b18fe9ce50b58b52fc9072b7",
+      "whisper-distil-small-en\\tokenizer.json": "c9c77688528c0509abbd41873edab16384b8f041531b1d3092ab4d1d83a02a50",
+      "whisper-distil-small-en\\vocabulary.json": "4dadfee7c4a871665f65c06037f5f5ec893fb2d7f5eb4cf11063618e31dbe11a"
+    },
+    "cpuOnlyNoCudnn": true,
+    "backendExeSha256": "3271710f27d695350272f19a1dc6ba8b16a23eab8fc04d2dcb97ee1f79542d79",
+    "recognitionSourcesUnchanged": true,
+    "cause": "Optional tqdm colorama initialization raised invalid console handle before microphone enumeration in an exact hidden installer preflight. New build uses tqdm supported ImportError fallback by excluding optional colorama.",
+    "workerBytecodeMatchesSource": true,
+    "speechVocabularyBytecodeMatchesSource": true,
+    "fiveProductionHiddenPreflightsPassed": true
+  },
+  "initialShippingAttempt": "Reproduced optional Colorama invalid-console-handle failure. Evidence retained; frozen engine rebuilt with Colorama excluded, not merely retried unchanged.",
+  "reporterPCFixed": false,
+  "liveGameplayVerified": false,
+  "freshPCAvailable": false,
+  "continuousPretestMicrophoneMeterImplemented": false,
+  "personalSettingsOrInstallationChanged": false,
+  "retainedUnchangedInstallerEvidence": {
+    "METADATA-TEST-REPORT.json": {
+      "passed": true,
+      "output": "PASS: malformed/wrong-type/null/invalid-path install records recover without altering their bytes.\n"
+    },
+    "FOLDER-VALIDATION-REPORT.json": [
+      {
+        "name": "legacy",
+        "passed": true,
+        "output": "REPRODUCED REJECTION: shared-parent-data\nREPRODUCED REJECTION: no-local-data\nACCEPTED: client-local-data\n",
+        "error": ""
+      },
+      {
+        "name": "fixed",
+        "passed": true,
+        "output": "ACCEPTED: shared-parent-data\nACCEPTED: no-local-data\nACCEPTED: client-local-data\nPASS: production version checks, missing-file diagnostics and actual unshown SetupForm labels; no Data subfolder requirement.\n",
+        "error": ""
+      }
+    ],
+    "REAL-FOLDER-VALIDATION.json": {
+      "passed": true,
+      "output": "PASS: Forever client folder validated; no files or settings changed.\n",
+      "readonly": true,
+      "localDataInParent": true,
+      "liveGameplayTested": false
+    }
+  }
 }

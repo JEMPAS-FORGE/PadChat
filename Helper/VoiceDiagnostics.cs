@@ -32,7 +32,7 @@ partial class VoicePTT {
   if(probeStage==2) {
    string value=Clip();bool test;string token;
    if(!ParseVoiceProbe(value,out token,out test)) {
-    probeStage=0;phase="idle";Status("Voice check unavailable. Close other text boxes and update both PadChat parts.",5000);return;
+    probeStage=0;phase="idle";Status("Addon connection check failed; the microphone has not been tested.\nClose chat/search or binding capture, keep WoW selected and update both PadChat parts.\nIf it repeats, report: PC-VOICE-BRIDGE (keyboard or controller).",8000);return;
    }
    probeOwned=value;probeToken=token;microphoneTest=test;
    if(probeResult&&!test){RestoreProbeClipboard();probeStage=0;phase="idle";Bridge(0x7A);Status("Microphone test finished; nothing sent.",4000);return;}

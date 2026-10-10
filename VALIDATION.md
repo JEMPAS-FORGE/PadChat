@@ -1,3 +1,24 @@
+# Validation - 0.2.2 Preview 6
+
+Preview 6 addresses Sarcasmics' voice setup feedback. The in-game test names
+the saved keyboard/mouse and controller PTT, with held modifiers spelled out.
+Saved choices are displayed separately from unsaved edits. A Previous setup
+step button preserves settings. Connection failures explicitly say the mic
+has not been tested; focused text/binding capture and open Windows companion
+configuration windows get specific guidance. A status result is labelled as
+a last check rather than continuous readiness.
+
+These changes improve setup and diagnosis; they do not establish the cause of
+Sarcasmics' controller/Sonar problem or prove their PC is fixed. The existing
+recording-test level percentage is retained. No new continuously running mic
+meter, waveform, microphone auto-selection or protocol/send behaviour is added.
+
+New regression cases: saved-versus-pending PTT names, disabled/controller modifier
+instructions, previous-step settings preservation, foreign edit box/capture
+feedback without sending or changing focus, last-check labels and panel fitting.
+Matching shipping package tests pass; see TEST-REPORT.json for evidence. Real rendered
+UI/physical devices and the reporter's PC remain unverified.
+
 # Validation - 0.2.2 Preview 5
 
 New checks on 10 October 2026:
@@ -24,7 +45,6 @@ Installer-specific regression evidence:
 - Corrected production validation accepts all three layouts with a Forever executable file-version fixture, refuses wrong-client/missing executables, and leaves game folders untouched.
 - Actual unshown SetupForm title and Browse/game-folder label assertions pass; source uses explicit UTF-8 compilation and ASCII installer punctuation.
 - Shipping binary read-only folder validation, discovery and isolated full installer checks are recorded alongside the release.
-
 
 Automated checks on 9 October 2026 cover the exact release source and binaries:
 
@@ -84,3 +104,10 @@ game/addon/helper, user microphone and startup preferences were untouched.
 
 This remains an unsigned Forever-only preview. Experimental 0.3 is excluded.
 
+Headless speech startup: the frozen CPU backend now excludes optional Colorama.
+An exact hidden installer preflight reproduced a Colorama invalid-console-handle
+crash before enumeration. tqdm has a supported no-Colorama fallback; JSON speech
+does not need console colouring. Speech source/model settings remain unchanged.
+This is not confirmation of the cause on the reporter's PC. Five consecutive production hidden preflights and the matching shipping
+installer/synthetic speech checks pass. Physical devices and the reporter's PC
+remain unverified.

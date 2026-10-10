@@ -27,6 +27,28 @@ function P:VoiceBindingKey(s)
  s=s or self.db.voiceOptions
  return ((s.mods%2==1) and 'CTRL-' or '')..((math.floor(s.mods/2)%2==1) and 'SHIFT-' or '')..(s.mods>=4 and 'ALT-' or '')..s.keyName
 end
+function P:VoiceControllerBindingName(s)
+ s=s or self.db.voiceOptions
+ local primary=padNames[s.pad] or 'None'
+ return s.padMod=='NONE' and primary or (padNames[s.padMod] or 'None')..' + '..primary..' (hold modifier first)'
+end
+function P:VoiceTestInstructions()
+ local s=self.db.voiceOptions
+ if not s.enabled then return 'Saved voice is Off. Set Voice: On, Save & reload UI, then return here to test.' end
+ local bindings=self:VoiceBindingKey(s)
+ if s.pad~='NONE' then bindings=bindings..' or '..self:VoiceControllerBindingName(s) end
+ return 'Hold '..bindings..', speak, then release with this panel open. This test sends nothing. Close the Windows companion configuration windows first; return focus to WoW.'
+end
+function P:UpdateSavedVoiceSummary()
+ if not self.voiceSavedSummary then return end
+ local saved=self.db.voiceOptions;local pending=self.pendingVoice;local changed=false
+ for _,key in ipairs({'kind','key','mods','mic','enabled','startup','pad','padMod','review','vocabulary'}) do
+  if pending and pending[key]~=saved[key] then changed=true;break end
+ end
+ local mic=saved.mic=='' and 'keep companion input' or saved.mic
+ if #mic>65 then mic=mic:sub(1,62)..'...' end
+ self.voiceSavedSummary:SetText('Saved in WoW: '..self:VoiceBindingKey(saved)..' | Controller: '..self:VoiceControllerBindingName(saved)..'\nMic: '..mic..' | Voice: '..(saved.enabled and 'On' or 'Off')..'\n'..(changed and 'Unsaved changes above. Test uses saved controls until Save & reload UI.' or 'These are saved choices; a successful test checks the companion.'))
+end
 function P:VoiceShortcutProblem(s)
  if s.kind=='mouse' and s.key~=4 and s.key~=5 and s.key~=6 then return 'Choose middle mouse, Mouse 4 or Mouse 5.' end
  if s.kind=='keyboard' and (s.key==27 or s.key==16 or s.key==17 or s.key==18) then return 'Escape and modifier keys cannot be used alone.' end
@@ -102,6 +124,7 @@ function P:UpdateVoiceOptions()
  self.voicePad.text:SetText('Controller: '..padNames[s.pad])
  self.voicePadMod.text:SetText('Hold first: '..padNames[s.padMod])
  self.voiceReview.text:SetText('Send: '..(s.review and 'review, then press PTT again' or 'automatically on release'))
+ self:UpdateSavedVoiceSummary()
  for i,c in ipairs(self.voiceControls) do local on=i==self.voiceIndex;c.fill:SetColorTexture(on and 1 or .30,on and .76 or .22,on and .23 or .12,1) end
 end
 function P:VoiceOptionsAction(action)
@@ -118,7 +141,7 @@ end
 function P:BuildVoiceOptions()
  if self.voiceOptionsFrame then return end
  local f=self.NewFrame('Frame','PadChatVoiceOptions',UIParent);self.voiceOptionsFrame=f
- f:SetSize(740,640);self:FitPanel(f,740,640);f:SetFrameStrata('FULLSCREEN_DIALOG');f:EnableMouse(true)
+ f:SetSize(740,750);self:FitPanel(f,740,750);f:SetFrameStrata('FULLSCREEN_DIALOG');f:EnableMouse(true)
  local bg=f:CreateTexture(nil,'BACKGROUND');bg:SetAllPoints();bg:SetTexture('Interface\\DialogFrame\\UI-DialogBox-Background');bg:SetAlpha(.98)
  table.insert(UISpecialFrames,'PadChatVoiceOptions')
  label(f,'PadChat Voice',20,-20,300,32,24)
@@ -136,11 +159,12 @@ function P:BuildVoiceOptions()
  self.voiceStartup=button(f,'',225,-246,340,function(_,delta) self.pendingVoice.startup=choice({'KEEP','ON','OFF'},self.pendingVoice.startup,delta);self:UpdateVoiceOptions() end)
  self.voiceRefresh=button(f,'Refresh',580,-246,140,function() local list=self:GetVoiceMicrophones();self.voiceInfo:SetText(tostring(#list)..' microphone(s) available. Click Microphone to choose.');self:UpdateVoiceOptions() end)
  self.voiceReview=button(f,'',20,-292,700,function() self.pendingVoice.review=not self.pendingVoice.review;self:UpdateVoiceOptions() end)
- self.voiceTest=button(f,'Test microphone / check companion',20,-340,700,function() self.voiceCheckDeadline=GetTime()+8;self.voiceInfo:SetText('Hold your saved PTT shortcut while this panel is open. It tests voice without sending chat. If nothing happens, open PadChat Voice from Start.') end)
+ self.voiceTest=button(f,'Test saved PTT / microphone (nothing sent)',20,-340,700,function() self.voiceCheckDeadline=GetTime()+12;self.voiceInfo:SetText(self:VoiceTestInstructions()) end)
  label(f,'The Windows companion must be installed and running. Recognition stays local.\nTap PTT: channel | Hold: speak | Release: send/review | Escape: cancel speech.\nChoose a microphone available to Windows. PadChat does not change game sound.',20,-389,700,72)
- self.voiceInfo=label(f,'Save & reload UI writes these choices for the companion to apply.\nReload only when it is safe. It does not restart the game.',20,-474,700,60)
- self.voiceSave=button(f,'Save & reload UI',20,-580,230,function() self:SaveVoiceWithWarnings() end)
- self.voiceBack=button(f,'Back',580,-580,140,function() self:VoiceOptionsAction('close') end)
+ self.voiceSavedSummary=label(f,'',20,-468,700,80)
+ self.voiceInfo=label(f,'Save & reload UI writes these choices for the companion to apply.\nReload only when it is safe. It does not restart the game.',20,-555,700,115)
+ self.voiceSave=button(f,'Save & reload UI',20,-690,230,function() self:SaveVoiceWithWarnings() end)
+ self.voiceBack=button(f,'Back',580,-690,140,function() self:VoiceOptionsAction('close') end)
  self.voiceControls={self.voiceKey,self.voiceMic,self.voicePad,self.voicePadMod,self.voiceEnabled,self.voiceStartup,self.voiceRefresh,self.voiceReview,self.voiceTest,self.voiceSave,self.voiceBack}
  self:BuildVoiceSetupControls(label,button)
  self.voiceCaptureFrame=self.NewFrame('Frame',nil,f);local capture=self.voiceCaptureFrame

@@ -8,7 +8,7 @@ CHECK=ROOT/"Tests"
 
 results=[]
 
-for name in ('test-padchat.py','test-runtime.py','test-options.py','test-invites.py','test-voice-options.py','test-voice-setup.py','test-speech-recovery.py'):
+for name in ('test-padchat.py','test-runtime.py','test-options.py','test-invites.py','test-voice-options.py','test-voice-setup.py','test-speech-recovery.py','test-support-setup.py'):
 
  print('Running',name,flush=True)
 
@@ -40,7 +40,7 @@ P.db.bindings.button='AUTO';P:ControllerOnboarding();assert(not P.optionsFrame:I
 
 for _,size in ipairs({{640,360},{800,450},{1280,720},{1920,1080}}) do
 
- for _,panel in ipairs({{780,480},{690,445},{740,640}}) do
+ for _,panel in ipairs({{780,480},{690,445},{740,750}}) do
 
   local scale=P.PanelFit(panel[1],panel[2],size[1],size[2])
 

@@ -1,14 +1,23 @@
 # PadChat — keyboard, controller and local voice chat
 
-Preview 5 adds stalled-speech recovery, rejection of obsolete worker replies and
-Escape cancellation while recording or processing. Existing controller keyboard,
-voice setup, vocabulary hints and binding choices remain supported.
+Preview 6 addresses Sarcasmics' voice setup feedback. The in-game test names
+the saved keyboard/mouse and controller PTT, with held modifiers spelled out.
+Saved choices are displayed separately from unsaved edits. A Previous setup
+step button preserves settings. Connection failures explicitly say the mic
+has not been tested; focused text/binding capture and open Windows companion
+configuration windows get specific guidance. A status result is labelled as
+a last check rather than continuous readiness.
+
+These changes improve setup and diagnosis; they do not establish the cause of
+Sarcasmics' controller/Sonar problem or prove their PC is fixed. The existing
+recording-test level percentage is retained. No new continuously running mic
+meter, waveform, microphone auto-selection or protocol/send behaviour is added.
 
 **Forever 1.60.1.70291 / Interface 16001. Windows voice: 10/11 x64, English.**
 
 ## Install and set up voice
 
-1. Download **PadChat-Setup.exe** from [the matching release](https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.5). Close WoW and run it; choose the folder
+1. Download **PadChat-Setup.exe** from [the matching release](https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.6). Close WoW and run it; choose the folder
 
    containing **WowB.exe (the shared Data folder may be in its parent)**, keep voice enabled and select startup preference.
 
@@ -92,3 +101,11 @@ This preview ships the same CPU speech backend as Preview 3. Automated tests
 cover the input queue, real Windows hook-thread stall/restart, restricted-frame
 validation, addon controls and the matching installer. They do not establish
 fresh-PC or physical controller/gameplay acceptance.
+
+Headless speech startup: the frozen CPU backend now excludes optional Colorama.
+An exact hidden installer preflight reproduced a Colorama invalid-console-handle
+crash before enumeration. tqdm has a supported no-Colorama fallback; JSON speech
+does not need console colouring. Speech source/model settings remain unchanged.
+This is not confirmation of the cause on the reporter's PC. Five consecutive production hidden preflights and the matching shipping
+installer/synthetic speech checks pass. Physical devices and the reporter's PC
+remain unverified.
