@@ -59,7 +59,7 @@ partial class VoicePTT {
  static System.Threading.EventWaitHandle stopEvent;
  static Badge badge;static Timer timer;static Process worker;
  static readonly JavaScriptSerializer json=new JavaScriptSerializer();
- static readonly ConcurrentQueue<string> messages=new ConcurrentQueue<string>();
+ static readonly ConcurrentQueue<VoiceMessage> messages=new ConcurrentQueue<VoiceMessage>();
  static readonly Stopwatch clock=Stopwatch.StartNew();
  static bool ready,latched,released;static int sid,stage,level;
  static long heldAt,deadline,hideAt,started;static string phase="idle",text,command,label,line,oldClip,marker,preview="",inviteName;static bool characterInvite;
@@ -108,7 +108,7 @@ partial class VoicePTT {
  [DllImport("winmm.dll",CharSet=CharSet.Unicode)] static extern uint joyGetDevCapsW(UIntPtr id,out JoyCaps caps,uint size);
  static bool SupportedNativeController(uint id){JoyCaps caps;return joyGetDevCapsW(new UIntPtr(id),out caps,(uint)Marshal.SizeOf(typeof(JoyCaps)))==0&&caps.manufacturer==0x054c;}
  static uint NormalizeXInput(ushort buttons){return ((buttons&0x2000)!=0?2u:0u)|((buttons&0x0020)!=0?0x100u:0u)|((buttons&0x0010)!=0?0x200u:0u)|((buttons&0x8000)!=0?0x8u:0u)|((buttons&0x0100)!=0?0x10u:0u)|((buttons&0x0200)!=0?0x20u:0u)|((buttons&0x0040)!=0?0x400u:0u)|((buttons&0x0080)!=0?0x800u:0u);}
- static void Cancel(string reason){probeStage=0;RestoreProbeClipboard();pendingTestWords="";WriteWorker("cancel");sid++;phase="idle";stage=0;released=false;
+ static void Cancel(string reason){InvalidateSpeechSession();RestoreProbeClipboard();WriteWorker("cancel");
   if(SameGame())Bridge(0x7A);Status(reason,4000);}
  static void Start(){
   target=GetForegroundWindow();if(!IsGame(target))return;recordSource=pressSource;BeginVoiceProbe(false);
@@ -120,8 +120,8 @@ partial class VoicePTT {
   sid++;phase="recording";released=false;level=0;preview="";started=Now;WriteWorker("start");
   Status(microphoneTest?"Microphone test: hold and speak; release to see results. Nothing is sent.":"Hold "+TalkButton()+" and speak\nRelease to "+(voiceReview?"review your message":"send to your last chat channel"),0);
  }
- static void Stop(){if(phase!="recording")return;released=true;phase="processing";WriteWorker("stop");
-  Status("Finishing your message locally..."+(preview.Length>0?"\n"+PreviewTail():""),0);}
+ static void Stop(){if(phase!="recording")return;released=true;phase="processing";speechDeadlines.Processing(Now);WriteWorker("stop");
+  Status("Finishing your message locally... Escape cancels."+(preview.Length>0?"\n"+PreviewTail():""),0);}
  static void BeginDelivery(){if(!SameGame()||!released){Cancel("Message cancelled: WoW lost focus");return;}
   inviteName=SpokenInvite(text);
   if(inviteName==""){Cancel("Say invite followed by a friend or character name");return;}
@@ -181,10 +181,11 @@ partial class VoicePTT {
   try{
    MaintainInputListener();
    DrainVoiceInputs();
-   string message;while(messages.TryDequeue(out message)){
-    var data=json.Deserialize<Dictionary<string,object>>(message);string kind=(string)data["type"];
+   EnforceSpeechDeadline();
+   Dictionary<string,object> data;while(TryReadVoiceMessage(out data)){
+    string kind=(string)data["type"];
     if(kind=="microphones"){ApplyGameMicrophoneList(data);UpdateMicrophones(data);continue;}
-    if(kind=="ready"){ready=true;workerFailures=0;WriteVocabulary();if(micRecoveryPending){micRecoveryPending=false;Status("Speech helper refreshed. Reconnect the same microphone, release PTT and press again. Nothing resumed automatically.",6000);}WriteHealth("ready");continue;}
+    if(kind=="ready"){ready=true;speechDeadlines.WorkerReady();workerFailures=0;WriteVocabulary();if(micRecoveryPending){micRecoveryPending=false;Status("Speech helper refreshed. Reconnect the same microphone, release PTT and press again. Nothing resumed automatically.",6000);}WriteHealth("ready");continue;}
     if(!data.ContainsKey("id")||Convert.ToInt32(data["id"])!=sid)continue;
     if(kind=="level"){level=Convert.ToInt32(data["level"]);if(phase=="recording")RecordingStatus();}
     else if(kind=="partial"){
@@ -193,7 +194,7 @@ partial class VoicePTT {
      if(update.Length>0){preview=update;RecordingStatus();}
     }
     else if(kind=="result"){
-     if(phase!="processing")continue;text=(string)data["text"];
+     if(phase!="processing")continue;speechDeadlines.CancelProcessing();text=(string)data["text"];
      if(text.Trim().Length==0){Cancel("No clear speech recognised; nothing sent");continue;}
      if(microphoneTest){pendingTestWords=text;BeginVoiceProbe(true);}
      else if(RequiresReview(false,voiceReview)){phase="review";reviewWaitingRelease=true;Status("Review — press PTT again to send, Escape to cancel\n"+Clean(text,700),0);}
@@ -240,6 +241,7 @@ partial class VoicePTT {
   finally{PublishInputPolicy();}
  }
  [STAThread] static void Main(string[] args){
+  if(args.Length>0&&args[0]=="--worker-shutdown-fixture"){Console.WriteLine("fixture-ready");System.Threading.Thread.Sleep(15000);return;}
   if(args.Length==2&&args[0]=="--render-bindings"){RenderVoiceBindingWindow(args[1]);return;}
   if(args.Length>0&&args[0]=="--probe-input"){
    bool connected;uint buttons=ReadButtons(out connected);
@@ -247,7 +249,7 @@ partial class VoicePTT {
   }
   if(args.Length>0&&args[0]=="--input-thread-test"){TestInputThread();return;}
   if(args.Length>0&&args[0]=="--self-test"){
-   TestInputRouting();
+   TestInputRouting();TestSpeechWatchdog();TestWorkerShutdown();
    TestVoiceRecovery();TestVoiceDiagnostics();
    TestGameVoiceSettings();
    TestVoiceBindings();

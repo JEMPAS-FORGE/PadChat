@@ -45,7 +45,7 @@ partial class VoicePTT {
   inputPolicy=new InputPolicy{kind=voiceShortcut.kind,key=voiceShortcut.key,modifiers=voiceShortcut.modifiers,enabled=voiceEnabled,
    generation=old==null?1:old.generation+(changed?1:0),published=Now,
    captureWindow=ShortcutCaptureOwnsFocus()?window:IntPtr.Zero,captureAt=shortcutArmAt,
-   reviewWindow=phase=="review"?target:IntPtr.Zero};
+   reviewWindow=CancellableVoicePhase(phase)?target:IntPtr.Zero};
  }
  static bool QueueVoiceInput(string kind,int key,bool down,bool up,bool injected){
   if(injected||!down&&!up)return false;
@@ -97,7 +97,7 @@ partial class VoicePTT {
     else SetCapturedShortcut(new VoiceShortcut{kind=value.kind,key=value.key,modifiers=value.modifiers});
     continue;
    }
-   if(value.cancelReview){if(phase=="review"&&SameGame())Cancel("Review cancelled; nothing sent");continue;}
+   if(value.cancelReview){if(CancellableVoicePhase(phase)&&SameGame()){Cancel("Dictation cancelled; nothing sent");heldAt=0;latched=true;keyboardHeld=false;pressSource="";}continue;}
    if(CurrentShortcutEvent(value,policy.generation,Now))ApplyShortcutInput(value,value.window!=IntPtr.Zero&&value.window==GetForegroundWindow()&&IsGame(value.window));
   }
   if(interrupted)ResetInterruptedInput();

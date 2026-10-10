@@ -32,7 +32,7 @@ class InstallState { public string Game,Version; public bool Voice,Startup; }
 
 class Engine {
 
-  public const string Version="0.2.2-preview.4";
+  public const string Version="0.2.2-preview.5";
 
  public readonly string Root; public readonly bool Test;
 

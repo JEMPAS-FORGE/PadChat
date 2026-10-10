@@ -14,7 +14,7 @@ INSTALL BOTH PARTS
 ADDON ONLY
 The CurseForge ZIP installs the keyboard and in-game Options, not the Windows
 speech engine. Download the matching PadChat-Setup.exe from:
-https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.4
+https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.5
 
 KEYBOARD AND CONTROLLER
 F9 or /padchat opens/closes the keyboard. Native PlayStation touchpad click

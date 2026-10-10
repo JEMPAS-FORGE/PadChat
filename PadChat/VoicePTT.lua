@@ -122,7 +122,7 @@ function CK:CycleVoiceChannel()
     local nextChannel=choices[index%#choices+1]
     self:RememberVoiceChannel(nextChannel.chatType,nextChannel.target,nextChannel.replyType)
     local label=nextChannel.label
-    if current.chatType=='YELL' and not general then label=label..' â€” General unavailable here' end
+    if current.chatType=='YELL' and not general then label=label..' - General unavailable here' end
     self:VoiceChannelNotice('Chat: '..label..'\nTap your voice shortcut: channel | Hold: talk')
 end
 

@@ -35,17 +35,27 @@ partial class VoicePTT {
   try{File.WriteAllText(Path.Combine(dataRoot,"backend-error.txt"),value,new UTF8Encoding(false));}catch{}
  }
  static void StopWorker(){
+  System.Threading.Interlocked.Increment(ref workerGeneration);ready=false;speechDeadlines.WorkerStopped();
   if(worker==null)return;
-  try{if(!worker.HasExited){WriteWorker("quit");if(!worker.WaitForExit(2000))worker.Kill();}}catch(InvalidOperationException){}
-  worker.Dispose();worker=null;
+  var stopping=worker;worker=null;
+  try{
+   if(!stopping.HasExited){
+    try{stopping.StandardInput.WriteLine(json.Serialize(new{cmd="quit",id=sid}));stopping.StandardInput.Flush();}
+    catch(IOException){}catch(InvalidOperationException){}
+    // A failed quit write must not skip termination of this owned process.
+    if(!stopping.WaitForExit(2000)){stopping.Kill();stopping.WaitForExit(1000);}
+   }
+  }catch(InvalidOperationException){}
+  finally{stopping.Dispose();}
  }
  static void StartWorker(){
   StopWorker();ready=false;sid++;
-  string old;while(messages.TryDequeue(out old)){}
+  long generation=CurrentWorkerGeneration();speechDeadlines.WorkerStarting(Now);
   worker=new Process{StartInfo=PythonInfo("")};
-  worker.OutputDataReceived+=(s,e)=>{if(e.Data!=null)messages.Enqueue(e.Data);};
-  worker.ErrorDataReceived+=(s,e)=>WorkerError(e.Data);
-  worker.Start();worker.BeginOutputReadLine();worker.BeginErrorReadLine();
+  worker.OutputDataReceived+=(s,e)=>QueueWorkerOutput(e.Data,generation);
+  worker.ErrorDataReceived+=(s,e)=>{if(generation==CurrentWorkerGeneration())WorkerError(e.Data);};
+  try{worker.Start();worker.BeginOutputReadLine();worker.BeginErrorReadLine();}
+  catch{StopWorker();throw;}
  }
  static void SetupMicrophoneMenu(){
   var menu=new ContextMenuStrip();shortcutHelp=(ToolStripMenuItem)menu.Items.Add("",null,(s,e)=>Status("In WoW: tap "+ShortcutName(voiceShortcut)+" or Share to change chat channel\nHold to speak; release to send",4500));
@@ -82,7 +92,7 @@ partial class VoicePTT {
   if(microphoneEnumeration!=null&&!microphoneEnumeration.HasExited)return;
   microphoneChoices.Items.Clear();microphoneSave.Enabled=false;microphoneInfo.Text="Looking for microphones...";
   microphoneEnumeration=new Process{StartInfo=PythonInfo("--list-inputs")};
-  microphoneEnumeration.OutputDataReceived+=(s,e)=>{if(e.Data!=null)messages.Enqueue(e.Data);};
+  microphoneEnumeration.OutputDataReceived+=(s,e)=>QueueMicrophoneOutput(e.Data);
   microphoneEnumeration.ErrorDataReceived+=(s,e)=>{};
   try{microphoneEnumeration.Start();microphoneEnumeration.BeginOutputReadLine();microphoneEnumeration.BeginErrorReadLine();}
   catch(Exception ex){microphoneInfo.Text="Could not start microphone settings: "+ex.Message;}

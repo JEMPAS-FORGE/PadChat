@@ -1,8 +1,15 @@
-PadChat 0.2.2 Preview 4 — WoW Forever 1.60.1 / Interface 16001
+PadChat 0.2.2 Preview 5 — WoW Forever 1.60.1 / Interface 16001
 
 Windows voice companion: Windows 10/11 x64, English, local recognition.
 
 INSTALL BOTH PARTS
+
+NEW IN PREVIEW 5
+Escape cancels recording, processing, pending results or review in foreground
+WoW. A speech worker stuck loading/processing for two minutes is restarted and
+the affected message discarded. Release PTT and press again when ready; nothing
+resumes or sends automatically. Saved mic/bindings remain. Slow PCs may need
+shorter phrases. Waiting for optional review does not expire at this deadline.
 
 1. Close WoW. Run PadChat-Setup.exe. Choose the Forever client folder containing
 
@@ -26,7 +33,7 @@ The CurseForge ZIP installs the keyboard and in-game Options, not the Windows
 
 speech engine. Download the matching PadChat-Setup.exe from:
 
-https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.4
+https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.5
 
 KEYBOARD AND CONTROLLER
 

@@ -74,7 +74,7 @@ partial class VoicePTT {
    pendingGameSettings=settings;
    if(microphoneEnumeration!=null&&!microphoneEnumeration.HasExited)return;
    microphoneEnumeration=new Process{StartInfo=PythonInfo("--list-inputs")};
-   microphoneEnumeration.OutputDataReceived+=(s,e)=>{if(e.Data!=null)messages.Enqueue(e.Data);};
+   microphoneEnumeration.OutputDataReceived+=(s,e)=>QueueMicrophoneOutput(e.Data);
    microphoneEnumeration.ErrorDataReceived+=(s,e)=>{};
    microphoneEnumeration.Start();microphoneEnumeration.BeginOutputReadLine();microphoneEnumeration.BeginErrorReadLine();
   }catch(Exception ex){pendingGameSettings=null;gameSettingsStatus="Could not apply: "+ex.Message;Status(gameSettingsStatus+"\nOpen /padchat voice to correct the selection.",8000);WriteHealth("settings-error");}

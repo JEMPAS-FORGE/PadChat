@@ -1,6 +1,12 @@
-# Validation - 0.2.2 Preview 4
+# Validation - 0.2.2 Preview 5
 
 New checks on 10 October 2026:
+- Two-minute load/final deadline boundaries, readiness, cancellation/review
+  isolation and fresh restart state with a controlled clock; actual queue
+  rejects obsolete ready/result/malformed output and preserves enumeration.
+- Production session invalidation before external IO; Escape phase ownership.
+- Production StopWorker with a real disposable child whose control input is
+  closed; termination succeeds without a microphone or game process.
 - Compiled input-policy routing, keyboard/mouse modifiers, injected/repeated input,
   capture/review cancellation, bounded queue overflow and stale-event rejection.
 - Real Windows hook installation and message pump during a 2.2-second caller

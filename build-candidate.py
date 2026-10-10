@@ -81,7 +81,7 @@ def main():
 
  compile(OUT/'PadChat-Setup.exe',[ROOT/'Packaging/Setup.cs',ROOT/'Packaging/Discovery.cs'],('/resource:'+str(archive)+',payload.zip','/resource:'+str(ROOT/'Uninstall.exe')+',Uninstall.exe'))
 
- with zipfile.ZipFile(OUT/'PadChat-0.2.2-preview.4.zip','w',zipfile.ZIP_DEFLATED) as z:
+ with zipfile.ZipFile(OUT/'PadChat-0.2.2-preview.5.zip','w',zipfile.ZIP_DEFLATED) as z:
 
   for p in (ROOT/'PadChat').iterdir():
 
@@ -99,7 +99,7 @@ def main():
 
    if (ROOT/p).exists():z.write(ROOT/p,p)
 
- with zipfile.ZipFile(OUT/'PadChat-Windows-Voice-0.2.2-preview.4.zip','w',zipfile.ZIP_DEFLATED,compresslevel=1) as z:
+ with zipfile.ZipFile(OUT/'PadChat-Windows-Voice-0.2.2-preview.5.zip','w',zipfile.ZIP_DEFLATED,compresslevel=1) as z:
 
   for name in ('PadChat-Setup.exe','START-HERE.txt','LICENSE.txt','VALIDATION.md'):
 

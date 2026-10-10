@@ -1,14 +1,14 @@
 # PadChat — keyboard, controller and local voice chat
 
-Four improvements for WoW Forever: better vocabulary hints, PTT conflict warnings,
-
-guided microphone/setup testing and safer microphone/controller reconnect handling.
+Preview 5 adds stalled-speech recovery, rejection of obsolete worker replies and
+Escape cancellation while recording or processing. Existing controller keyboard,
+voice setup, vocabulary hints and binding choices remain supported.
 
 **Forever 1.60.1.70291 / Interface 16001. Windows voice: 10/11 x64, English.**
 
 ## Install and set up voice
 
-1. Download **PadChat-Setup.exe** from [the matching release](https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.4). Close WoW and run it; choose the folder
+1. Download **PadChat-Setup.exe** from [the matching release](https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.5). Close WoW and run it; choose the folder
 
    containing **WowB.exe (the shared Data folder may be in its parent)**, keep voice enabled and select startup preference.
 
@@ -35,6 +35,10 @@ is local, without API keys or paid speech tokens. Use one voice helper at a time
 ## Everyday controls
 
 Outside Voice settings, tap PTT to cycle channels; hold to speak; release to send.
+Escape cancels recording, processing, pending results or review in foreground WoW.
+After a two-minute speech loading/processing timeout, nothing is sent; the helper
+restarts locally. Release PTT and press again when ready. Slow PCs may need shorter
+phrases. The timeout does not expire a message waiting for optional review.
 
 Defaults: F8 for keyboard, Share/Create or Back/View for controllers. Change them
 
