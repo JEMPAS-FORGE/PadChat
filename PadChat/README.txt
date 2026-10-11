@@ -1,3 +1,6 @@
+Preview 7 voice update: use the matching Windows companion. Run PadChat-Setup.exe with WoW closed to update both parts and keep your settings.
+https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.7
+
 PadChat 0.2.2 Preview 2 — WoW Forever 1.60.1 / Interface 16001
 Windows voice companion: Windows 10/11 x64, English, local recognition.
 
@@ -14,7 +17,7 @@ INSTALL BOTH PARTS
 ADDON ONLY
 The CurseForge ZIP installs the keyboard and in-game Options, not the Windows
 speech engine. Download the matching PadChat-Setup.exe from:
-https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.6
+https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.7
 
 KEYBOARD AND CONTROLLER
 F9 or /padchat opens/closes the keyboard. Native PlayStation touchpad click
@@ -88,5 +91,5 @@ Recognition runs locally: no API key, model download or paid speech account.
 No recordings or recognition history are written by the microphone test. The
 companion uses/restores the clipboard only for bounded addon-owned handshakes
 and normal native chat delivery. Game sound is independent of PadChat.
-This is an unsigned preview. Automated checks pass; live 70291 acceptance and a
+This is an unsigned preview. Automated checks pass; live 70338 acceptance and a
 separate clean PC still need verification. No other WoW client support claimed.

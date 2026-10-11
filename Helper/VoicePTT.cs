@@ -86,7 +86,7 @@ partial class VoicePTT {
  }
  static bool TryDestination(string value,out string destination,out string destinationLabel){
   destination=null;destinationLabel=null;
-  bool v2=value.StartsWith("CKPTT_READY2:");
+  bool v2=value.StartsWith("CKPTT_READY2:")||value.StartsWith("CKPTT_READY3:");
   if(!v2&&!value.StartsWith("CKPTT_READY:"))return false;
   string[] fields=value.Split(v2?';':'|');
   if(fields.Length!=3||!ValidPrefix(fields[1])||fields[2].Length==0)return false;
@@ -129,11 +129,12 @@ partial class VoicePTT {
   oldClip=Clip();Bridge(inviteName==null?(ushort)0x79:characterInvite?(ushort)0x72:(ushort)0x73);stage=1;deadline=Now+160;phase="delivery";}
  static void AdvanceDelivery(){
   if(!SameGame()){Cancel("Message cancelled: WoW lost focus");return;}
+  if(stage>=20){AdvanceDirectVoice();return;}
   if(stage==1){Keys(0x11,0x43);stage=2;deadline=Now+130;return;}
   if(stage==2){
    marker=Clip();
    if(marker.StartsWith("CKPTT_DENIED:")){string[] p=marker.Split('|');Cancel(p.Length>1?p[1]:"Chat destination unavailable");return;}
-   if((!marker.StartsWith("CKPTT_READY:")&&!marker.StartsWith("CKPTT_READY2:"))||marker==oldClip){Cancel("Not sent: close any text box or menu and try again");return;}
+   if((!marker.StartsWith("CKPTT_READY:")&&!marker.StartsWith("CKPTT_READY2:")&&!marker.StartsWith("CKPTT_READY3:"))||marker==oldClip){Cancel("Not sent: close any text box or menu and try again");return;}
    if(!TryDestination(marker,out command,out label)){Cancel("Not sent: invalid chat destination");return;}
    if(inviteName==null?(command=="/invite"||command=="/ck voiceinvite"):
       characterInvite?command!="/invite":command!="/ck voiceinvite"){
@@ -142,7 +143,7 @@ partial class VoicePTT {
    if(inviteName!=null)text=inviteName;
    text=Clean(text,245-Encoding.UTF8.GetByteCount(command)-1);
    if(text.Length==0){Cancel("No speech recognised; nothing sent");return;}
-   line=command+" "+text;Bridge(0x7A);stage=3;deadline=Now+120;return;
+   line=command+" "+text;if(BeginDirectVoice(marker))return;Bridge(0x7A);stage=3;deadline=Now+120;return;
   }
   if(stage==3){Bridge(0x78);stage=4;deadline=Now+180;return;}
   if(stage==4){Clipboard.SetText(line);Keys(0x11,0x56);stage=5;deadline=Now+180;return;}
@@ -252,7 +253,7 @@ partial class VoicePTT {
   }
   if(args.Length>0&&args[0]=="--input-thread-test"){TestInputThread();return;}
   if(args.Length>0&&args[0]=="--self-test"){
-   TestInputRouting();TestSpeechWatchdog();TestWorkerShutdown();
+   TestInputRouting();TestDirectVoiceWire();TestSpeechWatchdog();TestWorkerShutdown();
    TestVoiceRecovery();TestVoiceDiagnostics();
    TestGameVoiceSettings();
    TestVoiceBindings();

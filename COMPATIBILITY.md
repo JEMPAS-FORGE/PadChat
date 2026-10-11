@@ -1,8 +1,8 @@
 # Forever compatibility — 0.2.2 Preview 6
 
-WoW Forever 1.60.1.70291 / interface 16001. Existing source audit pin:
+WoW Forever 1.60.1.70338 / interface 16001. Existing source audit pin:
 
-9465cb273b5513495d8ecc12fbb19930dd6b8957 in Gethe/wow-ui-source's forever branch.
+943764493e6b16d63ded3ab304150d1f05e58b57 in Gethe/wow-ui-source's forever branch.
 
 This is a feature update; no new game build is claimed. Live acceptance remains
 

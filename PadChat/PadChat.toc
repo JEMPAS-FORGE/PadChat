@@ -2,7 +2,7 @@
 ## Title: PadChat
 ## Notes: A simple controller chat keyboard with local voice support.
 ## Author: Josh
-## Version: 0.2.2-preview.6
+## Version: 0.2.2-preview.7
 ## SavedVariables: PadChatDB
 Core.lua
 Model.lua
@@ -13,5 +13,6 @@ Minimap.lua
 Layout.lua
 UI.lua
 VoicePTT.lua
+VoiceDirect.lua
 Invites.lua
 Events.lua

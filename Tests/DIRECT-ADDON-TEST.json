@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "actualPublicCandidateBridgeAndNewDirectModule": true,
+  "checks": [
+    "Say/party/whisper/channel routing",
+    "mock combat input callback",
+    "UTF-8 and delimiter checksum",
+    "50 repeated W text edits cannot corrupt staged ack",
+    "one send per token, no duplicate retry",
+    "stale/wrong token, command injection, malformed/oversize input refusal",
+    "expiry, changed destination, external draft/menu/keyboard and API error refusal",
+    "invite remains legacy"
+  ],
+  "noGameInputOrSending": true,
+  "liveApiRestrictionsVerified": false
+}

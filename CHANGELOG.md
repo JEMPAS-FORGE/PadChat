@@ -1,4 +1,22 @@
-# PadChat 0.2.2-preview.6
+# PadChat 0.2.2 Preview 7 - voice chat while moving
+
+- Added a checked, one-shot voice handoff to the addon. Ordinary voice chat no
+  longer opens WoW's normal edit box or relies on a synthetic Enter to send.
+- Keeps channel/whisper destination, draft/focus, expiry and duplicate-send
+  safeguards. On an uncertain result, it never automatically retries.
+- Voice users must update BOTH the addon and Windows companion. Run the new
+  PadChat-Setup.exe with WoW closed; existing preferences are preserved.
+- Existing controller/keyboard opening, PTT binding, mic selection, setup,
+  installer repairs and input-listener recovery are retained.
+
+The reported Mouse 5 + W/A/D case was confirmed in game on the author's local
+build. The packaged public adaptation has automated transport and addon checks.
+Combat, physical controllers and a second clean PC still need live acceptance.
+This remains an unsigned preview. Speech is free/offline; its portable CPU
+engine is unchanged. No bigger model, capture-tail experiment or personal word
+replacement is bundled. Checked Forever 1.60.1.70338, interface 16001.
+
+# PadChat 0.2.2-preview.7
 
 Preview 6 addresses Sarcasmics' voice setup feedback. The in-game test names
 the saved keyboard/mouse and controller PTT, with held modifiers spelled out.

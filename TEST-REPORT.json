@@ -1,9 +1,9 @@
 {
-  "version": "0.2.2-preview.6",
-  "date": "2026-10-10",
-  "gameBuild": "1.60.1.70291",
+  "version": "0.2.2-preview.7",
+  "date": "2026-10-11",
+  "gameBuild": "1.60.1.70338",
   "interface": 16001,
-  "sourceRef": "9465cb273b5513495d8ecc12fbb19930dd6b8957",
+  "sourceRef": "943764493e6b16d63ded3ab304150d1f05e58b57",
   "addon": [
     {
       "name": "test-padchat.py",
@@ -35,6 +35,14 @@
     },
     {
       "name": "test-support-setup.py",
+      "passed": true
+    },
+    {
+      "name": "test-direct-addon.py",
+      "passed": true
+    },
+    {
+      "name": "test-direct-delivery.py",
       "passed": true
     },
     {
@@ -104,7 +112,7 @@
         "passed": true
       }
     ],
-    "binarySha256": "66635b9d4b01c2d39853fa24722859d6a5791b1d2fa0ccbae43055d23ea8bb54",
+    "binarySha256": "e66c930559fd72ed57aa3b3a22e1413193d39caee58f39990c049ae5f8aa498e",
     "physicalMouse5Verified": false,
     "noGameOrMicInput": true,
     "nativeHookThread2200msStallAndRestart": true,
@@ -146,13 +154,40 @@
     "backendExeSha256": "3271710f27d695350272f19a1dc6ba8b16a23eab8fc04d2dcb97ee1f79542d79",
     "recognitionSourcesUnchanged": true,
     "cause": "Optional tqdm colorama initialization raised invalid console handle before microphone enumeration in an exact hidden installer preflight. New build uses tqdm supported ImportError fallback by excluding optional colorama.",
+    "retainedFrom": "0.2.2-preview.6",
+    "unchangedBackendReused": true,
     "workerBytecodeMatchesSource": true,
     "speechVocabularyBytecodeMatchesSource": true,
     "fiveProductionHiddenPreflightsPassed": true
   },
-  "initialShippingAttempt": "Reproduced optional Colorama invalid-console-handle failure. Evidence retained; frozen engine rebuilt with Colorama excluded, not merely retried unchanged.",
+  "backendPolicy": "Reuses the unchanged hash-verified Preview 6 CPU engine; no microphone tuning or larger model is shipped.",
   "reporterPCFixed": false,
   "liveGameplayVerified": false,
+  "movingMouse5ConfirmedOnPersonalBuild": true,
+  "publicDirectSendTests": {
+    "passed": true,
+    "productionMethodsExtracted": true,
+    "compiledTransport": true,
+    "addon": {
+      "passed": true,
+      "actualPublicCandidateBridgeAndNewDirectModule": true,
+      "checks": [
+        "Say/party/whisper/channel routing",
+        "mock combat input callback",
+        "UTF-8 and delimiter checksum",
+        "50 repeated W text edits cannot corrupt staged ack",
+        "one send per token, no duplicate retry",
+        "stale/wrong token, command injection, malformed/oversize input refusal",
+        "expiry, changed destination, external draft/menu/keyboard and API error refusal",
+        "invite remains legacy"
+      ],
+      "noGameInputOrSending": true,
+      "liveApiRestrictionsVerified": false
+    },
+    "livePublicGameplayVerified": false,
+    "personalMouse5MovementConfirmed": true,
+    "noGameInputOrAudio": true
+  },
   "freshPCAvailable": false,
   "continuousPretestMicrophoneMeterImplemented": false,
   "personalSettingsOrInstallationChanged": false,
