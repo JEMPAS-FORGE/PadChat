@@ -74,6 +74,7 @@ partial class VoicePTT {
   string problem=ShortcutProblem(next);
   if(problem!=null){shortcutPrompt.Text=problem+"\nTry another key or press Escape to cancel.";return;}
   try{
+   StopMicrophoneEnumeration(true); // A newer tray edit supersedes pending game settings.
    WriteShortcut(ShortcutPath(),next);voiceShortcut=next;
    shortcutArmed=false;keyboardHeld=false;keyboardPhysicalDown=true;
    heldAt=0;pressSource="";latched=true;

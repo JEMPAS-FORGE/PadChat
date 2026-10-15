@@ -144,8 +144,7 @@ partial class VoicePTT {
  static void MaintainInputListener(){
   if(inputThread!=null&&inputThread.IsAlive)return;
   if(Now<inputRetryAt)return;
-  ResetInterruptedInput();
-  try{StopInputListener();StartInputListener();inputRetryAt=0;WriteHealth(ready?"ready":"loading");}
+  try{RepairInputListener();inputRetryAt=0;WriteHealth(ready?"ready":"loading");}
   catch(Exception ex){inputRetryAt=Now+5000;WorkerError("Input listener: "+ex.Message);WriteHealth("input-error");}
  }
  static void StopInputListener(){
@@ -176,9 +175,22 @@ partial class VoicePTT {
    if(!PostThreadMessage(inputThreadId,InputFaultProbe,UIntPtr.Zero,IntPtr.Zero)||!inputThread.Join(3000))throw new Exception("Listener fault did not terminate cleanly");
    if(keyboardHook!=IntPtr.Zero||mouseHook!=IntPtr.Zero||inputOverflow!=1)throw new Exception("Listener fault cleanup/cancellation failed");
   }finally{inputFaultTest=false;StopInputListener();inputOverflow=0;}
-  StartInputListener();StopInputListener();
+  StartInputListener();
+  try{
+   var oldThread=inputThread;uint oldId=inputThreadId;
+   // Reproduce silently removed hooks while the message thread stays alive.
+   // We remove only this disposable process's hooks; no input is generated.
+   if(!UnhookWindowsHookEx(keyboardHook)||!UnhookWindowsHookEx(mouseHook)||!oldThread.IsAlive)throw new Exception("Lost-hook fixture failed");
+   RepairInputListener();
+   if(oldThread.IsAlive||inputThread==oldThread||!inputThread.IsAlive||keyboardHook==IntPtr.Zero||mouseHook==IntPtr.Zero||!recoveryAwaitRelease)
+    throw new Exception("Live-thread lost-hook recovery failed");
+   var before=System.Threading.Interlocked.CompareExchange(ref inputProbeCount,0,0);
+   PostThreadMessage(inputThreadId,InputProbe,UIntPtr.Zero,IntPtr.Zero);
+   var deadline=Now+1000;while(inputProbeCount==before&&Now<deadline)Thread.Sleep(5);
+   if(inputProbeCount!=before+1)throw new Exception("Replacement hook pump not responsive");
+  }finally{StopInputListener();}
   if(keyboardHook!=IntPtr.Zero||mouseHook!=IntPtr.Zero||inputThread!=null)throw new Exception("Listener restart cleanup failed");
-  Console.WriteLine("PASS: actual keyboard/mouse hooks on independent thread; message pump survives 2200 ms caller stall; post-start fault cleanup and restart. No physical-input/live-game claim.");
+  Console.WriteLine("PASS: actual keyboard/mouse hooks on independent thread; message pump survives 2200 ms caller stall; post-start fault cleanup and lost hooks with a still-alive thread recovered. No physical-input/live-game claim.");
  }
  static void TestInputRouting(){
   var saved=voiceShortcut;bool savedEnabled=voiceEnabled;

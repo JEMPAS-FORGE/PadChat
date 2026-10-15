@@ -66,18 +66,16 @@ partial class VoicePTT {
    // The most recently saved account is the active one after Save & reload.
    string wire=ReadGameSettingsRecord(candidate);
    watchedSettingsFile=candidate;watchedSettingsStamp=newest;
+   if(ConsumeGameRecovery(candidate))return;
    if(wire==null)return;
    var settings=ParseGameSettings(wire);
+   StopMicrophoneEnumeration(true); // Every newer request revokes older device replies.
    if(phase!="idle")Cancel("Message cancelled while applying in-game voice settings");
    heldAt=0;pressSource="";keyboardHeld=false;latched=true;
    if(settings.microphone.Length==0||!settings.enabled){ApplyGameSettings(settings,null);return;}
    pendingGameSettings=settings;
-   if(microphoneEnumeration!=null&&!microphoneEnumeration.HasExited)return;
-   microphoneEnumeration=new Process{StartInfo=PythonInfo("--list-inputs")};
-   microphoneEnumeration.OutputDataReceived+=(s,e)=>QueueMicrophoneOutput(e.Data);
-   microphoneEnumeration.ErrorDataReceived+=(s,e)=>{};
-   microphoneEnumeration.Start();microphoneEnumeration.BeginOutputReadLine();microphoneEnumeration.BeginErrorReadLine();
-  }catch(Exception ex){pendingGameSettings=null;gameSettingsStatus="Could not apply: "+ex.Message;Status(gameSettingsStatus+"\nOpen /padchat voice to correct the selection.",8000);WriteHealth("settings-error");}
+   StartMicrophoneEnumeration();
+  }catch(Exception ex){StopMicrophoneEnumeration(true);gameSettingsStatus="Could not apply: "+ex.Message;Status(gameSettingsStatus+"\nOpen /padchat voice to correct the selection.",8000);WriteHealth("settings-error");}
  }
  static MicrophoneChoice MatchGameMicrophone(string name,IEnumerable devices){
   var exact=new List<MicrophoneChoice>();var prefixes=new List<MicrophoneChoice>();
@@ -92,6 +90,7 @@ partial class VoicePTT {
   throw new ArgumentException(exact.Count+prefixes.Count>1?"Microphone name is ambiguous. Choose another input.":"Selected microphone is not available to the companion. Connect it and save again.");
  }
  static void ApplyGameMicrophoneList(Dictionary<string,object> data){
+  StopMicrophoneEnumeration(false);
   if(pendingGameSettings==null)return;var settings=pendingGameSettings;pendingGameSettings=null;
   try{
    if(data.ContainsKey("error"))throw new IOException((string)data["error"]);
@@ -100,12 +99,53 @@ partial class VoicePTT {
   }catch(Exception ex){gameSettingsStatus="Could not apply: "+ex.Message;Status(gameSettingsStatus+"\nOpen /padchat voice to correct the selection.",9000);WriteHealth("settings-error");}
  }
  static void AtomicVoiceFile(string path,string contents){
-  Directory.CreateDirectory(Path.GetDirectoryName(path));string temp=path+".tmp";
-  File.WriteAllText(temp,contents,new UTF8Encoding(false));if(File.Exists(path))File.Replace(temp,path,null);else File.Move(temp,path);
+  AtomicVoiceBytes(path,new UTF8Encoding(false).GetBytes(contents));
  }
+ static void AtomicVoiceBytes(string path,byte[] contents){
+  Directory.CreateDirectory(Path.GetDirectoryName(path));string temp=path+"."+Guid.NewGuid().ToString("N")+".tmp";
+  try{File.WriteAllBytes(temp,contents);if(File.Exists(path))File.Replace(temp,path,null);else File.Move(temp,path);}
+  finally{if(File.Exists(temp))File.Delete(temp);}
+ }
+ sealed class VoiceSettingsTransaction : IDisposable {
+  readonly Dictionary<string,byte[]> before=new Dictionary<string,byte[]>();bool committed;
+  public VoiceSettingsTransaction(IEnumerable<string> paths){
+   foreach(string path in paths){
+    if(Directory.Exists(path))throw new IOException("A settings file is blocked by a folder: "+Path.GetFileName(path));
+    if(File.Exists(path)){
+     if((File.GetAttributes(path)&FileAttributes.ReparsePoint)!=0||new FileInfo(path).Length>1048576)throw new IOException("Invalid settings file: "+Path.GetFileName(path));
+     before[path]=File.ReadAllBytes(path);
+    }else before[path]=null;
+   }
+  }
+  public void Commit(){committed=true;}
+  public void Dispose(){
+   if(committed)return;var failures=new List<Exception>();
+   foreach(var item in before)try{
+    if(item.Value==null){if(File.Exists(item.Key))File.Delete(item.Key);}
+    else if(!File.Exists(item.Key)||!System.Linq.Enumerable.SequenceEqual(item.Value,File.ReadAllBytes(item.Key)))AtomicVoiceBytes(item.Key,item.Value);
+   }catch(Exception ex){failures.Add(ex);}
+   if(failures.Count>0)throw new AggregateException("Could not restore all voice settings. Run Setup to repair before trying again.",failures);
+  }
+ }
+ static void CommitGameSettings(GameVoiceSettings s,MicrophoneChoice mic){
+  var paths=new List<string>{ShortcutPath(),GameSettingsPath()};
+  if(mic!=null)paths.Add(Path.Combine(dataRoot,"voice-microphone.json"));
+  if(s.startup!="KEEP"){
+   paths.Add(GameStartupPath());
+   paths.Add(Path.Combine(dataRoot,"install.json"));
+  }
+  using(var transaction=new VoiceSettingsTransaction(paths)){
+   if(mic!=null)AtomicVoiceFile(Path.Combine(dataRoot,"voice-microphone.json"),json.Serialize(new{name=mic.name,hostapi=mic.hostapi}));
+   WriteShortcut(ShortcutPath(),s.shortcut);
+   AtomicVoiceFile(GameSettingsPath(),json.Serialize(s));
+   ApplyGameStartup(s.startup);
+   transaction.Commit();
+  }
+ }
+ static string GameStartupPath(){return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup),"PadChat.lnk");}
  static void ApplyGameStartup(string setting){
   if(setting=="KEEP")return;
-  string path=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup),"PadChat.lnk");
+  string path=GameStartupPath();
   if(setting=="OFF"){if(File.Exists(path))File.Delete(path);}
   else {Type type=Type.GetTypeFromProgID("WScript.Shell");object shell=Activator.CreateInstance(type);
   try{
@@ -122,10 +162,7 @@ partial class VoicePTT {
  static void ApplyGameSettings(GameVoiceSettings s,MicrophoneChoice mic){
   // Validate and resolve first. A missing/ambiguous microphone must never
   // silently change the input or apply only half of the user's configuration.
-  ApplyGameStartup(s.startup);
-  if(mic!=null)AtomicVoiceFile(Path.Combine(dataRoot,"voice-microphone.json"),json.Serialize(new{name=mic.name,hostapi=mic.hostapi}));
-  WriteShortcut(ShortcutPath(),s.shortcut);
-  AtomicVoiceFile(GameSettingsPath(),json.Serialize(s));
+  CommitGameSettings(s,mic);
   voiceVocabulary=s.vocabulary??"";voiceShortcut=s.shortcut;voiceEnabled=s.enabled;voiceReview=s.review;voicePad=s.pad;voicePadMod=s.padMod;gameSettingsManaged=true;
   keyboardHeld=false;keyboardPhysicalDown=GetAsyncKeyState(voiceShortcut.key)<0;heldAt=0;pressSource="";latched=true;
   if(microphoneWindow!=null&&!microphoneWindow.IsDisposed)microphoneWindow.Close();

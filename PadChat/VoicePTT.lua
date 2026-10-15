@@ -261,6 +261,8 @@ function CK:PrepareVoiceProbe()
   if self.voiceInfo then self.voiceInfo:SetText(self.voiceCapture and 'Finish or cancel binding capture before testing voice. No microphone test started.' or 'A text box has focus. Close chat/search or finish editing WoW words, then test again. Your text was left untouched; no microphone test started.') end
   return
  end
+ -- A fresh probe supersedes an abandoned handoff, never an ordinary draft.
+ if self.AbortDirectVoice then self:AbortDirectVoice() end
  self.voiceProbeToken=tostring(GetTime());self.voiceProbeDeadline=GetTime()+3
  local mode=self.voiceOptionsFrame and self.voiceOptionsFrame:IsShown() and 'TEST' or 'NORMAL'
  self.pttBox:SetText('PCVQ1;'..self.voiceProbeToken..';'..mode)

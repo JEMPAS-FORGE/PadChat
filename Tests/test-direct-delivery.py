@@ -21,7 +21,7 @@ partial class VoicePTT {
  static int CurrentShortcutModifiers(){return modifiers;}static short GetAsyncKeyState(int key){return 0;}
  static void Bridge(ushort key){
   if(key==0x79||key==0x72||key==0x73){edit=ready;focused=true;}
-  else if(key==0x7A)focused=false;
+  else if(key==0x7A||key==0x74)focused=false;
   else if(key==0x78){opens++;edit="";focused=true;}
   else if(key==0x75){toggles++;focused=false;}
   else if(key==0x70){
@@ -38,10 +38,10 @@ partial class VoicePTT {
   }else if(keys.Length==2&&keys[1]==0x43)Clipboard.SetText(bad&&stage==20?"bad":edit);
   else if(keys.Length==1&&keys[0]==0x0D)enters++;
  }
- static void Run(string destination,string phrase,int problem=0,bool controllerUI=false){
+ static void Run(string destination,string phrase,int problem=0,bool controllerUI=false,string original="original clipboard"){
   stage=sends=opens=enters=toggles=0;sid=7;Now=deadline=0;phase="result";text=phrase;
   ready=destination;released=sameGame=true;focused=false;body=null;bad=problem==1;apiError=problem==3;dropAck=problem==4;modifiers=problem==5?1:0;ui=controllerUI;
-  Clipboard.value="original clipboard";BeginDelivery();
+  Clipboard.value=original;BeginDelivery();
   for(Now=20;Now<5000&&phase!="idle";Now+=20){
    // Production Lua freezes READY/ACK markers against held WASD input.
    if(focused&&!edit.StartsWith("PCVD_ACK"))edit=ready;
@@ -51,7 +51,7 @@ partial class VoicePTT {
   if(phase!="idle"||stage!=0||released)throw new Exception("Delivery failed to finish/cancel");
   int expected=(problem==1||problem==2||problem==3||problem==5)?0:1;
   if(sends!=expected||opens!=0||enters!=0)throw new Exception("Wrong send count or opened native chat/Enter");
-  if(problem==0&&(body!=phrase||Clipboard.value!="original clipboard"||focused))throw new Exception("Body/clipboard/focus cleanup failed");
+  if(problem==0&&(body!=phrase||Clipboard.value!=original||focused))throw new Exception("Body/clipboard/focus cleanup failed");
   if(controllerUI&&problem==0&&toggles!=1)throw new Exception("Controller focus not restored once");
  }
  static void Main(){
@@ -59,12 +59,17 @@ partial class VoicePTT {
   foreach(string command in new[]{"/s","/y","/p","/ra","/g","/o","/i","/rw","/e","/4","/w Friend-Realm"})
    foreach(bool ui in new[]{false,true})Run("CKPTT_READY3:1.2;"+command+";Destination","Hello caf\u00e9; turn right",0,ui);
   for(int p=1;p<=5;p++)Run("CKPTT_READY3:1.2;/p;Party","Movement test",p);
+  Run("CKPTT_READY3:1.2;/s;Say","Empty clipboard",0,false,"");
+  oldClip="before";directVoiceToken="1.2";directVoiceId="7";directVoicePacket="owned";Clipboard.value="new user clipboard";
+  RestoreDirectVoiceClipboard();if(Clipboard.value!="new user clipboard")throw new Exception("Foreign clipboard overwritten");
+  oldClip="";directVoiceToken="1.2";directVoiceId="7";directVoicePacket="owned";Clipboard.value="owned";
+  RestoreDirectVoiceClipboard();if(Clipboard.value!=""||directVoiceToken!=null)throw new Exception("Cancelled packet retained");
   string dest,lab;
   if(!TryDestination("CKPTT_READY2:1;/invite;Invite",out dest,out lab)||dest!="/invite")throw new Exception("Legacy invite rejected");
   Console.WriteLine("PASS: actual public helper direct delivery; all channels/whisper UTF-8, held movement, focus/clipboard cleanup, modifier/focus/bad ACK/API failure and uncertain no retry.");
  }
 }
-class Clipboard{public static string value;public static void SetText(string v){value=v;}}
+class Clipboard{public static string value;public static void SetText(string v){value=v;}public static void Clear(){value="";}}
 '''
 test=root/'DirectTransport.cs';test.write_text(harness.replace(' static void Main(){',methods+'\n static void Main(){'),encoding='utf-8')
 exe=root/'DirectTransport.exe'

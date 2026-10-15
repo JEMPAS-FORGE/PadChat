@@ -1,7 +1,7 @@
 UPDATE TO PREVIEW 7
 Voice requires both parts. Download PadChat-Setup.exe from this release, close WoW, and run Setup for the same game folder. It updates the addon and companion while preserving preferences. CurseForge installs only the addon; an addon-only update does not update the Windows companion.
 
-PadChat 0.2.2 Preview 7 — WoW Forever 1.60.1 / Interface 16001
+PadChat 0.2.2 Preview 8 — WoW Forever 1.60.1 / Interface 16001
 
 Windows voice companion: Windows 10/11 x64, English, local recognition.
 
@@ -42,7 +42,7 @@ The CurseForge ZIP installs the keyboard and in-game Options, not the Windows
 
 speech engine. Download the matching PadChat-Setup.exe from:
 
-https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.7
+https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.8
 
 KEYBOARD AND CONTROLLER
 
@@ -174,7 +174,7 @@ companion uses/restores the clipboard only for bounded addon-owned handshakes
 
 and normal native chat delivery. Game sound is independent of PadChat.
 
-This is an unsigned preview. Automated checks pass; live 70338 acceptance and a
+This is an unsigned preview. Automated checks pass; live 70374 acceptance and a
 
 separate clean PC still need verification. No other WoW client support claimed.
 
@@ -199,3 +199,21 @@ You can attach screenshots or short video to an issue, hiding names/private chat
 Mic level is shown during an acknowledged recording test; an idle or last-check
 level is not a live meter. Working in WoW voice chat does not certify the input
 is selected or available to the separate PadChat companion.
+
+## If PTT stops responding (Preview 8)
+
+Release PTT and press again if PadChat reports an input refresh. The listener
+can repair a lost hook without reloading the speech model. It never resumes
+recording automatically.
+
+For manual recovery in WoW, open PadChat Options > Voice settings and choose
+**Restart voice + reload UI**. Read the warning and confirm within 8 seconds
+when safe, outside combat. This cancels unfinished dictation, discards unsaved
+option edits, keeps saved settings, and reloads only the UI. The already-running
+Windows companion reads the one-use request. Wait for its model to load, then
+release and press PTT again. This button cannot launch a stopped Windows app.
+
+You can also right-click PadChat beside the Windows clock and choose
+**Restart voice (discard unfinished dictation)**. If the companion is closed,
+open **PadChat Voice** from Windows Start. If it remains unresponsive, close
+WoW and rerun the matching installer to repair both parts.

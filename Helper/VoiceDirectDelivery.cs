@@ -4,6 +4,17 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 partial class VoicePTT {
  static string directVoiceToken,directVoiceId,directVoiceCopiedAck,directVoiceResult;
+ static string directVoicePacket;
+ static void RestoreDirectVoiceClipboard(){
+  if(directVoiceToken==null)return;
+  try{
+   string current=Clip();
+   if(current==directVoicePacket||current==DirectVoiceAck()+"READY"||
+    Regex.IsMatch(current,@"\A"+Regex.Escape(DirectVoiceAck())+@"(ISSUED|ERROR|REFUSED);[01]\z")){
+    if(oldClip.Length>0)Clipboard.SetText(oldClip);else Clipboard.Clear();
+   }
+  }finally{directVoiceToken=directVoiceId=directVoicePacket=directVoiceCopiedAck=null;}
+ }
  static bool directVoiceUIFocus;
  static uint DirectVoiceChecksum(string value){
   uint a=1,b=0;foreach(byte v in Encoding.UTF8.GetBytes(value)){a=(a+v)%65521;b=(b+a)%65521;}return (b<<16)|a;
@@ -20,6 +31,7 @@ partial class VoicePTT {
   if(!Regex.IsMatch(token,@"\A[0-9.]{1,40}\z")||inviteName!=null){Cancel("Not sent: invalid direct chat handshake");return true;}
   directVoiceToken=token;directVoiceId=sid.ToString();
   string packet="PCVD1;"+directVoiceId+";"+token+";"+command+";"+EncodeDirectVoice(text)+";"+DirectVoiceChecksum(command+"\n"+text);
+  directVoicePacket=packet;
   Clipboard.SetText(packet);Keys(0x11,0x41);Keys(0x11,0x56);
   stage=20;deadline=Now+180;return true;
  }
@@ -51,7 +63,7 @@ partial class VoicePTT {
   }
   if(stage==25){if(directVoiceUIFocus)Bridge(0x75);stage=26;deadline=Now+120;return;}
   if(stage==26){
-   if(directVoiceCopiedAck!=null&&Clip()==directVoiceCopiedAck&&oldClip.Length>0)Clipboard.SetText(oldClip);
+   RestoreDirectVoiceClipboard();
    phase="idle";stage=0;released=false;
   }
  }

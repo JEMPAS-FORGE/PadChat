@@ -8,7 +8,7 @@ CHECK=ROOT/"Tests"
 
 results=[]
 
-for name in ('test-padchat.py','test-runtime.py','test-options.py','test-invites.py','test-voice-options.py','test-voice-setup.py','test-speech-recovery.py','test-support-setup.py','test-direct-addon.py','test-direct-delivery.py'):
+for name in ('test-padchat.py','test-runtime.py','test-options.py','test-invites.py','test-voice-options.py','test-voice-setup.py','test-speech-recovery.py','test-support-setup.py','test-direct-addon.py','test-direct-delivery.py','test-input-recovery.py','test-audit-lua.py','test-audit-native.py','test-audit-installer.py'):
 
  print('Running',name,flush=True)
 

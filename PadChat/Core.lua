@@ -13,8 +13,19 @@ function P:Print(message,...)
 end
 function P.Normalize(value) return string.lower(value or '') end
 function P:InitDB()
- PadChatDB=PadChatDB or {};self.db=PadChatDB
- self.db.words=self.db.words or {};self.db.draft=self.db.draft or ''
+ PadChatDB=type(PadChatDB)=='table' and PadChatDB or {};self.db=PadChatDB
+ local entries={}
+ if type(self.db.words)=='table' then
+  for word,count in pairs(self.db.words) do
+   if type(word)=='string' and #word>=2 and #word<=30 and not word:find('[%c|]')
+    and type(count)=='number' and count==count and count>0 and count<math.huge then
+    entries[#entries+1]={word,math.min(1000000,math.floor(count))}
+   end
+  end
+ end
+ table.sort(entries,function(a,b) return a[2]==b[2] and a[1]<b[1] or a[2]>b[2] end)
+ self.db.words={};for i=1,math.min(500,#entries) do self.db.words[entries[i][1]]=entries[i][2] end
+ if type(self.db.draft)~='string' or #self.db.draft>1000 or self.db.draft:find('[%z\1-\8\11\12\14-\31]') then self.db.draft='' end
  self:InitOptions()
  self.model=self:NewModel(self.db.draft);self.open=false
 end
@@ -33,7 +44,7 @@ function P:KnownNames()
 end
 function P:Learn(text)
  for word in string.lower(text):gmatch("[%a][%a\128-\255'-]*") do
-  if #word>=2 and #word<=30 then self.db.words[word]=(self.db.words[word] or 0)+1 end
+  if #word>=2 and #word<=30 then self.db.words[word]=math.min(1000000,(self.db.words[word] or 0)+1) end
  end
  -- Keep the personal dictionary bounded.
  local entries={};for word,count in pairs(self.db.words) do entries[#entries+1]={word,count} end

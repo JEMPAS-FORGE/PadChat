@@ -50,10 +50,10 @@ partial class VoicePTT {
  class Badge:Form {
   public Label label=new Caption();
   protected override bool ShowWithoutActivation{get{return true;}}
-  protected override CreateParams CreateParams{get{var p=base.CreateParams;p.ExStyle|=0x08000000;return p;}}
+  protected override CreateParams CreateParams{get{var p=base.CreateParams;p.ExStyle|=0x08000000|0x00000020|0x00000080;return p;}}
   public Badge(){FormBorderStyle=FormBorderStyle.None;ShowInTaskbar=false;TopMost=true;BackColor=Color.FromArgb(25,27,32);
    TransparencyKey=BackColor;
-   Size=new Size(900,160);StartPosition=FormStartPosition.Manual;Location=new Point((Screen.PrimaryScreen.Bounds.Width-Width)/2,55);
+   Size=new Size(900,160);StartPosition=FormStartPosition.Manual;Location=new Point(0,0);
    label.Dock=DockStyle.Fill;label.ForeColor=Color.White;label.Font=new Font("Segoe UI",16);label.TextAlign=ContentAlignment.MiddleCenter;Controls.Add(label);}
  }
  static System.Threading.EventWaitHandle stopEvent;
@@ -66,7 +66,7 @@ partial class VoicePTT {
  static IntPtr target,pressWindow;static uint joystick=uint.MaxValue;static string inputSource="none",pressSource="",recordSource="";
  static long workerRetryAt;static int workerFailures;
  static long Now{get{return clock.ElapsedMilliseconds;}}
- static void Status(string message,int ms){badge.label.Text=message;badge.Show();hideAt=ms==0?0:Now+ms;}
+ static void Status(string message,int ms){badge.label.Text=message;ShowVoiceOverlay();hideAt=ms==0?0:Now+ms;}
  static string PreviewTail(){return preview.Length>220?"..."+preview.Substring(preview.Length-220):preview;}
  static void RecordingStatus(){
   badge.label.Text=microphoneTest?"Microphone test — nothing will be sent | Level: "+level+"%\n"+PreviewTail():preview.Length>0?"Live preview — release "+TalkButton()+" to send\n"+PreviewTail():
@@ -108,8 +108,8 @@ partial class VoicePTT {
  [DllImport("winmm.dll",CharSet=CharSet.Unicode)] static extern uint joyGetDevCapsW(UIntPtr id,out JoyCaps caps,uint size);
  static bool SupportedNativeController(uint id){JoyCaps caps;return joyGetDevCapsW(new UIntPtr(id),out caps,(uint)Marshal.SizeOf(typeof(JoyCaps)))==0&&caps.manufacturer==0x054c;}
  static uint NormalizeXInput(ushort buttons){return ((buttons&0x2000)!=0?2u:0u)|((buttons&0x0020)!=0?0x100u:0u)|((buttons&0x0010)!=0?0x200u:0u)|((buttons&0x8000)!=0?0x8u:0u)|((buttons&0x0100)!=0?0x10u:0u)|((buttons&0x0200)!=0?0x20u:0u)|((buttons&0x0040)!=0?0x400u:0u)|((buttons&0x0080)!=0?0x800u:0u);}
- static void Cancel(string reason){InvalidateSpeechSession();RestoreProbeClipboard();WriteWorker("cancel");
-  if(SameGame())Bridge(0x7A);Status(reason,4000);}
+ static void Cancel(string reason){InvalidateSpeechSession();RestoreDirectVoiceClipboard();RestoreProbeClipboard();WriteWorker("cancel");
+  if(SameGame())Bridge(0x74);Status(reason,4000);}
  static void Start(){
   target=GetForegroundWindow();if(!IsGame(target))return;recordSource=pressSource;BeginVoiceProbe(false);
  }
@@ -162,7 +162,7 @@ partial class VoicePTT {
    stage=11;deadline=Now+100;return;
   }
   if(stage==10){Bridge(0x75);stage=11;deadline=Now+100;return;}
-  if(stage==11){if(oldClip.Length>0&&Clip().StartsWith("CKPTT_EXIT"))Clipboard.SetText(oldClip);stage=0;phase="idle";released=false;}
+  if(stage==11){if(Clip().StartsWith("CKPTT_EXIT")){if(oldClip.Length>0)Clipboard.SetText(oldClip);else Clipboard.Clear();}stage=0;phase="idle";released=false;}
  }
  static uint ReadButtons(out bool connected){
   XState xs;uint xbuttons=0,xindex=0;int xcount=0;
@@ -182,6 +182,13 @@ partial class VoicePTT {
   try{
    MaintainInputListener();
    DrainVoiceInputs();
+   if(stopEvent!=null&&stopEvent.WaitOne(0)){Application.Exit();return;}
+   if(bindingEvent!=null&&bindingEvent.WaitOne(0))ShowVoiceBindings();
+   if(microphoneEvent!=null&&microphoneEvent.WaitOne(0))ShowMicrophones();
+   MaintainMicrophoneEnumeration();
+   string previousSource=inputSource;
+   bool connected;uint buttons=ReadButtons(out connected);bool controllerChord=connected&&ControllerVoiceChord(buttons);
+   if(MaintainInputContinuity(controllerChord))return;
    EnforceSpeechDeadline();
    Dictionary<string,object> data;while(TryReadVoiceMessage(out data)){
     string kind=(string)data["type"];
@@ -208,16 +215,11 @@ partial class VoicePTT {
    if(hideAt!=0&&Now>=hideAt){badge.Hide();hideAt=0;}
    PollGameSettings();
    if(voiceEnabled)MaintainWorker();
-   string previousSource=inputSource;
-   bool connected;uint buttons=ReadButtons(out connected);bool controllerChord=connected&&ControllerVoiceChord(buttons);
    PollKeyboardToggle(connected,buttons,previousSource==inputSource);
    if(phase=="review"&&connected&&(buttons&2)!=0){Cancel("Review cancelled; nothing sent");return;}
    if(!voiceEnabled){heldAt=0;latched=true;return;}
    bool keyboardChord=voiceEnabled&&keyboardHeld;
    bool chord=pressSource=="keyboard"?keyboardChord:pressSource=="controller"?controllerChord:keyboardChord||controllerChord;
-   if(bindingEvent!=null&&bindingEvent.WaitOne(0))ShowVoiceBindings();
-   if(stopEvent!=null&&stopEvent.WaitOne(0)){Application.Exit();return;}
-   if(microphoneEvent!=null&&microphoneEvent.WaitOne(0))ShowMicrophones();
    if(microphoneWindow!=null&&!microphoneWindow.IsDisposed||shortcutWindow!=null&&!shortcutWindow.IsDisposed){
     if(chord&&!latched)Status("Push-to-talk is paused while a PadChat configuration window is open.\nSave/close that window, return to WoW, release PTT and press it again.",5000);
     heldAt=0;latched=chord;return;
@@ -242,7 +244,7 @@ partial class VoicePTT {
    if(phase=="result"&&!chord)BeginDelivery();
    if(stage!=0&&Now>=deadline)AdvanceDelivery();
   }catch(Exception ex){try{Cancel("Voice error: "+ex.Message);}catch{phase="idle";stage=0;}}
-  finally{PublishInputPolicy();}
+  finally{MaintainVoiceOverlay();PublishInputPolicy();}
  }
  [STAThread] static void Main(string[] args){
   if(args.Length>0&&args[0]=="--worker-shutdown-fixture"){Console.WriteLine("fixture-ready");System.Threading.Thread.Sleep(15000);return;}
@@ -253,7 +255,7 @@ partial class VoicePTT {
   }
   if(args.Length>0&&args[0]=="--input-thread-test"){TestInputThread();return;}
   if(args.Length>0&&args[0]=="--self-test"){
-   TestInputRouting();TestDirectVoiceWire();TestSpeechWatchdog();TestWorkerShutdown();
+   TestVoiceOverlay();TestInputRecovery();TestInputRouting();TestDirectVoiceWire();TestSpeechWatchdog();TestWorkerShutdown();
    TestVoiceRecovery();TestVoiceDiagnostics();
    TestGameVoiceSettings();
    TestVoiceBindings();
@@ -300,7 +302,7 @@ partial class VoicePTT {
    if(args.Length>0&&args[0]=="--bindings")ShowVoiceBindings();
    if(args.Length>0&&args[0]=="--microphone")ShowMicrophones();
    timer=new Timer{Interval=20};timer.Tick+=Tick;timer.Start();
-   try{Application.Run();}finally{RemoveKeyboardVoice();CloseNativeSony();StopWorker();if(microphoneTray!=null)microphoneTray.Dispose();microphoneEvent.Dispose();bindingEvent.Dispose();stopEvent.Dispose();}
+   try{Application.Run();}finally{RemoveKeyboardVoice();CloseNativeSony();StopMicrophoneEnumeration(true);StopWorker();if(microphoneTray!=null)microphoneTray.Dispose();microphoneEvent.Dispose();bindingEvent.Dispose();stopEvent.Dispose();}
   }
  }
 }

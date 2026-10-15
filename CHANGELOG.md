@@ -1,3 +1,40 @@
+# PadChat 0.2.2 Preview 8 - voice recovery and audit fixes
+
+- Fixes cancelled chat handoffs blocking later dictation. Explicit cancellation
+  revokes old send tokens; a new connection check cannot replay an old message.
+- Rejects opening/PTT shortcut conflicts whichever control is changed first.
+  Recovers from malformed saved drafts, word counts and binding values.
+- Preserves pre-existing installer staging/recovery files on refusal and prevents
+  concurrent installer/uninstaller transactions.
+- Discards obsolete microphone replies after newer settings or Voice Off, and
+  bounds device discovery to 30 seconds. Refresh and Restart stop the owned old
+  enumeration process; the saved input is never silently switched.
+- Rolls back file and startup-setting changes if applying voice settings fails.
+- Allows Windows binding/microphone configuration and Exit while voice is Off
+  or waiting for PTT to be released, without turning voice back on.
+- Restores an empty text clipboard after a verified send or cancelled handoff,
+  while preserving clipboard contents changed by the user during delivery.
+- Positions the non-activating dictation overlay on the game window/monitor,
+  including negative monitor coordinates, resize and display changes.
+
+- Detects a sustained mismatch between the saved PTT button and input events,
+  including a hook removed while its message thread stays alive. Reattaches
+  input without reloading the speech model. Release PTT and press again.
+- Adds controller-selectable Restart voice + reload UI in Voice settings,
+  with expiring confirmation, combat and draft guards. Saved settings are kept;
+  unsaved option edits and unfinished dictation are discarded.
+- Adds Restart voice to the Windows tray menu. It restarts the speech worker
+  and listener without closing WoW or changing the saved microphone or binding.
+- Versioned in-game requests expire and are durably consumed once. Recovery
+  invalidates old sessions and never starts recording or sends automatically.
+- Keeps the same free offline speech engine/model. Update BOTH parts with the
+  matching installer; CurseForge installs the addon only.
+
+Automated addon, transport, native lost-hook, microphone lifecycle, settings
+rollback and installer checks cover these changes. These do not establish repeated physical input or fresh-PC gameplay
+reliability. The original recurring interruption cause remains unconfirmed;
+this adds a tested recovery path, not a guarantee against every failure.
+
 # PadChat 0.2.2 Preview 7 - voice chat while moving
 
 - Added a checked, one-shot voice handoff to the addon. Ordinary voice chat no

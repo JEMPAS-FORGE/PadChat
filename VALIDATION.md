@@ -1,3 +1,29 @@
+# Preview 8 validation scope
+
+All eleven reproduced audit findings have targeted regression coverage:
+pre-existing installer stages and cross-process transaction exclusion;
+symmetric PTT/opening conflicts; malformed SavedVariables and bounded words;
+disabled stop/configuration dispatch even behind recovery release gating;
+empty/foreign clipboard ownership; superseded enumeration output; owned-child
+timeout/disposal/refresh/restart; settings rollback after an actual locked-file
+failure and injected startup-integration failure; cancelled/expired direct
+handoff recovery without replay; and overlay placement/style/error isolation.
+
+The native lifecycle fixture compiles the complete production helper. Its UI
+presentation, input-listener startup, foreground game discovery and backend
+launch are replaced with explicit test boundaries. Real disposable child
+processes and isolated files exercise termination and rollback. It records no
+audio, sends no game input and changes no actual startup integration. These
+checks supplement the unmodified packaged helper self-tests and embedded
+installer lifecycle tests; they are not physical-controller or clean-PC proof.
+
+The new recovery change is covered by deterministic input-state/TTL/replay
+checks, actual owned Win32 hook removal and replacement, addon controller UI
+checks, matching compiled helper and embedded installer lifecycle tests.
+The new UI/recovery controls still need real gameplay acceptance. No fresh PC
+is available. Prior evidence below is retained history, not a claim that its
+physical device checks were repeated on Preview 8.
+
 # PadChat 0.2.2 Preview 7 - voice chat while moving
 
 - Added a checked, one-shot voice handoff to the addon. Ordinary voice chat no

@@ -79,6 +79,12 @@ function P:PTTReleaseFocus()
  previousRelease(self)
  if self.directVoiceConsumed then self.directVoiceToken=nil;self.directVoicePending=nil end
 end
+function P:AbortDirectVoice()
+ self.directVoiceToken=nil;self.directVoicePending=nil;self.directVoiceConsumed=nil
+ self.directVoiceDeadline=nil;self.directVoiceMarker=nil
+ self.voiceProbeToken=nil;self.voiceProbeDeadline=nil
+ previousRelease(self)
+end
 function P:PreparePTT(invite)
  self.directVoicePending=nil;self.directVoiceToken=nil;self.directVoiceConsumed=nil
  previousPrepare(self,invite)
@@ -103,9 +109,13 @@ function P:InitPTT()
  button:RegisterForClicks('AnyUp')
  button:SetScript('OnClick',function() self:CommitDirectVoice() end)
  self.directVoiceButton=button
+ local abort=self.NewFrame('Button','PadChatPTTAbort')
+ abort:RegisterForClicks('AnyUp');abort:SetScript('OnClick',function() self:AbortDirectVoice() end)
+ self.pttBox:SetScript('OnEscapePressed',function() self:AbortDirectVoice() end)
  local function bind()
   if not InCombatLockdown() and not self.tvActionFailed then
    SetOverrideBindingClick(self.pttOwner,true,'CTRL-SHIFT-F1',button:GetName())
+   SetOverrideBindingClick(self.pttOwner,true,'CTRL-SHIFT-F5',abort:GetName())
   end
  end
  local events=self.pttOwner:GetScript('OnEvent')

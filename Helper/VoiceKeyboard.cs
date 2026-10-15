@@ -61,7 +61,7 @@ partial class VoicePTT {
   // Health only: never audio, recognised words, clipboard or chat recipients.
   try{File.WriteAllText(Path.Combine(dataRoot,"voice-health.json"),json.Serialize(new {
    state=state,pid=Process.GetCurrentProcess().Id,session=Process.GetCurrentProcess().SessionId,
-   workerPid=worker!=null&&!worker.HasExited?worker.Id:0,keyboard=ShortcutName(voiceShortcut),controller=ControllerVoiceName(),inGameConfigured=gameSettingsManaged,inGameSettings=gameSettingsStatus,voiceEnabled=voiceEnabled,inputListenerAlive=inputThread!=null&&inputThread.IsAlive,inputEvents=System.Threading.Interlocked.Read(ref inputEvents),inputInterruptions=inputInterruptions,updated=DateTime.UtcNow.ToString("o")
+   workerPid=worker!=null&&!worker.HasExited?worker.Id:0,keyboard=ShortcutName(voiceShortcut),controller=ControllerVoiceName(),inGameConfigured=gameSettingsManaged,inGameSettings=gameSettingsStatus,voiceEnabled=voiceEnabled,inputListenerAlive=inputThread!=null&&inputThread.IsAlive,inputEvents=System.Threading.Interlocked.Read(ref inputEvents),inputInterruptions=inputInterruptions,inputRecoveries=inputRecoveries,voiceRestarts=voiceRestarts,awaitingFreshPress=recoveryAwaitRelease,updated=DateTime.UtcNow.ToString("o")
   }),new UTF8Encoding(false));}catch(IOException){}catch(UnauthorizedAccessException){}
  }
  static void TestKeyboardVoice(){

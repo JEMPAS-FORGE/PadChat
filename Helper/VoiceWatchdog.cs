@@ -20,7 +20,7 @@ partial class VoicePTT {
    return null;
   }
  }
- class VoiceMessage {public long generation;public string data;}
+ class VoiceMessage {public long generation,microphoneGeneration;public string data;}
  static readonly SpeechDeadlines speechDeadlines=new SpeechDeadlines();
  static long workerGeneration;
  static long CurrentWorkerGeneration(){return Interlocked.Read(ref workerGeneration);}
@@ -28,11 +28,13 @@ partial class VoicePTT {
   return kind=="microphones"?received==0:received>0&&received==current;
  }
  static void QueueWorkerOutput(string value,long generation){if(value!=null)messages.Enqueue(new VoiceMessage{generation=generation,data=value});}
- static void QueueMicrophoneOutput(string value){QueueWorkerOutput(value,0);}
+ static void QueueMicrophoneOutput(string value){QueueMicrophoneOutput(value,Interlocked.Read(ref microphoneGeneration));}
+ static void QueueMicrophoneOutput(string value,long generation){if(value!=null)messages.Enqueue(new VoiceMessage{generation=0,microphoneGeneration=generation,data=value});}
  static bool TryReadVoiceMessage(out Dictionary<string,object> data){
   VoiceMessage message;data=null;
   while(messages.TryDequeue(out message)){
    if(message.generation!=0&&message.generation!=CurrentWorkerGeneration())continue;
+   if(message.generation==0&&message.microphoneGeneration!=Interlocked.Read(ref microphoneGeneration))continue;
    var decoded=json.Deserialize<Dictionary<string,object>>(message.data);
    if(!CurrentWorkerOutput(message.generation,CurrentWorkerGeneration(),(string)decoded["type"]))continue;
    data=decoded;return true;

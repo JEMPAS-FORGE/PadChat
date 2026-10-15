@@ -32,7 +32,7 @@ class InstallState { public string Game,Version; public bool Voice,Startup; }
 
 class Engine {
 
-  public const string Version="0.2.2-preview.7";
+  public const string Version="0.2.2-preview.8";
 
  public readonly string Root; public readonly bool Test;
 
@@ -177,6 +177,21 @@ class Engine {
  }
 
  public void Install(string game,bool voice,bool startup,string payloadPath,string uninstallerPath,bool failAfterSwap){
+  using(var transaction=AcquireTransaction())InstallLocked(game,voice,startup,payloadPath,uninstallerPath,failAfterSwap);
+ }
+ sealed class Transaction : IDisposable {
+  System.Threading.Mutex mutex;
+  public Transaction(){
+   mutex=new System.Threading.Mutex(false,"Local\\PadChat.Setup.Transaction.v1");
+   bool acquired=false;
+   try{try{acquired=mutex.WaitOne(0);}catch(System.Threading.AbandonedMutexException){acquired=true;}
+    if(!acquired)throw new IOException("Another PadChat installer or uninstaller is running. Close it and try again.");
+   }catch{mutex.Dispose();mutex=null;throw;}
+  }
+  public void Dispose(){if(mutex!=null){mutex.ReleaseMutex();mutex.Dispose();mutex=null;}}
+ }
+ static IDisposable AcquireTransaction(){return new Transaction();}
+ void InstallLocked(string game,bool voice,bool startup,string payloadPath,string uninstallerPath,bool failAfterSwap){
 
   game=Path.GetFullPath(game);ValidateGame(game);AssertNoLinks(Root);Directory.CreateDirectory(Root);
 
@@ -190,19 +205,19 @@ class Engine {
 
   string addonNew=addon+".padchat-new", addonOld=addon+".padchat-backup", appNew=app+".new", appOld=app+".backup";
 
-  bool movedAddon=false,movedApp=false,hadAddon=Directory.Exists(addon),hadApp=Directory.Exists(app);
+  bool movedAddon=false,movedApp=false,ownsAddonNew=false,ownsAppNew=false,integrationTouched=false,hadAddon=Directory.Exists(addon),hadApp=Directory.Exists(app);
 
   string oldState=File.Exists(StatePath)?File.ReadAllText(StatePath):null;
 
   try{
 
+   foreach(var p in new[]{addonNew,addonOld,appNew,appOld}){AssertNoLinks(p);if(Directory.Exists(p)||File.Exists(p))throw new IOException("A previous installation left a staging folder: "+p+". Review it before retrying.");}
+
    using(var p=File.OpenRead(payloadPath))Extract(p,work);
 
-   foreach(var p in new[]{addonNew,addonOld,appNew,appOld}){AssertNoLinks(p);if(Directory.Exists(p))throw new IOException("A previous installation left a staging folder: "+p+". Review it before retrying.");}
+   Directory.CreateDirectory(Path.GetDirectoryName(addon));ownsAddonNew=true;CopyTree(Path.Combine(work,"PadChat"),addonNew);
 
-   Directory.CreateDirectory(Path.GetDirectoryName(addon));CopyTree(Path.Combine(work,"PadChat"),addonNew);
-
-   if(voice){CopyTree(Path.Combine(work,"App"),appNew);VerifyBackend(appNew);}
+   if(voice){ownsAppNew=true;CopyTree(Path.Combine(work,"App"),appNew);VerifyBackend(appNew);}
 
    StopHelper();
 
@@ -220,7 +235,7 @@ class Engine {
 
    CopyTree(Path.Combine(work,"Docs"),Path.Combine(Root,"Docs"));
 
-   Integrate(state);
+   integrationTouched=true;Integrate(state);
 
    // Cleanup after commit cannot turn a successful update into a partial rollback.
 
@@ -232,15 +247,17 @@ class Engine {
 
    if(movedApp){DeleteOwnedTree(app);if(hadApp&&Directory.Exists(appOld))Directory.Move(appOld,app);}
 
-   if(oldState==null){if(File.Exists(StatePath))File.Delete(StatePath);}else File.WriteAllText(StatePath,oldState);
+   if(movedAddon||movedApp){if(oldState==null){if(File.Exists(StatePath))File.Delete(StatePath);}else File.WriteAllText(StatePath,oldState);}
 
-   if(previous!=null)Integrate(previous);else RemoveIntegration();
+   if(integrationTouched){if(previous!=null)Integrate(previous);else RemoveIntegration();}
 
    throw;
 
   }finally{
 
-   foreach(var p in new[]{work,addonNew,appNew})DeleteOwnedTree(p);
+   DeleteOwnedTree(work);
+   if(ownsAddonNew)DeleteOwnedTree(addonNew);
+   if(ownsAppNew)DeleteOwnedTree(appNew);
 
   }
 
@@ -317,6 +334,9 @@ class Engine {
  }
 
  public void Uninstall(){
+  using(var transaction=AcquireTransaction())UninstallLocked();
+ }
+ void UninstallLocked(){
 
   var s=ReadState();if(s==null)throw new IOException("No PadChat installation record was found.");
 

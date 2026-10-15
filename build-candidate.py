@@ -63,6 +63,9 @@ def main():
 
   if src.exists():shutil.copyfile(src,PAYLOAD/'Docs'/p);shutil.copyfile(src,OUT/p)
 
+ if (ROOT/'docs/PadChat-Installation-Guide.pdf').exists():
+  shutil.copyfile(ROOT/'docs/PadChat-Installation-Guide.pdf',PAYLOAD/'Docs/PadChat-Installation-Guide.pdf')
+  shutil.copyfile(ROOT/'docs/PadChat-Installation-Guide.pdf',OUT/'PadChat-Installation-Guide.pdf')
  if (ROOT/'START-HERE.txt').exists():shutil.copyfile(ROOT/'START-HERE.txt',app/'START-HERE.txt')
 
  files={p.relative_to(PAYLOAD).as_posix():hashlib.file_digest(p.open('rb'),'sha256').hexdigest() for p in PAYLOAD.rglob('*') if p.is_file() and p.name!='manifest.json'}
@@ -81,25 +84,21 @@ def main():
 
  compile(OUT/'PadChat-Setup.exe',[ROOT/'Packaging/Setup.cs',ROOT/'Packaging/Discovery.cs'],('/resource:'+str(archive)+',payload.zip','/resource:'+str(ROOT/'Uninstall.exe')+',Uninstall.exe'))
 
- with zipfile.ZipFile(OUT/'PadChat-0.2.2-preview.7.zip','w',zipfile.ZIP_DEFLATED) as z:
+ with zipfile.ZipFile(OUT/'PadChat-0.2.2-preview.8.zip','w',zipfile.ZIP_DEFLATED) as z:
 
   for p in (ROOT/'PadChat').iterdir():
 
    if p.is_file():z.write(p,'PadChat/'+p.name)
 
  with zipfile.ZipFile(OUT/'PadChat-source.zip','w',zipfile.ZIP_DEFLATED) as z:
+  for folder in ('PadChat','Helper','Packaging','Tests','API','docs'):
+   for p in (ROOT/folder).rglob('*'):
+    if p.is_file() and '__pycache__' not in p.parts and p.suffix not in ('.pyc','.exe'):
+     z.write(p,p.relative_to(ROOT).as_posix())
+  for name in ('portable-build.py','build-candidate.py','run-tests.py','LICENSE','LICENSE.txt','START-HERE.txt','VALIDATION.md','CHANGELOG.md','README.md','COMPATIBILITY.md','BUILD.md','DEPENDENCIES.json'):
+   if (ROOT/name).exists():z.write(ROOT/name,name)
 
-  for folder in ('PadChat','Helper','Packaging','Tests'):
-
-   for p in (ROOT/folder).iterdir():
-
-    if p.is_file():z.write(p,folder+'/'+p.name)
-
-  for p in ('build-candidate.py','run-tests.py','START-HERE.txt','VALIDATION.md','CHANGELOG.md','README.md','COMPATIBILITY.md','BUILD.md','DEPENDENCIES.json'):
-
-   if (ROOT/p).exists():z.write(ROOT/p,p)
-
- with zipfile.ZipFile(OUT/'PadChat-Windows-Voice-0.2.2-preview.7.zip','w',zipfile.ZIP_DEFLATED,compresslevel=1) as z:
+ with zipfile.ZipFile(OUT/'PadChat-Windows-Voice-0.2.2-preview.8.zip','w',zipfile.ZIP_DEFLATED,compresslevel=1) as z:
 
   for name in ('PadChat-Setup.exe','START-HERE.txt','LICENSE.txt','VALIDATION.md'):
 

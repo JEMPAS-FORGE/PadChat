@@ -15,6 +15,32 @@ partial class VoicePTT {
  static Button microphoneSave;
  static NotifyIcon microphoneTray;
  static Process microphoneEnumeration;
+ static long microphoneGeneration,microphoneDeadline;
+ static void StopMicrophoneEnumeration(bool discardSettings){
+  System.Threading.Interlocked.Increment(ref microphoneGeneration);microphoneDeadline=0;
+  if(discardSettings)pendingGameSettings=null;
+  var stopping=microphoneEnumeration;microphoneEnumeration=null;if(stopping==null)return;
+  try{if(!stopping.HasExited){stopping.Kill();stopping.WaitForExit(1000);}}
+  catch(InvalidOperationException){}
+  finally{stopping.Dispose();}
+ }
+ static void StartMicrophoneEnumeration(){
+  StopMicrophoneEnumeration(false);
+  long generation=System.Threading.Interlocked.Read(ref microphoneGeneration);
+  microphoneDeadline=Now+30000;
+  var process=new Process{StartInfo=PythonInfo("--list-inputs")};microphoneEnumeration=process;
+  process.OutputDataReceived+=(s,e)=>QueueMicrophoneOutput(e.Data,generation);
+  process.ErrorDataReceived+=(s,e)=>{};
+  try{process.Start();process.BeginOutputReadLine();process.BeginErrorReadLine();}
+  catch{StopMicrophoneEnumeration(true);throw;}
+ }
+ static void MaintainMicrophoneEnumeration(){
+  if(microphoneDeadline==0||Now<microphoneDeadline)return;
+  StopMicrophoneEnumeration(true);
+  gameSettingsStatus="Microphone list timed out; saved settings were kept. Refresh the list or save again.";
+  if(microphoneInfo!=null&&!microphoneInfo.IsDisposed)microphoneInfo.Text=gameSettingsStatus;
+  Status(gameSettingsStatus,8000);WriteHealth("settings-error");
+ }
  static readonly string voiceRoot=AppDomain.CurrentDomain.BaseDirectory;
  class MicrophoneChoice {
   public string name,hostapi;
@@ -60,6 +86,7 @@ partial class VoicePTT {
  static void SetupMicrophoneMenu(){
   var menu=new ContextMenuStrip();shortcutHelp=(ToolStripMenuItem)menu.Items.Add("",null,(s,e)=>Status("In WoW: tap "+ShortcutName(voiceShortcut)+" or Share to change chat channel\nHold to speak; release to send",4500));
   menu.Items.Add("Bind push-to-talk...",null,(s,e)=>ShowVoiceBindings());
+  menu.Items.Add("Restart voice (discard unfinished dictation)",null,(s,e)=>RestartVoiceNow());
   menu.Items.Add("Choose microphone...",null,(s,e)=>ShowMicrophones());
   menu.Items.Add("Help / supported connections",null,(s,e)=>Process.Start(Path.Combine(voiceRoot,"START-HERE.txt")));
   menu.Items.Add("Exit PadChat voice",null,(s,e)=>Application.Exit());
@@ -89,12 +116,8 @@ partial class VoicePTT {
   microphoneWindow.Show();EnumerateMicrophones();
  }
  static void EnumerateMicrophones(){
-  if(microphoneEnumeration!=null&&!microphoneEnumeration.HasExited)return;
   microphoneChoices.Items.Clear();microphoneSave.Enabled=false;microphoneInfo.Text="Looking for microphones...";
-  microphoneEnumeration=new Process{StartInfo=PythonInfo("--list-inputs")};
-  microphoneEnumeration.OutputDataReceived+=(s,e)=>QueueMicrophoneOutput(e.Data);
-  microphoneEnumeration.ErrorDataReceived+=(s,e)=>{};
-  try{microphoneEnumeration.Start();microphoneEnumeration.BeginOutputReadLine();microphoneEnumeration.BeginErrorReadLine();}
+  try{StartMicrophoneEnumeration();}
   catch(Exception ex){microphoneInfo.Text="Could not start microphone settings: "+ex.Message;}
  }
  static void UpdateMicrophones(Dictionary<string,object> data){
@@ -113,11 +136,12 @@ partial class VoicePTT {
  static void SaveMicrophone(){
   var chosen=microphoneChoices.SelectedItem as MicrophoneChoice;if(chosen==null)return;
   try{
+   StopMicrophoneEnumeration(true);
    string path=Path.Combine(dataRoot,"voice-microphone.json"),temp=path+".tmp";
    File.WriteAllText(temp,json.Serialize(new {name=chosen.name,hostapi=chosen.hostapi}),new UTF8Encoding(false));
    if(File.Exists(path))File.Replace(temp,path,null);else File.Move(temp,path);
-   StartWorker(); // Fresh device enumeration also picks up USB hotplug changes.
-   microphoneWindow.Close();Status("Microphone saved: "+chosen.name+"\nHold "+ShortcutName(voiceShortcut)+" or Share to speak once the speech model is ready.",4500);
+   if(voiceEnabled)StartWorker();else StopWorker(); // Keep the saved Voice Off choice.
+   microphoneWindow.Close();Status("Microphone saved: "+chosen.name+"\n"+(voiceEnabled?"Hold "+ShortcutName(voiceShortcut)+" or Share to speak once the speech model is ready.":"Voice remains disabled. Enable it in WoW Voice settings when wanted."),4500);
   }catch(Exception ex){microphoneInfo.Text="Could not save microphone: "+ex.Message;}
  }
 }

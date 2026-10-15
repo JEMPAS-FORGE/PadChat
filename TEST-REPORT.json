@@ -1,9 +1,9 @@
 {
-  "version": "0.2.2-preview.7",
-  "date": "2026-10-11",
-  "gameBuild": "1.60.1.70338",
+  "version": "0.2.2-preview.8",
+  "date": "2026-10-16",
+  "gameBuild": "1.60.1.70374",
   "interface": 16001,
-  "sourceRef": "943764493e6b16d63ded3ab304150d1f05e58b57",
+  "sourceRef": "735496de78ebd30ce816a0637982c556987f258c",
   "addon": [
     {
       "name": "test-padchat.py",
@@ -43,6 +43,22 @@
     },
     {
       "name": "test-direct-delivery.py",
+      "passed": true
+    },
+    {
+      "name": "test-input-recovery.py",
+      "passed": true
+    },
+    {
+      "name": "test-audit-lua.py",
+      "passed": true
+    },
+    {
+      "name": "test-audit-native.py",
+      "passed": true
+    },
+    {
+      "name": "test-audit-installer.py",
       "passed": true
     },
     {
@@ -100,122 +116,126 @@
       "passed": true
     }
   ],
-  "inputListener": {
+  "auditNative": {
     "passed": true,
-    "tests": [
-      {
-        "mode": "--self-test",
-        "passed": true
+    "output": "PASS: actual Tick disabled/config/stop/recovery ordering; superseded mic generations; owned hung-child timeout/disposal/restart; actual locked-file rollback and blocked-settings preservation. No audio, game input or OS startup changes.\n",
+    "substitutedBoundaries": {
+      "VoiceMicrophone.cs": {
+        "ProcessStartInfo PythonInfo(string arguments)": "{\n  return new ProcessStartInfo(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName,\"--stall\"){\n   UseShellExecute=false,CreateNoWindow=true,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};\n }",
+        "void ShowMicrophones()": "{auditMicrophoneOpened++;}"
       },
-      {
-        "mode": "--input-thread-test",
-        "passed": true
+      "VoiceBindings.cs": {
+        "void ShowVoiceBindings()": "{auditBindingOpened++;}"
+      },
+      "VoicePTT.cs": {
+        "void Status(string message,int ms)": "{}"
+      },
+      "VoiceGameSettings.cs": {
+        "string ForegroundGameFolder()": "{return auditGame;}",
+        "string GameStartupPath()": "{return Path.Combine(dataRoot,\"startup.lnk\");}",
+        "void ApplyGameStartup(string setting)": "{if(setting==\"KEEP\")return;File.WriteAllText(GameStartupPath(),\"new startup\");File.WriteAllText(Path.Combine(dataRoot,\"install.json\"),\"new install\");throw new System.IO.IOException(\"Injected OS integration failure\");}"
+      },
+      "VoiceInputListener.cs": {
+        "void StartInputListener()": "{}",
+        "void StopInputListener()": "{}"
       }
+    },
+    "noAudioOrGameInput": true
+  },
+  "auditInstaller": {
+    "passed": true,
+    "actualInstallerEngine": true,
+    "output": "PASS: all four pre-existing installer stages preserved; owned work cleaned; actual cross-process install/uninstall lock rejects concurrent mutation.\n",
+    "noOSIntegration": true
+  },
+  "sourceHashes": {
+    "PadChat/Bindings.xml": "c8dbabba639d81dd2c617bcd6772e001144dd300933fa8975fcda68c33337a4f",
+    "PadChat/Core.lua": "4e2cdb68ea8b81e7f26c6a89d7511410e769509e8bd326f9731117fad9d3ecfc",
+    "PadChat/Events.lua": "1e3da51c949cb69ed54b9d9efa0125d60ba37bae3c16f985a62651676ae4d5fb",
+    "PadChat/Invites.lua": "e6bb9c7b9a09aeb1489510d232163794a85da48b9cb21d83fd255fb65e8d5517",
+    "PadChat/Layout.lua": "b6ba01349b0c4e04d9a3361856be89a96ff8705733e509a7c1dd7ee0423e4a01",
+    "PadChat/Minimap.lua": "0bf1bad909a4b14a8ce76eaf99cfcac5761dfaa5a516f9b0da2d022043e19f36",
+    "PadChat/Model.lua": "e4414c0cd7ef102406f2b1f3f57becfaf6061ff5e8fc6bd667652287ddf42275",
+    "PadChat/Options.lua": "fcbb39cc8ef829a7f7d5abb5af44c79a02e6337c9e6436f88177b496e1a53342",
+    "PadChat/PadChat.toc": "587688f4ea7dfe5ba7dc3b3474601660e8018b964a2df52bab321926112241a5",
+    "PadChat/PadChatIcon.tga": "c6eeb4994ef6ddb7df92e249cd6b9b18e54a80fc573178210300f9b05dd2cb3e",
+    "PadChat/PadChatIconWarcraft.tga": "600ebb62e0a6c0aba40f45c1c6019cf18e381e15340de1ac84b04a03efb6e6db",
+    "PadChat/README.txt": "7309e3c748f22ff2f00364a01892c99af4826f0078d955c9236af04b74927c3f",
+    "PadChat/UI.lua": "d0ed54c13b9c06bba11b617c2192d84550584aaec10ed9c3ee5fbf1ca8ef6516",
+    "PadChat/VoiceDirect.lua": "55744361dafaf9b0e47503610fe10848e8eb68fa44bd062add819861953e5775",
+    "PadChat/VoiceOptions.lua": "93de403236a62d7cf26b12df91b75dd46f11dcf2b1dac1d786a8856fefb5fdf8",
+    "PadChat/VoicePTT.lua": "84943fff60743973707465ac5c261018481b22bee01b7f90314a3a735f60fb84",
+    "PadChat/VoiceSetup.lua": "e4ae2e00c6a343e874fa52f8aa84efbb031d3ee1401763419ffbba416b343a34",
+    "Helper/microphone_inputs.py": "7e1bbfb36015c9e19a79e7563776360f40433b6467ca6e66c7358839972299b7",
+    "Helper/pcm_audio.py": "d244a30ab6a0c98025ebfcd6c2ba452f034a112e069ad8160320f9b09ae2fbbb",
+    "Helper/README.md": "29340233e13839582dada53761e7cfb300a2f4e737358eb3d1f393284b7e62af",
+    "Helper/speech_vocabulary.py": "8de714a481ece37d7febc3fd6386acc59cbdaec1fdef92b2ca99e8558b9167ad",
+    "Helper/VoiceBindings.cs": "fbcf9e6f79ff1d4694247c32eb3842e431b4ba43d48970a7732add53e4c71dcb",
+    "Helper/VoiceController.cs": "fc6fcb5d1a7ff7f94704902f9837eae34ed4786028a9065d88d05857c39a82f7",
+    "Helper/VoiceDiagnostics.cs": "020d356e5c865bb3f3f83e78c7699970c09848df9fbd2ab5d357148569fc9ea1",
+    "Helper/VoiceDirectDelivery.cs": "8ec881034cf7545fc185f3a4644b0b585316d111adfb31e1f799264d31eaef8a",
+    "Helper/VoiceGameSettings.cs": "7f9ea9f6fe5d99b18a2577babc5e0ea24a62991eaf74b51f930c526ed85c9b09",
+    "Helper/VoiceInputListener.cs": "607ca793e461172748730cb1c9801c5e66b29407a2bb4fc19e549e44a7e3274a",
+    "Helper/VoiceInputRecovery.cs": "8fec894a3061189b4f0989d84061d670ea07c540a5bb3cba443b908dac4894a7",
+    "Helper/VoiceKeyboard.cs": "c5c6852bfd01a4c80103392a2613fb1f3fa78f4a3b3334665ec9a0cb67390df4",
+    "Helper/VoiceMicrophone.cs": "b54257c7b036619c4f97ab0f29d19ffec6b1f63ee48cbb4e9887283211c36ded",
+    "Helper/VoiceOverlay.cs": "60656fc8954b2a245fee7b88b6040573f498cf9cbe2d6bcc1b9c2614aa6258e7",
+    "Helper/VoicePTT.cs": "e1eb9cd267588fc1015bc83230823180a83224ff63ee73c4e1a25db40232e67d",
+    "Helper/VoiceRecovery.cs": "9cf067e2c28fece679e340c43951bc814d761c1e7340f6541b5bf7d1fafab34a",
+    "Helper/VoiceWatchdog.cs": "ad8a739ee89c4caf9807520b2d1f809d7194390468161665b8a802f35496be17",
+    "Helper/voice_worker.py": "31cb6c683bb10da9f1c0709ca1578092823d70390796517336f972397041c16e",
+    "Packaging/app.manifest": "bca61fdb9aa145a496e994a8e0329ecf02bb17474bbd317e5f87dce24008f829",
+    "Packaging/BUILD.md": "b9e6da2614c6ff885288e94afb62134f0111a7a19f672eff897585d3e19a1132",
+    "Packaging/Discovery.cs": "9ecb71dd27b4efab1b89f2209a3dfdaa0eb4593222f0a358bf5b04f2cbad51cd",
+    "Packaging/DiscoveryStateTest.cs": "bd1c4fccf7554804f8813fe67d9f5e3b5da80bca82f61eab2c25f781a49165a6",
+    "Packaging/Framework.cs": "601f233f81fe2da5c725e8552034ed8d8facaf99b26ea2dd6ea8bd467e7e268f",
+    "Packaging/InstallerFolderTest.cs": "b43336105fb58684963aa990855f23087255b717a21090e33500133ef79144ae",
+    "Packaging/LICENSE.txt": "a6f62c473147a41440c6fbe3b5efe8ca61255036b6d63a72a79bb33bbacdbfe0",
+    "Packaging/LongIO.cs": "e6e92ad544885694289b15fb294f9f22f1406d3ce94182fb932a7a6d3e596bfd",
+    "Packaging/README.md": "29340233e13839582dada53761e7cfb300a2f4e737358eb3d1f393284b7e62af",
+    "Packaging/SDL3-LICENSE.txt": "6b8da877f518bae3e261b2613754cc97e916f20001c5499b4cea6680ac6d1e1b",
+    "Packaging/Setup.cs": "c06ec8414a689ad73adf0ce2dcba314a79c59b4ce4fddc8d040bab3b15f2f0a3",
+    "Packaging/START-HERE.txt": "a0d7b6dfbdbc40333501b3a6f651087b6fe537435812735d6f9927759e1a929c",
+    "Tests/DIRECT-ADDON-TEST.json": "24c3f5b22019d98728286c8150f7806f4ab2058dec4558ad48aabb4933f87b62",
+    "Tests/HeadlessBackendCheck.cs": "9c762ab363dffd282fbfad9772dbe2aac885c2592d3a41845405b253da6f5e8e",
+    "Tests/ordinary-speech-test.wav": "98198ab7c2f6a9593a883b5efd4efb5c3389b1cad6d453ecf21ba6ed583c2a8d",
+    "Tests/test-audit-installer.py": "c6ea316302bd798f134c9371b1bc0ec15f880ccae5a55b781b1242b6b31b21f7",
+    "Tests/test-audit-lua.py": "12044d97795de09ceb8dd73f19094e352b7827ea349c13e36a70fee15b90a4e4",
+    "Tests/test-audit-native.py": "62b77ccb511897eca8535cc10a1f556c71aa913331230e5062aa4e7382e2c5e2",
+    "Tests/test-combat-handles.py": "1832109f27cbb4650270158d492e8e0712ae6feb06416ae5a93d4631ff1d6320",
+    "Tests/test-direct-addon.py": "756078dd51e245d37190dba83743623f50a55a9deca34f1d7f5d087676b327ba",
+    "Tests/test-direct-delivery.py": "e0cfd5bec15911a17169e16e96bc5d582236059163989ac6bc34894a562e9270",
+    "Tests/test-input-recovery.py": "a747fcf730562ee66d7d62aca7959a6cd2b22d5e934a8502474f42744268e18b",
+    "Tests/test-invites.py": "eee8a351ec8ecfe39067818b86527f44ac7d3cd9e6eb04bd28650cc1ee32affb",
+    "Tests/test-options.py": "d77ea1a0158ce1045845e6e5fde33fb007502c4c0a0fbcb2161217dbbdcb70fc",
+    "Tests/test-padchat.py": "db44024dd02a2eb8737eb3b07d9ed1996ca8272e391c9608123c43c682cb5a4e",
+    "Tests/test-runtime.py": "7cac2707fbaa4879991780cca614a2012885f3a8cd5ad237def29b28339c12be",
+    "Tests/test-shipping-speech.py": "283bc2b83aad8f929243180d28e49a04d13781395825ccc70411ace29047bc4c",
+    "Tests/test-speech-recovery.py": "adac775b07d679bcce2f6553e357f90668360176e441fc2f88b09e28f3a474dc",
+    "Tests/test-support-setup.py": "ea1f38af7fe188fbc2f8e463a0603856dd196322c41469cf661127e49cf94dc9",
+    "Tests/test-voice-options.py": "4e8aefd0ffed12973e74a807e7497dcb5a3035a25f033a2510d5d655bea7113a",
+    "Tests/test-voice-setup.py": "cc7bc618488bf2f1cbc3033112d878b5b58438a77142e0e0c6df1c70cbd91c9b",
+    "Tests/wow-terms-test.wav": "b66584fc2b5aba51f556f08d6292855c9f6331f4f163153a2f834f4f3cc6066d",
+    "Tests/Fixtures/Options-before-combat-fix.lua": "5a4d4c17a244b0b11669806e755039908b628bd92d2ee3ef00a97352762399d5"
+  },
+  "pdf": {
+    "pages": 4,
+    "clickableLinks": [
+      "https://github.com/JEMPAS-FORGE/PadChat/releases/download/v0.2.2-preview.8/PadChat-Setup.exe",
+      "https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.8",
+      "https://github.com/JEMPAS-FORGE/PadChat/blob/main/README.md",
+      "https://github.com/JEMPAS-FORGE/PadChat/issues"
     ],
-    "binarySha256": "e66c930559fd72ed57aa3b3a22e1413193d39caee58f39990c049ae5f8aa498e",
-    "physicalMouse5Verified": false,
-    "noGameOrMicInput": true,
-    "nativeHookThread2200msStallAndRestart": true,
-    "limits": "Real hook installation/pump tests and compiled routing fixtures do not prove physical input or all third-party hook interference."
+    "sha256": "13e464cf0f1213bbd1c93dd1fcda623ee63eb4459f9ef914951b097ff76b57e6",
+    "bytes": 52018,
+    "textChecksPassed": true,
+    "visuallyReviewed": true
   },
-  "combatHandles": {
-    "pinnedSource": "9465cb273b5513495d8ecc12fbb19930dd6b8957",
-    "apiFileSha256": "feb3e6971aa320800f2bdb1bd9cfd26d4d2578359c714bd82a3cada9c143f057",
-    "oldPublicCombatSnippetReproducesInvalidHandle": true,
-    "correctedSnippetPassesPinnedValidator": true,
-    "stagedInstalledSnippetPassesPinnedValidator": true,
-    "closedKeyboardOptionsVoiceCombatCyclesPass": true,
-    "liveCombatVerified": false
-  },
-  "portableSourceBuild": {
-    "passed": true,
-    "freshIsolatedSourceBuild": true,
-    "backendInputEnvironmentUsed": true,
-    "compiledCompanionSelfTestAndNativeInputThread": true,
-    "payloadManifestVerified": true,
-    "addonMatchesShippingSource": true,
-    "personalInstallationTouched": false,
-    "installerFullRegression": "Covered separately by matching shipping package test"
-  },
-  "frozenSource": {
-    "optionalColoramaExcluded": true,
-    "tqdmAndWhisperPresent": true,
-    "modelHashesUnchanged": {
-      "whisper-tiny-en\\config.json": "14b1b421a90349bc551b881461426b561a874049cb9e4c4864f2ca384f6a7cc5",
-      "whisper-tiny-en\\model.bin": "1a5afae06a4db91c975c9a9d78be5cc110ee4ea022ad57d55492e4550e936b2a",
-      "whisper-tiny-en\\tokenizer.json": "929c5252409436dce1b38a75d1abbcb5e132d170d8e324e4e04ed915fa2d22df",
-      "whisper-tiny-en\\vocabulary.txt": "ff77588746d3a2595d32ab5b69ffd7b95ce2441ac57533cb66fc3eb575a115cf",
-      "whisper-distil-small-en\\config.json": "b571ae8022a34c1df50876a65b5f813a5c22e5ee3b87bc0e4db5662dfc9c2c3d",
-      "whisper-distil-small-en\\model.bin": "1187de3982cdcf962a2fb8f797e429fb4651b875b18fe9ce50b58b52fc9072b7",
-      "whisper-distil-small-en\\tokenizer.json": "c9c77688528c0509abbd41873edab16384b8f041531b1d3092ab4d1d83a02a50",
-      "whisper-distil-small-en\\vocabulary.json": "4dadfee7c4a871665f65c06037f5f5ec893fb2d7f5eb4cf11063618e31dbe11a"
-    },
-    "cpuOnlyNoCudnn": true,
-    "backendExeSha256": "3271710f27d695350272f19a1dc6ba8b16a23eab8fc04d2dcb97ee1f79542d79",
-    "recognitionSourcesUnchanged": true,
-    "cause": "Optional tqdm colorama initialization raised invalid console handle before microphone enumeration in an exact hidden installer preflight. New build uses tqdm supported ImportError fallback by excluding optional colorama.",
-    "retainedFrom": "0.2.2-preview.6",
-    "unchangedBackendReused": true,
-    "workerBytecodeMatchesSource": true,
-    "speechVocabularyBytecodeMatchesSource": true,
-    "fiveProductionHiddenPreflightsPassed": true
-  },
-  "backendPolicy": "Reuses the unchanged hash-verified Preview 6 CPU engine; no microphone tuning or larger model is shipped.",
-  "reporterPCFixed": false,
-  "liveGameplayVerified": false,
-  "movingMouse5ConfirmedOnPersonalBuild": true,
-  "publicDirectSendTests": {
-    "passed": true,
-    "productionMethodsExtracted": true,
-    "compiledTransport": true,
-    "addon": {
-      "passed": true,
-      "actualPublicCandidateBridgeAndNewDirectModule": true,
-      "checks": [
-        "Say/party/whisper/channel routing",
-        "mock combat input callback",
-        "UTF-8 and delimiter checksum",
-        "50 repeated W text edits cannot corrupt staged ack",
-        "one send per token, no duplicate retry",
-        "stale/wrong token, command injection, malformed/oversize input refusal",
-        "expiry, changed destination, external draft/menu/keyboard and API error refusal",
-        "invite remains legacy"
-      ],
-      "noGameInputOrSending": true,
-      "liveApiRestrictionsVerified": false
-    },
-    "livePublicGameplayVerified": false,
-    "personalMouse5MovementConfirmed": true,
-    "noGameInputOrAudio": true
-  },
+  "frozenWorkerAndVocabularyMatchSource": true,
+  "unchangedCPUBackend": true,
+  "manualRestartAndPTTRecoveryGameplayVerified": false,
+  "recurringInterruptionCauseConfirmed": false,
   "freshPCAvailable": false,
-  "continuousPretestMicrophoneMeterImplemented": false,
-  "personalSettingsOrInstallationChanged": false,
-  "retainedUnchangedInstallerEvidence": {
-    "METADATA-TEST-REPORT.json": {
-      "passed": true,
-      "output": "PASS: malformed/wrong-type/null/invalid-path install records recover without altering their bytes.\n"
-    },
-    "FOLDER-VALIDATION-REPORT.json": [
-      {
-        "name": "legacy",
-        "passed": true,
-        "output": "REPRODUCED REJECTION: shared-parent-data\nREPRODUCED REJECTION: no-local-data\nACCEPTED: client-local-data\n",
-        "error": ""
-      },
-      {
-        "name": "fixed",
-        "passed": true,
-        "output": "ACCEPTED: shared-parent-data\nACCEPTED: no-local-data\nACCEPTED: client-local-data\nPASS: production version checks, missing-file diagnostics and actual unshown SetupForm labels; no Data subfolder requirement.\n",
-        "error": ""
-      }
-    ],
-    "REAL-FOLDER-VALIDATION.json": {
-      "passed": true,
-      "output": "PASS: Forever client folder validated; no files or settings changed.\n",
-      "readonly": true,
-      "localDataInParent": true,
-      "liveGameplayTested": false
-    }
-  }
+  "noLiveGameControlOrRecording": true,
+  "sourceAuditNotLiveGameplayCertification": true
 }

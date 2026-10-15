@@ -15,8 +15,8 @@ function P:InitOptions()
  if s.button=='AUTO' or s.button=='NONE' then s.modifier='NONE' end
  if self.InitVoiceOptions then self:InitVoiceOptions() end
 end
-function P:ControllerOpenBinding()
- local s=self.db.bindings
+function P:ControllerOpenBinding(candidate)
+ local s=candidate or self.db.bindings
  if s.button=='AUTO' then return self:ControllerBindingMode()=='sony' and 'PADBACK' or nil end
  if s.button~='NONE' then return s.button,s.modifier~='NONE' and s.modifier or nil end
 end
@@ -45,8 +45,13 @@ function P:SaveOpeningBindings(key,button,modifier)
  if InCombatLockdown() then return false,'Change bindings outside combat.' end
  if not contains(keys,key) or not contains(buttons,button) or not contains(modifiers,modifier) then return false,'Unsupported binding.' end
  if button=='AUTO' or button=='NONE' then modifier='NONE' end
+ local candidate={keyboard=key,button=button,modifier=modifier}
+ if self.VoiceShortcutProblem then
+  local problem=self:VoiceShortcutProblem(self.db.voiceOptions,candidate)
+  if problem then return false,problem end
+ end
  self:Close()
- self.db.bindings={keyboard=key,button=button,modifier=modifier}
+ self.db.bindings=candidate
  self.openDevice=nil;self.openPrimaryDown=true
  if self.ApplyOpenBindings then self:ApplyOpenBindings() end
  if self.UpdateOptions then self:UpdateOptions() end

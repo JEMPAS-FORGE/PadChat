@@ -7,6 +7,8 @@ runtime.execute('''
 function GetBindingAction(key) return key=='F6' and 'TARGETNEARESTFRIEND' or '' end
 function SetCVar() error('Options must not alter global gamepad modifiers') end
 P:SetText('retained draft')
+assert(not P:SaveOpeningBindings('F6','PADSOCIAL','PADLTRIGGER'))
+P.db.voiceOptions.pad='NONE'
 assert(P:SaveOpeningBindings('F6','PADSOCIAL','PADLTRIGGER'))
 assert(bindings.F6.name=='PadChatToggle' and not bindings.F9)
 assert(bindings.PADSOCIAL.name=='PadChatShare') -- reserved; polling supplies the chord
