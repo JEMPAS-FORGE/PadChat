@@ -1,7 +1,14 @@
-UPDATE TO PREVIEW 10
+NEW IN PREVIEW 11
+New keyboard PTT prefers F10. PadChat checks your game/addon bindings and
+chooses an unused fallback if needed; it never steals an occupied key as a
+fresh default. If all candidates are used, voice stays Off until you choose.
+Existing saved keyboard/mouse controls are preserved. Finish /padchat voice
+setup and Save & reload UI; a fresh companion waits for this saved choice.
+
+UPDATE TO PREVIEW 11
 Setup now detects _forever_\Wow.exe and updates both the addon and Windows voice companion. Close WoW before updating. Microphone, PTT and other saved preferences are preserved.
 
-PadChat 0.2.2 Preview 10 — WoW Forever 1.60.1 / Interface 16001
+PadChat 0.2.2 Preview 11 — WoW Forever 1.60.1 / Interface 16001
 
 Windows voice companion: Windows 10/11 x64, English, local recognition.
 
@@ -42,7 +49,7 @@ The CurseForge ZIP installs the keyboard and in-game Options, not the Windows
 
 speech engine. Download the matching PadChat-Setup.exe from:
 
-https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.10
+https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.11
 
 KEYBOARD AND CONTROLLER
 
@@ -126,7 +133,7 @@ SEND A MESSAGE
 
 Outside Voice settings, tap your voice shortcut to cycle channels; hold to speak
 
-and release to send. Default: F8 or PlayStation Create/Share, Xbox Back/View.
+and release to send. New setups prefer an unused F10 or another free key shown in Options. Existing saved keys stay unchanged. Controller: PlayStation Create/Share, Xbox Back/View.
 
 Select Say for your first real message. Say/Yell/General/Party/Raid/Guild and
 
@@ -200,7 +207,7 @@ Mic level is shown during an acknowledged recording test; an idle or last-check
 level is not a live meter. Working in WoW voice chat does not certify the input
 is selected or available to the separate PadChat companion.
 
-## If PTT stops responding (Preview 10)
+## If PTT stops responding (Preview 11)
 
 Release PTT and press again if PadChat reports an input refresh. The listener
 can repair a lost hook without reloading the speech model. It never resumes

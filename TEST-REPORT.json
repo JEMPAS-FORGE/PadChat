@@ -64,6 +64,14 @@
     "passed": true
   },
   {
+    "name": "test-unused-default.py",
+    "passed": true
+  },
+  {
+    "name": "test-fresh-keyboard-policy.py",
+    "passed": true
+  },
+  {
     "name": "responsive panels, controller onboarding, status ownership, test non-delivery, review settings",
     "passed": true
   }

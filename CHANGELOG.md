@@ -1,4 +1,16 @@
-# 0.2.2-preview.10 - Forever launch installer and voice detection
+# 0.2.2-preview.11 - Unused PTT defaults for new players
+
+- Prefer F10 for a fresh keyboard voice shortcut, checking native and addon
+  override bindings. Choose another unused function key if it is occupied.
+- Recheck unchecked defaults at login after game bindings load. Keep voice Off
+  rather than taking a gameplay key when no candidate can be verified free.
+- Fresh/corrupt companion shortcut settings require setup before keyboard PTT
+  activates. Save your choice in /padchat voice and reload to apply it.
+- Preserve existing F8, mouse and modified shortcuts, mic and startup choices.
+- Keep all launch-folder, installer, transport and free speech/model behaviour
+  from Preview 10. No speculative input-timing change is included.
+
+# 0.2.2-preview.11 - Forever launch installer and voice detection
 
 - Detect and install into `_forever_/Wow.exe`; prefer the launch folder over a
   previous `_classic_beta_` install, including a custom-drive sibling folder.

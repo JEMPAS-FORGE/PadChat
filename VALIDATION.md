@@ -1,4 +1,19 @@
-# Preview 10 validation scope
+# Preview 11 validation scope
+
+Production Lua cases cover an unused F10, native/other-addon/opening collisions,
+login recheck after bindings load, all-candidates-occupied/API-error refusal,
+and preservation of saved F8/Mouse 4/modified choices. Compiled helper policy
+cases verify missing/corrupt shortcut files do not activate an unchecked key,
+and valid saved F8 or in-game Mouse 4 are restored. The public CPU backend/model
+and clipboard/direct-send protocol are unchanged.
+
+The user confirmed their current saved Mouse 4 sends to chat after the running
+Preview 10 companion applied it. This does not prove the cause of the earlier
+panel-opening report; the suggested instant-chord timing cause was not
+established and no speculative timing patch is shipped. No new physical-
+controller/combat/fresh-PC claim is made.
+
+# Preview 11 validation scope
 
 New production-source checks cover launch Wow.exe and legacy WowB.exe; file
 version refusal for Retail/Classic; default, registry/custom-drive and saved

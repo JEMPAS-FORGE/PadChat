@@ -1,4 +1,4 @@
-# Forever compatibility - Preview 10
+# Forever compatibility - Preview 11
 
 9 November 2026: supports the launch `_forever_/Wow.exe` client and legacy
 Forever `WowB.exe`, with executable file version restricted to 1.60.x.
@@ -8,7 +8,9 @@ The latest completed API audit is pinned to Gethe/wow-ui-source Forever
 Chat, input, secure-send and invitation contracts did not change in that audit.
 Retail and other Classic clients remain unsupported even when named Wow.exe.
 
-Preview 10 fixes launch-folder discovery, stale beta-folder migration, installer
+Preview 11 adds unused first-run keyboard PTT selection (F10 preferred), login rechecks, and fresh companion setup gating. Saved user bindings are preserved.
+
+It retains Preview 10 fixes for launch-folder discovery, stale beta-folder migration, installer
 labels/validation, running-game checks and companion foreground recognition.
 It also rejects malformed worker/microphone messages without losing the next
 valid response. The free offline CPU speech backend and model are unchanged.

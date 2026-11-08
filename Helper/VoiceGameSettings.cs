@@ -163,7 +163,7 @@ partial class VoicePTT {
   // Validate and resolve first. A missing/ambiguous microphone must never
   // silently change the input or apply only half of the user's configuration.
   CommitGameSettings(s,mic);
-  voiceVocabulary=s.vocabulary??"";voiceShortcut=s.shortcut;voiceEnabled=s.enabled;voiceReview=s.review;voicePad=s.pad;voicePadMod=s.padMod;gameSettingsManaged=true;
+  voiceVocabulary=s.vocabulary??"";voiceShortcut=s.shortcut;voiceShortcutConfigured=true;voiceEnabled=s.enabled;voiceReview=s.review;voicePad=s.pad;voicePadMod=s.padMod;gameSettingsManaged=true;
   keyboardHeld=false;keyboardPhysicalDown=GetAsyncKeyState(voiceShortcut.key)<0;heldAt=0;pressSource="";latched=true;
   if(microphoneWindow!=null&&!microphoneWindow.IsDisposed)microphoneWindow.Close();
   if(shortcutWindow!=null&&!shortcutWindow.IsDisposed)shortcutWindow.Close();
@@ -178,7 +178,7 @@ partial class VoicePTT {
    var s=json.Deserialize<GameVoiceSettings>(File.ReadAllText(path));
    if(s==null||ShortcutProblem(s.shortcut)!=null||!padBits.ContainsKey(s.pad)||!padBits.ContainsKey(s.padMod))return;
    if(!ValidVocabulary(s.vocabulary))return;voiceVocabulary=s.vocabulary??"";
-   voiceEnabled=s.enabled;voiceReview=s.review;voicePad=s.pad;voicePadMod=s.padMod;gameSettingsManaged=true;gameSettingsStatus="Restored in-game settings";
+   if(!voiceShortcutConfigured){voiceShortcut=s.shortcut;voiceShortcutConfigured=true;}voiceEnabled=s.enabled;voiceReview=s.review;voicePad=s.pad;voicePadMod=s.padMod;gameSettingsManaged=true;gameSettingsStatus="Restored in-game settings";
   }catch{}
  }
  static bool ControllerVoiceChord(uint buttons){return voiceEnabled&&voicePad!="NONE"&&(buttons&padBits[voicePad])!=0&&(voicePadMod=="NONE"||(buttons&padBits[voicePadMod])!=0);}

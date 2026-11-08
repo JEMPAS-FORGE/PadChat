@@ -9,9 +9,10 @@ using System.Windows.Forms;
 partial class VoicePTT {
  class VoiceShortcut {
   public string kind="keyboard";
-  public int key=0x77,modifiers=0;
+  public int key=0x79,modifiers=0;
  }
  static VoiceShortcut voiceShortcut=new VoiceShortcut();
+ static bool voiceShortcutConfigured;
  static Form shortcutWindow;
  static Label shortcutCurrent,shortcutPrompt;
  static Button shortcutBind;
@@ -42,12 +43,14 @@ partial class VoicePTT {
  static bool CanCaptureShortcut(VoiceShortcut s,string kind,uint key,bool game,int modifiers,bool wasDown,bool injected){
   return !injected&&ShortcutProblem(s)==null&&s.kind==kind&&s.key==key&&game&&s.modifiers==modifiers&&!wasDown;
  }
- static VoiceShortcut ReadShortcut(string path){
+ static VoiceShortcut ReadShortcut(string path){bool configured;return ReadShortcut(path,out configured);}
+ static VoiceShortcut ReadShortcut(string path,out bool configured){
+  configured=false;
   if(!File.Exists(path))return new VoiceShortcut();
   try{
    if(new FileInfo(path).Length>4096)return new VoiceShortcut();
    var s=json.Deserialize<VoiceShortcut>(File.ReadAllText(path));
-   return ShortcutProblem(s)==null?s:new VoiceShortcut();
+   if(ShortcutProblem(s)==null){configured=true;return s;}return new VoiceShortcut();
   }catch(IOException){}catch(UnauthorizedAccessException){}catch(ArgumentException){}catch(InvalidOperationException){}
   return new VoiceShortcut();
  }
@@ -58,7 +61,7 @@ partial class VoicePTT {
   File.WriteAllText(temp,json.Serialize(value),new UTF8Encoding(false));
   if(File.Exists(path))File.Replace(temp,path,null);else File.Move(temp,path);
  }
- static void LoadVoiceShortcut(){voiceShortcut=ReadShortcut(ShortcutPath());}
+ static void LoadVoiceShortcut(){voiceShortcut=ReadShortcut(ShortcutPath(),out voiceShortcutConfigured);}
  static bool ShortcutCaptureOwnsFocus(){
   if(!shortcutArmed||shortcutWindow==null||shortcutWindow.IsDisposed||Now<shortcutArmAt)return false;
   uint pid;GetWindowThreadProcessId(GetForegroundWindow(),out pid);
@@ -66,6 +69,12 @@ partial class VoicePTT {
  }
  static void UpdateShortcutLabels(){
   string name=ShortcutName(voiceShortcut);
+  if(!voiceShortcutConfigured){
+   if(shortcutCurrent!=null&&!shortcutCurrent.IsDisposed)shortcutCurrent.Text="Push-to-talk: finish in-game setup";
+   if(shortcutHelp!=null)shortcutHelp.Text="Finish /padchat voice setup, then Save & reload UI";
+   if(microphoneTray!=null)microphoneTray.Text="PadChat voice - setup required";
+   return;
+  }
   if(shortcutCurrent!=null&&!shortcutCurrent.IsDisposed)shortcutCurrent.Text="Push-to-talk: "+name;
   if(shortcutHelp!=null)shortcutHelp.Text="Tap "+name+" / Share: channel; hold: speak; release: send";
   if(microphoneTray!=null)microphoneTray.Text="PadChat voice — "+(name.Length>30?name.Substring(0,30):name);
@@ -75,7 +84,7 @@ partial class VoicePTT {
   if(problem!=null){shortcutPrompt.Text=problem+"\nTry another key or press Escape to cancel.";return;}
   try{
    StopMicrophoneEnumeration(true); // A newer tray edit supersedes pending game settings.
-   WriteShortcut(ShortcutPath(),next);voiceShortcut=next;
+   WriteShortcut(ShortcutPath(),next);voiceShortcut=next;voiceShortcutConfigured=true;
    shortcutArmed=false;keyboardHeld=false;keyboardPhysicalDown=true;
    heldAt=0;pressSource="";latched=true;
    shortcutBind.Text="Bind push-to-talk";
@@ -105,7 +114,7 @@ partial class VoicePTT {
   if(shortcutWindow!=null&&!shortcutWindow.IsDisposed){shortcutWindow.Show();ShowWindow(shortcutWindow.Handle,5);shortcutWindow.Activate();return;}
   if(phase!="idle")Cancel("Dictation cancelled while changing the voice shortcut");
   keyboardHeld=false;heldAt=0;pressSource="";latched=true;badge.Hide();hideAt=0;
-  shortcutWindow=BuildShortcutWindow();shortcutWindow.Show();ShowWindow(shortcutWindow.Handle,5);shortcutWindow.Activate();
+  shortcutWindow=BuildShortcutWindow();UpdateShortcutLabels();shortcutWindow.Show();ShowWindow(shortcutWindow.Handle,5);shortcutWindow.Activate();
  }
  static void CancelShortcutCapture(){
   shortcutArmed=false;shortcutBind.Text="Bind push-to-talk";
@@ -140,12 +149,14 @@ partial class VoicePTT {
   string dir=Path.Combine(Environment.GetEnvironmentVariable("PADCHAT_TEST_ROOT")??Path.GetTempPath(),"PadChat-bindings-test-"+Guid.NewGuid().ToString("N"));
   Directory.CreateDirectory(dir);string path=Path.Combine(dir,"binding.json");
   try{
-   if(ReadShortcut(path).key!=0x77)throw new Exception("Existing F8 users changed");
+   bool confirmed;
+   if(ReadShortcut(path,out confirmed).key!=0x79||confirmed)throw new Exception("Fresh default must await setup");
+   WriteShortcut(path,new VoiceShortcut{key=0x77});if(ReadShortcut(path,out confirmed).key!=0x77||!confirmed)throw new Exception("Saved F8 users changed");
    WriteShortcut(path,f10);var saved=ReadShortcut(path);
    if(saved.key!=0x79||saved.modifiers!=4||saved.kind!="keyboard")throw new Exception("Saved shortcut not restored");
    WriteShortcut(path,mouse);saved=ReadShortcut(path);
    if(saved.key!=5||saved.modifiers!=1||saved.kind!="mouse")throw new Exception("Mouse update not restored");
-   File.WriteAllText(path,"{bad");if(ReadShortcut(path).key!=0x77)throw new Exception("Corrupt settings recovery failed");
+   File.WriteAllText(path,"{bad");if(ReadShortcut(path,out confirmed).key!=0x79||confirmed)throw new Exception("Corrupt settings recovery failed");
    File.WriteAllText(path,json.Serialize(new VoiceShortcut{key=0x77,modifiers=3}));
    if(ReadShortcut(path).modifiers!=0)throw new Exception("Reserved bridge shortcut loaded");
   }finally{Directory.Delete(dir,true);}

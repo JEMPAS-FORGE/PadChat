@@ -9,15 +9,30 @@ local function copy(t) local o={} for k,v in pairs(t) do o[k]=v end return o end
 local function choice(list,value,delta) delta=type(delta)=='number' and delta or 1;for i,v in ipairs(list) do if v==value then return list[(i-1+delta)%#list+1] end end return list[1] end
 local function contains(list,value) for _,v in ipairs(list) do if value==v then return true end end end
 local function encode(s) return (s:gsub('[^A-Za-z0-9 ._%-]',function(c) return string.format('%%%02X',c:byte()) end)) end
+-- Choose only a key that has no native or addon override binding. Existing
+-- player choices never enter this path. F9 remains the keyboard-opening key.
+function P:UnusedVoiceDefault()
+ for _,key in ipairs({121,118,117,122,123}) do
+  local name='F'..tostring(key-111)
+  local free=GetBindingAction~=nil and (not self.db.bindings or self.db.bindings.keyboard~=name)
+  if free then for _,overrides in ipairs({false,true}) do
+   local ok,action=pcall(GetBindingAction,name,overrides)
+   if not ok or type(action)~='string' or action~='' then free=false;break end
+  end end
+  if free then return {kind='keyboard',key=key,mods=0,keyName=name} end
+ end
+ -- Do not silently take somebody's gameplay key when every candidate is used.
+ return {kind='keyboard',key=121,mods=0,keyName='F10',enabled=false}
+end
 function P:InitVoiceOptions()
  local s=self.db.voiceOptions
- if type(s)~='table' then s={kind='keyboard',key=119,mods=0,keyName='F8',mic='',enabled=true,startup='KEEP',pad='SHARE',padMod='NONE'}
+ if type(s)~='table' then s={mic='',enabled=true,startup='KEEP',pad='SHARE',padMod='NONE',autoDefault=true};for k,v in pairs(self:UnusedVoiceDefault()) do s[k]=v end
   if self.voiceInitialShortcut then for k,v in pairs(self.voiceInitialShortcut) do s[k]=v end end
  end
  if (s.kind~='keyboard' and s.kind~='mouse') or type(s.key)~='number' or s.key~=s.key or s.key%1~=0 or s.key<4 or s.key>254
   or type(s.mods)~='number' or s.mods~=s.mods or s.mods%1~=0 or s.mods<0 or s.mods>7
   or type(s.keyName)~='string' or #s.keyName==0 or #s.keyName>24 or s.keyName:find('[^A-Z0-9]')
-  or s.kind=='mouse' and s.key~=4 and s.key~=5 and s.key~=6 then s.kind='keyboard';s.key=119;s.mods=0;s.keyName='F8' end
+  or s.kind=='mouse' and s.key~=4 and s.key~=5 and s.key~=6 then for k,v in pairs(self:UnusedVoiceDefault()) do s[k]=v end end
  if type(s.mic)~='string' or #s.mic>512 or s.mic:find('%c') then s.mic='' end
  if not contains(pads,s.pad) then s.pad='SHARE' end
  if not contains(modifiers,s.padMod) then s.padMod='NONE' end
@@ -70,7 +85,7 @@ function P:SaveVoiceOptions(s)
  if InCombatLockdown() then return false,'Save voice options outside combat.' end
  local problem=self:VoiceShortcutProblem(s);if problem then return false,problem end
  local valid,why=self:ValidVoiceWords(s.vocabulary or '');if not valid then return false,why end
- self.db.voiceOptions=copy(s)
+ self.db.voiceOptions=copy(s);self.db.voiceOptions.autoDefault=nil
  self.db.voiceSettingsWire=table.concat({'PCV3',s.kind,tostring(s.key),tostring(s.mods),encode(s.mic),s.enabled and '1' or '0',s.startup,s.pad,s.padMod,s.review and '1' or '0',encode(s.vocabulary or '')},';')
  if self.ApplyVoiceBindings then self:ApplyVoiceBindings() end
  return true
@@ -219,6 +234,13 @@ local noop=P.NewFrame('Button','PadChatVoiceKey');noop:RegisterForClicks('AnyDow
 function P:ApplyVoiceBindings()
  if InCombatLockdown() then return end
  ClearOverrideBindings(voiceOwner)
+ -- Recheck at PLAYER_LOGIN, once native bindings are loaded, and after
+ -- opening-binding changes. Only unchecked new defaults may be reselected.
+ local initial=self.db and self.db.voiceOptions
+ if initial and initial.autoDefault then
+  local chosen=self:UnusedVoiceDefault()
+  initial.kind=chosen.kind;initial.key=chosen.key;initial.mods=chosen.mods;initial.keyName=chosen.keyName;initial.enabled=chosen.enabled~=false
+ end
  if self.db and self.db.voiceOptions and self.db.voiceOptions.enabled then
   SetOverrideBindingClick(voiceOwner,true,self:VoiceBindingKey(),noop:GetName(),'LeftButton')
   local s=self.db.voiceOptions

@@ -7,7 +7,7 @@ runtime.execute('''
 local saved=PadChatDB
 PadChatDB={bindings={keyboard='F9',button='AUTO',modifier='NONE'},draft='keep this'}
 P:InitDB()
-assert(P.db.voiceOptions.key==119 and P.db.voiceOptions.mic=='')
+assert(P.db.voiceOptions.key==121 and P.db.voiceOptions.mic=='')
 local reloads=0;function ReloadUI() reloads=reloads+1 end
 function IsControlKeyDown() return false end
 function IsShiftKeyDown() return false end
@@ -30,7 +30,7 @@ P.voiceStartup.scripts.OnClick(P.voiceStartup,'LeftButton');assert(P.pendingVoic
 P.voiceStartup.scripts.OnClick(P.voiceStartup,'LeftButton');assert(P.pendingVoice.startup=='KEEP')
 P.voiceKey.scripts.OnClick();clock=clock+1
 P.voiceCaptureFrame.scripts.OnKeyDown(P.voiceCaptureFrame,'F9')
-assert(P.voiceCapture and P.pendingVoice.key==119) -- opening collision refused
+assert(P.voiceCapture and P.pendingVoice.key==121) -- opening collision refused
 P.voiceCaptureFrame.scripts.OnKeyDown(P.voiceCaptureFrame,'ESCAPE');assert(not P.voiceCapture)
 P:BeginVoiceCapture();clock=clock+1
 P.voiceCaptureFrame.scripts.OnMouseDown(P.voiceCaptureFrame,'Button5')

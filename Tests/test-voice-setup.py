@@ -3,6 +3,7 @@ import runpy
 root=Path(__file__).resolve().parent.parent
 l=runpy.run_path(str(root/'Tests/test-runtime.py'))['l']
 l.execute('''
+P.db.voiceOptions.key=119;P.db.voiceOptions.keyName='F8'
 P:ShowVoiceOptions();P.pendingVoice.pad='NONE';P.pendingVoice.mic='Test Microphone'
 local base={F8='OPENALLBAGS'}
 function GetBindingAction(key,overrides) assert(overrides==false);return base[key] or '' end

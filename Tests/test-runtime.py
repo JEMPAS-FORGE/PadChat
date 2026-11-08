@@ -7,6 +7,7 @@ l.execute('''
 P={}; widgets={}; clock=1; combat=false; focus=nil; bindings={}; sent={}; hooks={}
 UIParent={}; UISpecialFrames={}; SlashCmdList={}; C_Timer={After=function(_,fn) fn() end}
 function GetTime() return clock end
+function GetBindingAction() return "" end
 function SendChatMessage() end
 function InCombatLockdown() return combat end
 function GetCurrentKeyBoardFocus() return focus end

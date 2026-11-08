@@ -84,13 +84,13 @@ partial class VoicePTT {
   catch{StopWorker();throw;}
  }
  static void SetupMicrophoneMenu(){
-  var menu=new ContextMenuStrip();shortcutHelp=(ToolStripMenuItem)menu.Items.Add("",null,(s,e)=>Status("In WoW: tap "+ShortcutName(voiceShortcut)+" or Share to change chat channel\nHold to speak; release to send",4500));
+  var menu=new ContextMenuStrip();shortcutHelp=(ToolStripMenuItem)menu.Items.Add("",null,(s,e)=>Status(voiceShortcutConfigured?"In WoW: tap "+ShortcutName(voiceShortcut)+" or Share to change chat channel\nHold to speak; release to send":"Finish /padchat voice setup in WoW, then Save & reload UI to activate keyboard/mouse PTT.",4500));
   menu.Items.Add("Bind push-to-talk...",null,(s,e)=>ShowVoiceBindings());
   menu.Items.Add("Restart voice (discard unfinished dictation)",null,(s,e)=>RestartVoiceNow());
   menu.Items.Add("Choose microphone...",null,(s,e)=>ShowMicrophones());
   menu.Items.Add("Help / supported connections",null,(s,e)=>Process.Start(Path.Combine(voiceRoot,"START-HERE.txt")));
   menu.Items.Add("Exit PadChat voice",null,(s,e)=>Application.Exit());
-  microphoneTray=new NotifyIcon{Icon=SystemIcons.Application,Text="PadChat — hold F8 / Share",ContextMenuStrip=menu,Visible=true};
+  microphoneTray=new NotifyIcon{Icon=SystemIcons.Application,Text="PadChat voice",ContextMenuStrip=menu,Visible=true};
   microphoneTray.DoubleClick+=(s,e)=>ShowMicrophones();
   UpdateShortcutLabels();
  }

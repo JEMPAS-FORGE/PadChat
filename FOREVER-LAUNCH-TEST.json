@@ -1,6 +1,0 @@
-{
-  "passed": true,
-  "output": "PASS: production Wow.exe / legacy WowB.exe validation, Retail/Classic rejection, saved beta migration, default and registry discovery, custom path preservation, form labels, foreground client detection and running-game refusal. No installed files/settings changed.\n",
-  "actualProductionSources": true,
-  "noInstalledGameChanges": true
-}

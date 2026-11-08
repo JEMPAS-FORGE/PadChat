@@ -41,8 +41,8 @@ partial class VoicePTT {
 
  static void PublishInputPolicy(){
   IntPtr window=GetForegroundWindow();var old=inputPolicy;
-  bool changed=old==null||old.kind!=voiceShortcut.kind||old.key!=voiceShortcut.key||old.modifiers!=voiceShortcut.modifiers||old.enabled!=voiceEnabled;
-  inputPolicy=new InputPolicy{kind=voiceShortcut.kind,key=voiceShortcut.key,modifiers=voiceShortcut.modifiers,enabled=voiceEnabled,
+  bool changed=old==null||old.kind!=voiceShortcut.kind||old.key!=voiceShortcut.key||old.modifiers!=voiceShortcut.modifiers||old.enabled!=(voiceEnabled&&voiceShortcutConfigured);
+  inputPolicy=new InputPolicy{kind=voiceShortcut.kind,key=voiceShortcut.key,modifiers=voiceShortcut.modifiers,enabled=voiceEnabled&&voiceShortcutConfigured,
    generation=old==null?1:old.generation+(changed?1:0),published=Now,
    captureWindow=ShortcutCaptureOwnsFocus()?window:IntPtr.Zero,captureAt=shortcutArmAt,
    reviewWindow=CancellableVoicePhase(phase)?target:IntPtr.Zero};
@@ -224,14 +224,16 @@ partial class VoicePTT {
    // A stalled UI cannot replay presses or interpret a delayed release as send.
    inputPolicy=policy;keyboardHeld=true;recordSource="keyboard";phase="idle";DrainVoiceInputs();
    if(keyboardHeld||inputQueued!=0||!latched||heldAt!=0)throw new Exception("Stall did not require a fresh press");
-   voiceShortcut=new VoiceShortcut();keyboardPhysicalDown=false;keyboardHeld=false;
-   ApplyShortcutInput(new VoiceInput{kind="keyboard",key=0x77,down=true,modifiers=0},true);
-   if(!keyboardHeld)throw new Exception("F8 input changed");
-   ApplyShortcutInput(new VoiceInput{kind="keyboard",key=0x77,down=false},true);if(keyboardHeld)throw new Exception("F8 release changed");
+   foreach(int key in new[]{0x77,0x79}){
+    voiceShortcut=new VoiceShortcut{key=key};keyboardPhysicalDown=false;keyboardHeld=false;
+    ApplyShortcutInput(new VoiceInput{kind="keyboard",key=key,down=true,modifiers=0},true);
+    if(!keyboardHeld)throw new Exception("Saved F8/new F10 input changed");
+    ApplyShortcutInput(new VoiceInput{kind="keyboard",key=key,down=false},true);if(keyboardHeld)throw new Exception("Keyboard PTT release changed");
+   }
   }finally{
    VoiceInput value;while(inputQueue.TryDequeue(out value))Interlocked.Decrement(ref inputQueued);
    voiceShortcut=saved;voiceEnabled=savedEnabled;inputPolicy=null;keyboardHeld=false;keyboardPhysicalDown=false;inputOverflow=0;phase="idle";recordSource="";
   }
-  Console.WriteLine("PASS: Mouse 5/F8 press/release, modifiers, repeat/focus/injection isolation, binding capture, review Escape, bounded backlog and stale-press rejection.");
+  Console.WriteLine("PASS: Mouse 5/F8/F10 press/release, modifiers, repeat/focus/injection isolation, binding capture, review Escape, bounded backlog and stale-press rejection.");
  }
 }
