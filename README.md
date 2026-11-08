@@ -2,13 +2,13 @@
 
 PadChat adds a controller chat keyboard to WoW Forever, with optional free,
 offline voice typing for keyboard, mouse and controller players.
-**Current release: 0.2.2-preview.8. Windows voice: Windows 10/11 x64, English.**
+**Current release: 0.2.2-preview.10. Windows voice: Windows 10/11 x64, English.**
 
 ## Start here: choose the right download
 
-- **Want voice typing?** [Download PadChat-Setup.exe](https://github.com/JEMPAS-FORGE/PadChat/releases/download/v0.2.2-preview.8/PadChat-Setup.exe). It installs **both the addon and Windows voice companion**, including the speech models. You do not need to install Python, buy a speech account or enter an API key.
+- **Want voice typing?** [Download PadChat-Setup.exe](https://github.com/JEMPAS-FORGE/PadChat/releases/download/v0.2.2-preview.10/PadChat-Setup.exe). It installs **both the addon and Windows voice companion**, including the speech models. You do not need to install Python, buy a speech account or enter an API key.
 - **Want a PDF tutorial?** [Read or download the installation guide](https://github.com/JEMPAS-FORGE/PadChat/blob/main/docs/PadChat-Installation-Guide.pdf).
-- **Want the complete ZIP?** [Open the Preview 8 release](https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.8), download `PadChat-Windows-Voice-0.2.2-preview.8.zip`, choose **Extract All**, then run the extracted `PadChat-Setup.exe`.
+- **Want the complete ZIP?** [Open the Preview 10 release](https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.10), download `PadChat-Windows-Voice-0.2.2-preview.10.zip`, choose **Extract All**, then run the extracted `PadChat-Setup.exe`.
 - **Want the keyboard without speech?** [CurseForge](https://www.curseforge.com/wow/addons/padchat) provides the **addon only**. It does not install or update the voice companion.
 
 Use the installer from the same release as the addon. `PadChat-source.zip` is
@@ -18,9 +18,9 @@ for source code; it is not the installer. [All releases and future updates](http
 
 1. **Close WoW before installing, updating or repairing.**
 2. Run the downloaded `PadChat-Setup.exe`.
-3. Use **Browse** to select the **Forever client folder containing `WowB.exe`**.
-   A typical path is `C:\Program Files (x86)\World of Warcraft\_classic_beta_`
-   or `E:\World of Warcraft\_classic_beta_`.
+3. Use **Browse** to select the **Forever client folder containing `Wow.exe`**.
+   A typical path is `C:\Program Files (x86)\World of Warcraft\_forever_`
+   or `E:\World of Warcraft\_forever_`.
 4. Keep **Install voice typing** checked if you want speech.
 5. Choose the startup preference. Enabling startup launches the companion when
    you sign in to Windows. If you leave it off, open **PadChat Voice** from the
@@ -31,13 +31,15 @@ for source code; it is not the installer. [All releases and future updates](http
    save it. Close the companion's microphone and binding windows before testing
    PTT: voice is paused while those configuration windows are open.
 
-**Folder check:** select `_classic_beta_`, not `Interface\AddOns`, the parent
+Legacy Forever beta folders with `WowB.exe` remain supported. Setup prefers the launch `_forever_` folder when migrating an old beta installation.
+
+**Folder check:** select `_forever_`, not `Interface\AddOns`, the parent
 `World of Warcraft` folder, or a new folder such as `E:\Padchat`. Shared `Data`
-may stay in the parent folder; do not move it. Preview 8 supports Forever
+may stay in the parent folder; do not move it. Preview 10 supports Forever
 1.60.x, not Retail or other Classic clients.
 
-For an addon-only manual install, extract `PadChat-0.2.2-preview.8.zip` so the
-file ends up at `_classic_beta_\Interface\AddOns\PadChat\PadChat.toc`, with
+For an addon-only manual install, extract `PadChat-0.2.2-preview.10.zip` so the
+file ends up at `_forever_\Interface\AddOns\PadChat\PadChat.toc`, with
 no extra nested `PadChat` folder. Voice still requires the Windows installer.
 
 ## 2. Enable PadChat and choose your controls
@@ -119,7 +121,7 @@ timeout discards the affected recording; release PTT before trying again.
 
 ## Updates and help
 
-- [Matching Preview 8 installer and downloads](https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.8)
+- [Matching Preview 10 installer and downloads](https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.10)
 - [Detailed setup reference](https://github.com/JEMPAS-FORGE/PadChat/blob/main/START-HERE.txt)
 - [Report a problem or attach a screenshot/video](https://github.com/JEMPAS-FORGE/PadChat/issues)
 - [CurseForge comments](https://www.curseforge.com/wow/addons/padchat/comments)
@@ -135,7 +137,7 @@ their own notices. Recognition is local and needs no paid speech service.
 [Build instructions](BUILD.md), [validation](VALIDATION.md),
 [changes](CHANGELOG.md) and [license](LICENSE) are included in the repository.
 
-## If PTT stops responding (Preview 8)
+## If PTT stops responding (Preview 10)
 
 Release PTT and press again if PadChat reports an input refresh. The listener
 can repair a lost hook without reloading the speech model. It never resumes

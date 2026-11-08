@@ -34,7 +34,7 @@ class InstallerFolderTest {
    using(var form=new SetupForm(new Engine(Path.Combine(root,"unused-form-profile"),true),new string[0])) {
     if(form.Text!="PadChat Setup - "+Engine.Version)throw new Exception("Title encoding regression");
     bool browse=false,label=false;
-    foreach(Control c in form.Controls){if(c is Button&&c.Text=="Browse...")browse=true;if(c is Label&&c.Text=="WoW Forever client folder (contains WowB.exe)")label=true;if(c.Text.Contains("\u00e2\u20ac"))throw new Exception("Mojibake UI text");}
+    foreach(Control c in form.Controls){if(c is Button&&c.Text=="Browse...")browse=true;if(c is Label&&c.Text=="WoW Forever client folder (contains Wow.exe)")label=true;if(c.Text.Contains("\u00e2\u20ac"))throw new Exception("Mojibake UI text");}
     if(!browse||!label)throw new Exception("Installer text regression");
    }
    Console.WriteLine("PASS: production version checks, missing-file diagnostics and actual unshown SetupForm labels; no Data subfolder requirement.");

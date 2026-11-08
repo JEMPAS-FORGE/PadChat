@@ -1,3 +1,20 @@
+# 0.2.2-preview.10 - Forever launch installer and voice detection
+
+- Detect and install into `_forever_/Wow.exe`; prefer the launch folder over a
+  previous `_classic_beta_` install, including a custom-drive sibling folder.
+- Correct installer labels, Browse guidance and setup README/PDF instructions.
+- Recognise launch Wow.exe in the voice companion, with a 1.60.x version check
+  to avoid treating Retail or other Classic clients as Forever.
+- Refuse install/update/uninstall while either Wow.exe or WowB.exe is running.
+- Retain legacy Forever beta folder support and preserve saved user settings.
+- Reject malformed speech/microphone packets and recover to the next valid
+  packet instead of throwing or accepting an invalid result.
+- Keep the same free offline CPU model and recognition speed settings.
+
+Preview 9 was an unpublished source candidate; these fixes include its tested
+worker protocol guard. This is an unsigned preview, not a fresh-PC/live
+controller certification.
+
 # PadChat 0.2.2 Preview 8 - voice recovery and audit fixes
 
 - Fixes cancelled chat handoffs blocking later dictation. Explicit cancellation

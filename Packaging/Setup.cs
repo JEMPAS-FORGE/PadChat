@@ -32,7 +32,7 @@ class InstallState { public string Game,Version; public bool Voice,Startup; }
 
 class Engine {
 
-  public const string Version="0.2.2-preview.8";
+  public const string Version="0.2.2-preview.10";
 
  public readonly string Root; public readonly bool Test;
 
@@ -82,9 +82,9 @@ class Engine {
 
   game=Path.GetFullPath(game);AssertNoLinks(game);
 
-  string exe=Path.Combine(game,"WowB.exe");
+  string exe=WoWClients.ExecutablePath(game);
 
-  if(!File.Exists(exe))throw new IOException("WowB.exe was not found or could not be read in the selected folder: " + game + ". Select the Forever client folder, usually _classic_beta_. The shared Data folder may be in its parent.");
+  if(exe==null)throw new IOException("Wow.exe was not found or could not be read in the selected folder: " + game + ". Select the Forever client folder, usually _forever_. Legacy Forever beta folders containing WowB.exe are also supported. The shared Data folder may be in its parent.");
 
   if(!Test){
 
@@ -92,7 +92,7 @@ class Engine {
 
    if(!SupportedVersion(v.FileVersion))throw new IOException("This release supports WoW Forever 1.60.x only. It does not support Retail or Classic clients.");
 
-   if(Process.GetProcessesByName("WowB").Length!=0)throw new IOException("Close WoW before installing or updating PadChat.");
+   if(WoWClients.AnyClientRunning())throw new IOException("Close WoW before installing or updating PadChat.");
 
   }
 
@@ -100,7 +100,7 @@ class Engine {
 
  }
 
- public static bool SupportedVersion(string value){return (value??"").StartsWith("1.60.",StringComparison.Ordinal);}
+ public static bool SupportedVersion(string value){return WoWClients.SupportedVersion(value);}
 
  static void CopyTree(string from,string to){
 
@@ -342,7 +342,7 @@ class Engine {
 
   // Validate recorded paths again before removing just our two managed folders.
 
-  if(!Test&&Process.GetProcessesByName("WowB").Length!=0)throw new IOException("Close WoW before uninstalling PadChat.");
+  if(!Test&&WoWClients.AnyClientRunning())throw new IOException("Close WoW before uninstalling PadChat.");
 
   if(string.IsNullOrWhiteSpace(s.Game)||!Path.IsPathRooted(s.Game))throw new IOException("The saved game folder is invalid.");
 
@@ -372,13 +372,13 @@ class SetupForm:Form {
 
   var expl=new Label{Text="For WoW Forever 1.60.x on Windows 10/11 (64-bit). Close WoW first.\nInstalls for your Windows account. No Python, drivers or administrator prompt needed unless the game folder is protected.",Location=new Point(24,66),Size=new Size(690,68)};
 
-  var fLabel=new Label{Text="WoW Forever client folder (contains WowB.exe)",Location=new Point(24,142),Size=new Size(670,24)};
+  var fLabel=new Label{Text="WoW Forever client folder (contains Wow.exe)",Location=new Point(24,142),Size=new Size(670,24)};
 
   folder=new TextBox{Location=new Point(24,170),Size=new Size(572,28)};browse=new Button{Text="Browse...",Location=new Point(612,167),Size=new Size(103,32)};
 
-  var old=e.ReadState();folder.Text=old!=null?old.Game:FindGame();
+  var old=e.ReadState();folder.Text=InstallerDiscovery.InitialFolder(old==null?null:old.Game);
 
-  browse.Click+=(s,a)=>{using(var dialog=new FolderBrowserDialog{Description="Select the WoW Forever _classic_beta_ folder",SelectedPath=folder.Text})if(dialog.ShowDialog()==DialogResult.OK)folder.Text=dialog.SelectedPath;};
+  browse.Click+=(s,a)=>{using(var dialog=new FolderBrowserDialog{Description="Select the WoW Forever _forever_ folder containing Wow.exe",SelectedPath=folder.Text})if(dialog.ShowDialog()==DialogResult.OK)folder.Text=dialog.SelectedPath;};
 
   voice=new CheckBox{Text="Install voice typing (English, processed locally; includes speech models)",Checked=old==null||old.Voice,Location=new Point(24,218),Size=new Size(690,28)};
 

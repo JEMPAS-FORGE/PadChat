@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "actualProductionQueueReader": true,
+  "results": [
+    {
+      "source": "shipping",
+      "passed": true,
+      "output": "SHIPPING: 6 queue-reader exceptions, 9 malformed messages accepted, 0/15 next valid results returned cleanly."
+    },
+    {
+      "source": "fixed",
+      "passed": true,
+      "output": "FIXED: 0 queue-reader exceptions, 0 malformed messages accepted, 15/15 next valid results returned cleanly."
+    }
+  ],
+  "noGameOrAudioUse": true
+}

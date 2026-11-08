@@ -30,14 +30,50 @@ partial class VoicePTT {
  static void QueueWorkerOutput(string value,long generation){if(value!=null)messages.Enqueue(new VoiceMessage{generation=generation,data=value});}
  static void QueueMicrophoneOutput(string value){QueueMicrophoneOutput(value,Interlocked.Read(ref microphoneGeneration));}
  static void QueueMicrophoneOutput(string value,long generation){if(value!=null)messages.Enqueue(new VoiceMessage{generation=0,microphoneGeneration=generation,data=value});}
+ static bool MessageInteger(Dictionary<string,object> data,string key,int minimum,int maximum){
+  object value;if(!data.TryGetValue(key,out value)||!(value is int||value is long))return false;
+  long number=Convert.ToInt64(value);return number>=minimum&&number<=maximum;
+ }
+ static bool MessageString(Dictionary<string,object> data,string key,int maximum){
+  object value;return data.TryGetValue(key,out value)&&value is string&&((string)value).Length<=maximum;
+ }
+ static bool MicrophoneMessageChoice(object value){
+  var choice=value as Dictionary<string,object>;
+  return choice!=null&&MessageString(choice,"name",512)&&MessageString(choice,"hostapi",128);
+ }
+ static bool ValidVoiceMessage(Dictionary<string,object> data,string kind){
+  if(kind=="ready")return true;
+  if(kind=="microphones"){
+   object value;if(!data.TryGetValue("devices",out value)||value is string||!(value is System.Collections.IEnumerable))return false;
+   int count=0;foreach(object device in (System.Collections.IEnumerable)value)if(++count>512||!MicrophoneMessageChoice(device))return false;
+   if(data.TryGetValue("selected",out value)&&value!=null&&!MicrophoneMessageChoice(value))return false;
+   return !data.ContainsKey("error")||MessageString(data,"error",32000);
+  }
+  if(!MessageInteger(data,"id",0,int.MaxValue))return false;
+  if(kind=="level")return MessageInteger(data,"level",0,100);
+  if(kind=="result"||kind=="partial")return MessageString(data,"text",32000);
+  if(kind=="error")return MessageString(data,"message",32000)&&(!data.ContainsKey("microphone")||data["microphone"] is bool);
+  return false; // Unrecognised informational/status lines never drive state.
+ }
+ static bool TryDecodeVoiceMessage(VoiceMessage message,out Dictionary<string,object> data){
+  data=null;
+  if(string.IsNullOrWhiteSpace(message.data)||message.data.Length>(message.generation==0?524288:65536))return false;
+  try{
+   var decoded=json.Deserialize<Dictionary<string,object>>(message.data);object type;
+   if(decoded==null||!decoded.TryGetValue("type",out type)||!(type is string))return false;
+   string kind=(string)type;
+   if(!CurrentWorkerOutput(message.generation,CurrentWorkerGeneration(),kind)||!ValidVoiceMessage(decoded,kind))return false;
+   data=decoded;return true;
+  }catch(ArgumentException){return false;}catch(InvalidOperationException){return false;}
+ }
  static bool TryReadVoiceMessage(out Dictionary<string,object> data){
   VoiceMessage message;data=null;
   while(messages.TryDequeue(out message)){
    if(message.generation!=0&&message.generation!=CurrentWorkerGeneration())continue;
    if(message.generation==0&&message.microphoneGeneration!=Interlocked.Read(ref microphoneGeneration))continue;
-   var decoded=json.Deserialize<Dictionary<string,object>>(message.data);
-   if(!CurrentWorkerOutput(message.generation,CurrentWorkerGeneration(),(string)decoded["type"]))continue;
-   data=decoded;return true;
+   // Bad backend output must not escape into Tick's cancellation path, discard
+   // another valid queued result or change microphone/settings ownership.
+   if(TryDecodeVoiceMessage(message,out data))return true;
   }
   return false;
  }
@@ -84,7 +120,7 @@ partial class VoicePTT {
    QueueWorkerOutput("{\"type\":\"ready\"}",40);
    QueueWorkerOutput("{\"type\":\"result\",\"id\":99,\"text\":\"late fixture\"}",40);
    QueueMicrophoneOutput("{\"type\":\"ready\"}");
-   QueueMicrophoneOutput("{\"type\":\"microphones\"}");
+   QueueMicrophoneOutput("{\"type\":\"microphones\",\"devices\":[]}");
    QueueWorkerOutput("{\"type\":\"ready\"}",41);
    Dictionary<string,object> accepted;
    if(!TryReadVoiceMessage(out accepted)||(string)accepted["type"]!="microphones"

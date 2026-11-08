@@ -1,3 +1,23 @@
+# Preview 10 validation scope
+
+New production-source checks cover launch Wow.exe and legacy WowB.exe; file
+version refusal for Retail/Classic; default, registry/custom-drive and saved
+beta sibling migration; preservation of a valid custom saved folder; unshown
+installer labels/encoding; actual process recognition and running-game refusal.
+The installed Forever 1.60.1.70862 executable is checked read-only separately.
+Malformed speech/level/final/microphone packets reproduce six exceptions and
+nine invalid acceptances in the prior reader. The fixed reader has zero of
+both and recovers to all fifteen following valid responses.
+
+The source suite, actual shipping helper tests, embedded installer isolated
+install/update/repair/rollback/uninstall, frozen CPU backend prerecorded speech,
+asset consistency and guide review results accompany this release. No fresh
+physical PC, recording, real controller, game input or game restart is included.
+The personal launch-path watcher is maintained separately from the public CPU
+companion, with saved settings and its GPU configuration preserved.
+
+## Retained Preview 8 audit coverage and prior history
+
 # Preview 8 validation scope
 
 All eleven reproduced audit findings have targeted regression coverage:

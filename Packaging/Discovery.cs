@@ -70,27 +70,28 @@ static class InstallerDiscovery {
 
  }
 
- public static string FindGame() {
-
-  var paths=new List<string>();
-
-  foreach(string root in new[]{Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)}) {
-
-   string clean=Normalize(root);if(clean!=null)paths.Add(Path.Combine(clean,"World of Warcraft","_classic_beta_"));
-
+ public static IEnumerable<string> Candidates(IEnumerable<string> roots,IEnumerable<string> registered,string previous) {
+  var launch=new List<string>();var legacy=new List<string>();
+  string saved=Normalize(previous);
+  if(saved!=null){
+   if(string.Equals(Path.GetFileName(saved.TrimEnd(Path.DirectorySeparatorChar)),"_classic_beta_",StringComparison.OrdinalIgnoreCase))
+    launch.Add(Path.Combine(Path.GetDirectoryName(saved.TrimEnd(Path.DirectorySeparatorChar)),"_forever_"));
+   else launch.Add(saved);
+   legacy.Add(saved);
   }
-
-  foreach(string value in RegistryPaths()) {
-
-   string clean=Normalize(value);if(clean==null)continue;
-
-   paths.Add(clean);paths.Add(Path.Combine(clean,"_classic_beta_"));
-
+  foreach(string value in roots){string clean=Normalize(value);if(clean==null)continue;
+   launch.Add(Path.Combine(clean,"World of Warcraft","_forever_"));legacy.Add(Path.Combine(clean,"World of Warcraft","_classic_beta_"));
   }
-
-  return Choose(paths,p=>LongFile.Exists(Path.Combine(p,"WowB.exe")));
-
+  foreach(string value in registered){string clean=Normalize(value);if(clean==null)continue;
+   launch.Add(Path.Combine(clean,"_forever_"));launch.Add(clean);legacy.Add(Path.Combine(clean,"_classic_beta_"));
+  }
+  launch.AddRange(legacy);return launch;
  }
+ public static string FindGame(string previous) {
+  return Choose(Candidates(new[]{Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)},RegistryPaths(),previous),WoWClients.IsForeverFolder);
+ }
+ public static string FindGame(){return FindGame(null);}
+ public static string InitialFolder(string previous){string found=FindGame(previous);return found.Length>0?found:(Normalize(previous)??"");}
 
  public static void SelfTest() {
 

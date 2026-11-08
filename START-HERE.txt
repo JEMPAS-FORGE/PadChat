@@ -1,7 +1,7 @@
-UPDATE TO PREVIEW 7
-Voice requires both parts. Download PadChat-Setup.exe from this release, close WoW, and run Setup for the same game folder. It updates the addon and companion while preserving preferences. CurseForge installs only the addon; an addon-only update does not update the Windows companion.
+UPDATE TO PREVIEW 10
+Setup now detects _forever_\Wow.exe and updates both the addon and Windows voice companion. Close WoW before updating. Microphone, PTT and other saved preferences are preserved.
 
-PadChat 0.2.2 Preview 8 — WoW Forever 1.60.1 / Interface 16001
+PadChat 0.2.2 Preview 10 — WoW Forever 1.60.1 / Interface 16001
 
 Windows voice companion: Windows 10/11 x64, English, local recognition.
 
@@ -22,7 +22,7 @@ shorter phrases. Waiting for optional review does not expire at this deadline.
 
 1. Close WoW. Run PadChat-Setup.exe. Choose the Forever client folder containing
 
-   WowB.exe (the shared Data folder may be in its parent) (usually World of Warcraft\_classic_beta_).
+   Wow.exe (the shared Data folder may be in its parent) (usually World of Warcraft\_forever_).
 
    An arbitrary E:\Padchat folder is not a WoW game folder.
 
@@ -42,7 +42,7 @@ The CurseForge ZIP installs the keyboard and in-game Options, not the Windows
 
 speech engine. Download the matching PadChat-Setup.exe from:
 
-https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.8
+https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.10
 
 KEYBOARD AND CONTROLLER
 
@@ -200,7 +200,7 @@ Mic level is shown during an acknowledged recording test; an idle or last-check
 level is not a live meter. Working in WoW voice chat does not certify the input
 is selected or available to the separate PadChat companion.
 
-## If PTT stops responding (Preview 8)
+## If PTT stops responding (Preview 10)
 
 Release PTT and press again if PadChat reports an input refresh. The listener
 can repair a lost hook without reloading the speech model. It never resumes
