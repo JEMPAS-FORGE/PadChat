@@ -42,7 +42,9 @@ P.voiceSave.scripts.OnClick();assert(reloads==1 and P.db.voiceSettingsWire=='PCV
 assert(not P.voiceOptionsFrame:IsShown() and not bindings.PAD1)
 assert(bindings.BUTTON5.name=='PadChatVoiceKey')
 P:InitDB();assert(P.db.voiceOptions.kind=='mouse' and P.db.voiceOptions.key==6)
-P:ShowVoiceOptions();P.voiceIndex=2;P:VoiceOptionsAction('previous')
+P:ShowVoiceOptions();P.voiceIndex=2;P:VoiceOptionsAction('left')
+assert(P.pendingVoice.mic=='Microphone (USB)' and P.voiceIndex==2)
+P:VoiceOptionsAction('activate');P:VoiceOptionsAction('activate')
 assert(P.pendingVoice.mic=='Microphone (Built-in)')
 P:VoiceOptionsAction('close');assert(not P.voiceOptionsFrame:IsShown() and P.optionsFrame:IsShown())
 assert(P.db.voiceOptions.mic=='Microphone (USB)') -- cancel preserves choice

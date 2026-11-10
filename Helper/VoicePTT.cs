@@ -35,42 +35,36 @@ partial class VoicePTT {
   if(SendInput((uint)inputs.Count,inputs.ToArray(),Marshal.SizeOf(typeof(Input)))!=inputs.Count)throw new Exception("Windows rejected keyboard input");
  }
  static void Bridge(ushort key){Keys(0x11,0x10,key);}
- static bool IsGame(IntPtr hwnd){uint pid;GetWindowThreadProcessId(hwnd,out pid);try{using(var process=Process.GetProcessById((int)pid))return WoWClients.IsGame(process);}catch{return false;}}
- class Caption:Label {
-  protected override void OnPaint(PaintEventArgs e){
-   var flags=TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter|TextFormatFlags.WordBreak|TextFormatFlags.NoPrefix;
-   var bounds=ClientRectangle;
-   foreach(var offset in new Point[]{new Point(-1,0),new Point(1,0),new Point(0,-1),new Point(0,1)}){
-    var shadow=bounds;shadow.Offset(offset);
-    TextRenderer.DrawText(e.Graphics,Text,Font,shadow,Color.Black,flags);
-   }
-   TextRenderer.DrawText(e.Graphics,Text,Font,bounds,ForeColor,flags);
-  }
- }
- class Badge:Form {
-  public Label label=new Caption();
-  protected override bool ShowWithoutActivation{get{return true;}}
-  protected override CreateParams CreateParams{get{var p=base.CreateParams;p.ExStyle|=0x08000000|0x00000020|0x00000080;return p;}}
-  public Badge(){FormBorderStyle=FormBorderStyle.None;ShowInTaskbar=false;TopMost=true;BackColor=Color.FromArgb(25,27,32);
-   TransparencyKey=BackColor;
-   Size=new Size(900,160);StartPosition=FormStartPosition.Manual;Location=new Point(0,0);
-   label.Dock=DockStyle.Fill;label.ForeColor=Color.White;label.Font=new Font("Segoe UI",16);label.TextAlign=ContentAlignment.MiddleCenter;Controls.Add(label);}
- }
+ static bool IsGame(IntPtr hwnd){uint pid;GetWindowThreadProcessId(hwnd,out pid);try{using(var p=Process.GetProcessById((int)pid))return WoWClients.IsGame(p);}catch{return false;}}
  static System.Threading.EventWaitHandle stopEvent;
  static Badge badge;static Timer timer;static Process worker;
  static readonly JavaScriptSerializer json=new JavaScriptSerializer();
  static readonly ConcurrentQueue<VoiceMessage> messages=new ConcurrentQueue<VoiceMessage>();
  static readonly Stopwatch clock=Stopwatch.StartNew();
- static bool ready,latched,released;static int sid,stage,level;
+ static long healthPublishAt;
+ static bool ready,latched,released,overlayMicReady;static int sid,stage,level;static long overlayLevelAt;
  static long heldAt,deadline,hideAt,started;static string phase="idle",text,command,label,line,oldClip,marker,preview="",inviteName;static bool characterInvite;
  static IntPtr target,pressWindow;static uint joystick=uint.MaxValue;static string inputSource="none",pressSource="",recordSource="";
  static long workerRetryAt;static int workerFailures;
  static long Now{get{return clock.ElapsedMilliseconds;}}
- static void Status(string message,int ms){badge.label.Text=message;ShowVoiceOverlay();hideAt=ms==0?0:Now+ms;}
+ static void Status(string message,int ms){badge.label.ForeColor=phase=="probe"||phase=="recording"&&!overlayMicReady?Color.FromArgb(255,207,105):Color.White;badge.label.Text=message;ShowVoiceOverlay();hideAt=ms==0?0:Now+ms;}
  static string PreviewTail(){return preview.Length>220?"..."+preview.Substring(preview.Length-220):preview;}
  static void RecordingStatus(){
-  badge.label.Text=microphoneTest?"Microphone test — nothing will be sent | Level: "+level+"%\n"+PreviewTail():preview.Length>0?"Live preview — release "+TalkButton()+" to send\n"+PreviewTail():
-   "Recording — "+(level<4?"waiting for speech":level<16?"quiet microphone signal":"voice detected")+"\nWords will appear here as you speak";
+  badge.label.ForeColor=overlayMicReady?Color.FromArgb(103,235,188):Color.FromArgb(255,207,105);
+  string heading=overlayMicReady?"READY - SPEAK NOW"+(microphoneTest?" (microphone test)":" | Release "+TalkButton()+" to "+(voiceReview?"review":"send")):"Getting microphone ready...";
+  string detail=overlayMicReady?(preview.Length>0?PreviewTail():microphoneTest?"Your microphone is recording. Nothing will be sent.":"Your microphone is recording."):"Keep holding PTT. Wait for the green cue.";
+  badge.label.Text=heading+"\n"+RecordingDestination()+"\n"+detail;
+ }
+ static bool ApplyCaptureProgress(string kind,Dictionary<string,object> data){
+  if(kind!="listening"&&kind!="level")return false;
+  if(!data.ContainsKey("id")||Convert.ToInt32(data["id"])!=sid||phase!="recording")return true;
+  // Stream.start() returning is not proof that audio is arriving. A same-session
+  // callback level (including silence) confirms samples are already buffered.
+  if(kind=="level"){
+   level=Math.Max(0,Math.Min(100,Convert.ToInt32(data["level"])));
+   if(!overlayMicReady)CaptureReadySound();overlayMicReady=true;overlayLevelAt=Now;
+  }
+  RecordingStatus();return true;
  }
  static void WriteWorker(string cmd){if(worker!=null&&!worker.HasExited){worker.StandardInput.WriteLine(json.Serialize(new {cmd=cmd,id=sid}));worker.StandardInput.Flush();}}
  static bool SameGame(){return target==GetForegroundWindow()&&IsGame(target);}
@@ -108,19 +102,30 @@ partial class VoicePTT {
  [DllImport("winmm.dll",CharSet=CharSet.Unicode)] static extern uint joyGetDevCapsW(UIntPtr id,out JoyCaps caps,uint size);
  static bool SupportedNativeController(uint id){JoyCaps caps;return joyGetDevCapsW(new UIntPtr(id),out caps,(uint)Marshal.SizeOf(typeof(JoyCaps)))==0&&caps.manufacturer==0x054c;}
  static uint NormalizeXInput(ushort buttons){return ((buttons&0x2000)!=0?2u:0u)|((buttons&0x0020)!=0?0x100u:0u)|((buttons&0x0010)!=0?0x200u:0u)|((buttons&0x8000)!=0?0x8u:0u)|((buttons&0x0100)!=0?0x10u:0u)|((buttons&0x0200)!=0?0x20u:0u)|((buttons&0x0040)!=0?0x400u:0u)|((buttons&0x0080)!=0?0x800u:0u);}
- static void Cancel(string reason){InvalidateSpeechSession();RestoreDirectVoiceClipboard();RestoreProbeClipboard();WriteWorker("cancel");
-  if(SameGame())Bridge(0x74);Status(reason,4000);}
+ static void ReleaseOwnedVoiceTransport(){
+  if(!SameGame())return;
+  // The owned hidden EditBox handles F11 itself while focused. F5 alone is
+  // swallowed there, leaving channel cycling and the next probe blocked.
+  // Release ONLY PadChat's transport first; then revoke its pending packet.
+  Bridge(0x7A);Bridge(0x74);
+ }
+ static void Cancel(string reason){
+  RetainUnsent(sendAttempted);InvalidateSpeechSession();
+  try{RestoreDirectVoiceClipboard();RestoreProbeClipboard();WriteWorker("cancel");}
+  finally{ReleaseOwnedVoiceTransport();}
+  Status(reason,4000);
+ }
  static void Start(){
-  target=GetForegroundWindow();if(!IsGame(target))return;recordSource=pressSource;BeginVoiceProbe(false);
+  target=GetForegroundWindow();if(!IsGame(target))return;recordSource=pressSource;overlayMicReady=false;overlayLevelAt=0;level=0;BeginVoiceProbe(false);Status("Getting ready...\nKeep holding PTT. Wait for the green cue.",0);
  }
  static void BeginRecording(){
   target=GetForegroundWindow();if(!IsGame(target))return;
   if(!ready){Status("The offline speech model is still loading",2500);return;}
-  recordSource=pressSource;
-  sid++;phase="recording";released=false;level=0;preview="";started=Now;WriteWorker("start");
-  Status(microphoneTest?"Microphone test: hold and speak; release to see results. Nothing is sent.":"Hold "+TalkButton()+" and speak\nRelease to "+(voiceReview?"review your message":"send to your last chat channel"),0);
+  recordSource=pressSource;recognizedForRecovery="";sendAttempted=false;
+  sid++;phase="recording";released=false;level=0;overlayMicReady=false;overlayLevelAt=0;preview="";started=Now;WriteWorker("start");
+  RecordingStatus();ShowVoiceOverlay();hideAt=0;
  }
- static void Stop(){if(phase!="recording")return;released=true;phase="processing";speechDeadlines.Processing(Now);WriteWorker("stop");
+ static void Stop(){if(phase!="recording")return;if(!overlayMicReady){Cancel("Released before the microphone was ready; nothing sent.");return;}released=true;phase="processing";speechDeadlines.Processing(Now);WriteWorker("stop");
   Status("Finishing your message locally... Escape cancels."+(preview.Length>0?"\n"+PreviewTail():""),0);}
  static void BeginDelivery(){if(!SameGame()||!released){Cancel("Message cancelled: WoW lost focus");return;}
   inviteName=SpokenInvite(text);
@@ -130,12 +135,13 @@ partial class VoicePTT {
  static void AdvanceDelivery(){
   if(!SameGame()){Cancel("Message cancelled: WoW lost focus");return;}
   if(stage>=20){AdvanceDirectVoice();return;}
-  if(stage==1){Keys(0x11,0x43);stage=2;deadline=Now+130;return;}
+  if(stage==1){deliveryCopySequence=GetClipboardSequenceNumber();Keys(0x11,0x43);stage=2;deadline=Now+130;return;}
   if(stage==2){
    marker=Clip();
    if(marker.StartsWith("CKPTT_DENIED:")){string[] p=marker.Split('|');Cancel(p.Length>1?p[1]:"Chat destination unavailable");return;}
    if((!marker.StartsWith("CKPTT_READY:")&&!marker.StartsWith("CKPTT_READY2:")&&!marker.StartsWith("CKPTT_READY3:"))||marker==oldClip){Cancel("Not sent: close any text box or menu and try again");return;}
    if(!TryDestination(marker,out command,out label)){Cancel("Not sent: invalid chat destination");return;}
+   if(inviteName==null&&recordingCommand!=null&&command!=recordingCommand){Cancel("Not sent: chat destination changed while dictating. Message is available to copy.");return;}
    if(inviteName==null?(command=="/invite"||command=="/ck voiceinvite"):
       characterInvite?command!="/invite":command!="/ck voiceinvite"){
     Cancel("Not sent: invite command did not match");return;
@@ -152,7 +158,7 @@ partial class VoicePTT {
    string echo=Clip();
    // Some WoW versions consume the channel prefix as soon as it is pasted.
    if(echo!=line&&echo!=text){Cancel("Not sent: chat input could not be verified");return;}
-   Keys(0x0D);stage=7;deadline=Now+200;Status(inviteName!=null?"Looking up invite: "+inviteName:"Submitted to "+label+": "+text,4500);return;
+   sendAttempted=true;Keys(0x0D);recognizedForRecovery="";stage=7;deadline=Now+200;Status(inviteName!=null?"Looking up invite: "+inviteName:"Submitted to "+label+": "+text,4500);return;
   }
   if(stage==7){Clipboard.SetText("CKPTT_EXIT_WAIT:"+sid);Bridge(0x76);stage=8;deadline=Now+150;return;}
   if(stage==8){Keys(0x11,0x43);stage=9;deadline=Now+130;return;}
@@ -195,8 +201,8 @@ partial class VoicePTT {
     if(kind=="microphones"){ApplyGameMicrophoneList(data);UpdateMicrophones(data);continue;}
     if(kind=="ready"){ready=true;speechDeadlines.WorkerReady();workerFailures=0;WriteVocabulary();if(micRecoveryPending){micRecoveryPending=false;Status("Speech helper refreshed. Reconnect the same microphone, release PTT and press again. Nothing resumed automatically.",6000);}WriteHealth("ready");continue;}
     if(!data.ContainsKey("id")||Convert.ToInt32(data["id"])!=sid)continue;
-    if(kind=="level"){level=Convert.ToInt32(data["level"]);if(phase=="recording")RecordingStatus();}
-    else if(kind=="partial"){
+    if(ApplyCaptureProgress(kind,data))continue;
+    if(kind=="partial"){
      if(phase!="recording")continue;
      string update=Clean((string)data["text"],2000);
      if(update.Length>0){preview=update;RecordingStatus();}
@@ -204,9 +210,10 @@ partial class VoicePTT {
     else if(kind=="result"){
      if(phase!="processing")continue;speechDeadlines.CancelProcessing();text=(string)data["text"];
      if(text.Trim().Length==0){Cancel("No clear speech recognised; nothing sent");continue;}
+     if(!microphoneTest)recognizedForRecovery=Clean(text,600);
      if(microphoneTest){pendingTestWords=text;BeginVoiceProbe(true);}
      else if(RequiresReview(false,voiceReview)){phase="review";reviewWaitingRelease=true;Status("Review — press PTT again to send, Escape to cancel\n"+Clean(text,700),0);}
-     else {phase="result";Status("Recognised: "+text+"\nSending to your last chat channel...",0);}
+     else {phase="result";Status("Recognised: "+text+"\n"+RecordingDestination()+" - preparing to send...",0);}
     }else if(kind=="error"){
      Cancel("Voice: "+(string)data["message"]);
      if(data.ContainsKey("microphone")&&Convert.ToBoolean(data["microphone"]))RecoverMicrophone();
@@ -242,9 +249,9 @@ partial class VoicePTT {
    if(phase=="review"){if(!chord)reviewWaitingRelease=false;else if(!reviewWaitingRelease){reviewWaitingRelease=true;BeginDelivery();}}
    AdvanceVoiceProbe(chord);
    if(phase=="result"&&!chord)BeginDelivery();
-   if(stage!=0&&Now>=deadline)AdvanceDelivery();
+   if(stage!=0&&(Now>=deadline||DeliveryAcknowledged()))AdvanceDelivery();
   }catch(Exception ex){try{Cancel("Voice error: "+ex.Message);}catch{phase="idle";stage=0;}}
-  finally{MaintainVoiceOverlay();PublishInputPolicy();}
+  finally{MaintainVoiceOverlay();PublishInputPolicy();if(Now>=healthPublishAt){healthPublishAt=Now+2000;WriteHealth(!voiceEnabled?"disabled":ready?"ready":"loading");}}
  }
  [STAThread] static void Main(string[] args){
   if(args.Length>0&&args[0]=="--worker-shutdown-fixture"){Console.WriteLine("fixture-ready");System.Threading.Thread.Sleep(15000);return;}
@@ -255,7 +262,7 @@ partial class VoicePTT {
   }
   if(args.Length>0&&args[0]=="--input-thread-test"){TestInputThread();return;}
   if(args.Length>0&&args[0]=="--self-test"){
-   TestVoiceOverlay();TestInputRecovery();TestInputRouting();TestDirectVoiceWire();TestSpeechWatchdog();TestWorkerShutdown();
+   TestVoiceOverlay();TestInputRecovery();TestInputRouting();TestDirectVoiceWire();TestDeliveryTiming();TestSpeechWatchdog();TestWorkerShutdown();
    TestVoiceRecovery();TestVoiceDiagnostics();
    TestGameVoiceSettings();
    TestVoiceBindings();
@@ -296,7 +303,7 @@ partial class VoicePTT {
    microphoneEvent=new System.Threading.EventWaitHandle(false,System.Threading.EventResetMode.AutoReset,"PadChat.Microphone.v1");
    bindingEvent=new System.Threading.EventWaitHandle(false,System.Threading.EventResetMode.AutoReset,"PadChat.Bindings.v1");
    stopEvent=new System.Threading.EventWaitHandle(false,System.Threading.EventResetMode.AutoReset,"PadChat.Stop.v1");
-   LoadVoiceShortcut();LoadGameVoiceSettings();SetupMicrophoneMenu();
+   LoadVoiceShortcut();LoadGameVoiceSettings();LoadAppearance();SetupMicrophoneMenu();
    try{InstallKeyboardVoice();}catch(Exception ex){inputRetryAt=Now+5000;WorkerError("Input listener: "+ex.Message);WriteHealth("input-error");Status("Voice input could not start. Retrying shortly.\n"+ex.Message,8000);}
    try{if(voiceEnabled)StartWorker();}catch(Exception ex){WorkerError(ex.Message);Status("PadChat voice could not start. Run Setup again to repair.\n"+ex.Message,8000);}
    if(args.Length>0&&args[0]=="--bindings")ShowVoiceBindings();

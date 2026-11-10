@@ -10,6 +10,11 @@ function CK:RememberVoiceChannel(kind, target, replyType)
     -- Keep the selected Reply destination after our own successful whisper.
     if previous and previous.chatType=='REPLY' and previous.target==target and previous.replyType==kind then return end
     self.voiceLastChannel = {chatType=kind, target=target, replyType=replyType}
+    -- Preserve Trade's identity if its numeric slot is later reused.
+    if kind=='CHANNEL' then
+        local entry=self:VoiceChannelEntry(target)
+        self.voiceLastChannel.trade=entry and self:IsVoiceTradeChannel(entry.name) or false
+    end
 end
 
 function CK:VoiceReplyTarget()
@@ -83,13 +88,39 @@ function CK:SelectVoiceReply(name)
     return true
 end
 
+function CK:VoiceChannelEntry(target)
+    local wanted=tonumber(target)
+    if not wanted or not GetChannelList then return end
+    local channels={GetChannelList()}
+    for i=1,#channels,3 do
+        if tonumber(channels[i])==wanted and type(channels[i+1])=='string' then
+            return {id=wanted,name=channels[i+1],disabled=channels[i+2]}
+        end
+    end
+end
+
+function CK:IsVoiceTradeChannel(name)
+    -- The current English client reports Trade or Trade - City. Do not confuse
+    -- Trade (Services) or custom channels beginning with Trade with this one.
+    return type(name)=='string' and (name=='Trade' or name:match('^Trade%s*%-%s*City$')~=nil)
+end
+
 function CK:QuickGeneralChannel()
     local channels = {GetChannelList()}
     for i=1,#channels,3 do
-        local id,name=channels[i],channels[i+1]
-        if type(name)=='string' and (name=='General' or name:match('^General%s*%-')) then
+        local id,name,disabled=channels[i],channels[i+1],channels[i+2]
+        if not disabled and type(name)=='string' and (name=='General' or name:match('^General%s*%-')) then
             return id
         end
+    end
+end
+
+function CK:QuickTradeChannel()
+    if not GetChannelList then return end
+    local channels={GetChannelList()}
+    for i=1,#channels,3 do
+        local id,name,disabled=channels[i],channels[i+1],channels[i+2]
+        if not disabled and self:IsVoiceTradeChannel(name) then return id end
     end
 end
 
@@ -109,6 +140,8 @@ function CK:CycleVoiceChannel()
     local general=self:QuickGeneralChannel()
     local choices={{chatType='SAY',label='Say'},{chatType='YELL',label='Yell'}}
     if general then choices[#choices+1]={chatType='CHANNEL',target=general,label='General (/'..general..')'} end
+    local trade=self:QuickTradeChannel()
+    if trade then choices[#choices+1]={chatType='CHANNEL',target=trade,label='Trade (/'..trade..')'} end
     if IsInGroup() then choices[#choices+1]={chatType='PARTY',label='Party'} end
     if IsInRaid() then choices[#choices+1]={chatType='RAID',label='Raid'} end
     if IsInGuild() then choices[#choices+1]={chatType='GUILD',label='Guild'} end
@@ -149,8 +182,16 @@ function CK:VoiceDestination()
         if not id or id<1 or id>99 or id~=math.floor(id) or (GetChannelName(id) or 0)==0 then
             return nil,'The previous chat channel is unavailable'
         end
+        local entry=self:VoiceChannelEntry(id)
+        if GetChannelList and (not entry or entry.disabled) then
+            return nil,v.trade and 'Trade is unavailable here; tap your voice shortcut to choose another channel' or 'The previous chat channel is unavailable'
+        end
+        if v.trade and (not entry or not self:IsVoiceTradeChannel(entry.name)) then
+            return nil,'Trade is no longer available; tap your voice shortcut to choose another channel'
+        end
         local general=GetChannelList and self:QuickGeneralChannel()
-        return '/'..id, general==id and 'General' or 'Channel '..id
+        local trade=entry and self:IsVoiceTradeChannel(entry.name)
+        return '/'..id, trade and 'Trade' or general==id and 'General' or 'Channel '..id
     end
     if not prefix[kind] then return nil,'This chat destination is not supported' end
     return prefix[kind],kind
@@ -265,11 +306,23 @@ function CK:PrepareVoiceProbe()
  if self.AbortDirectVoice then self:AbortDirectVoice() end
  self.voiceProbeToken=tostring(GetTime());self.voiceProbeDeadline=GetTime()+3
  local mode=self.voiceOptionsFrame and self.voiceOptionsFrame:IsShown() and 'TEST' or 'NORMAL'
- self.pttBox:SetText('PCVQ1;'..self.voiceProbeToken..';'..mode)
+ local cmd,label=self:VoiceDestination()
+ if self.voiceRecoveryRequested then mode='RECOVER' end
+ local function wire(value) return ((value or ''):gsub('[^A-Za-z0-9 ._%-]',function(c) return string.format('%%%02X',c:byte()) end)) end
+ self.pttBox:SetText('PCVQ2;'..self.voiceProbeToken..';'..mode..';'..wire(cmd)..';'..wire(label))
  self.pttBox:Show();self.pttBox:SetFocus();self.pttBox:HighlightText()
 end
 function CK:ReadVoiceStatus(value)
  if type(value)~='string' or #value>2200 then return end
+ local recoveryToken,uncertain,encoded=value:match('^PCVRD1;([0-9.]+);([01]);([A-Za-z0-9%% ._-]*)$')
+ if recoveryToken then
+  if recoveryToken~=self.voiceProbeToken or not self.voiceProbeDeadline or GetTime()>self.voiceProbeDeadline or not self.voiceRecoveryRequested then return end
+  local words=encoded:gsub('%%(%x%x)',function(hex) return string.char(tonumber(hex,16)) end)
+  if #words>600 or words:find('[%c|]') then return end
+  self.voiceProbeToken=nil;self.voiceProbeDeadline=nil;self.voiceRecoveryRequested=nil;self:PTTReleaseFocus()
+  if self.VoiceRecoveryRetrieved then self:VoiceRecoveryRetrieved(words,uncertain=='1') end
+  return
+ end
  local token,state,level,words=value:match('^PCVS1;([0-9.]+);([a-z]+);(%d+);([A-Za-z0-9%% ._-]*)$')
  if not token or token~=self.voiceProbeToken or not self.voiceProbeDeadline or GetTime()>self.voiceProbeDeadline or not ({ready=true,loading=true,disabled=true,error=true,test=true})[state] then return end
  words=words:gsub('%%(%x%x)',function(hex) return string.char(tonumber(hex,16)) end)

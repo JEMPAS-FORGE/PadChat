@@ -32,7 +32,7 @@ class InstallState { public string Game,Version; public bool Voice,Startup; }
 
 class Engine {
 
-  public const string Version="0.2.2-preview.11";
+  public const string Version="0.2.2-preview.13";
 
  public readonly string Root; public readonly bool Test;
 
@@ -426,7 +426,7 @@ class SetupForm:Form {
 
    if(withVoice)Process.Start(Path.Combine(engine.Root,"App","PadChatVoice.exe"),"--microphone");
 
-   MessageBox.Show(this,"PadChat is installed.\n\n1. Choose your microphone in the window that opens.\n2. Start WoW and enable PadChat. Disable older ControllerKeyboard add-ons.\n3. Click PadChat on the minimap, choose Voice, then Guided setup. Select your microphone/PTT, Save & reload, and test without sending.\n4. Open chat using touchpad click or controller setup. F9 is optional. Default voice: tap F8/Share to cycle; hold to speak and release to send. Change these in Voice options.\n\nThe models stay on your PC; no online account or token charges.","PadChat installed");Close();
+   MessageBox.Show(this,"PadChat is installed.\n\n1. Choose your microphone in the window that opens.\n2. Start WoW and enable PadChat. Disable older ControllerKeyboard add-ons.\n3. Click PadChat on the minimap, choose Help, then Guided setup. Select your microphone/PTT, Save & reload, and test without sending.\n4. Open chat using touchpad click or controller setup. F9 is optional. Default keyboard PTT: F10 or another unused key shown in Voice options. Controller: Share/Create/Back. Tap to cycle; hold, wait for the green ready cue, speak and release to send.\n\nThe models stay on your PC; no online account or token charges.","PadChat installed");Close();
 
   }catch(UnauthorizedAccessException){
 

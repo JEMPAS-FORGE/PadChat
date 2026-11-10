@@ -79,13 +79,92 @@ function P:PollOpeningChord(dt)
   and not self.conflictingAddon and not self.tvActionFailed
   and not (self.optionsFrame and self.optionsFrame:IsShown()) and not (self.voiceOptionsFrame and self.voiceOptionsFrame:IsShown()) and not GetCurrentKeyBoardFocus() then self.openingRelease=modifier;PadChat_Toggle() end
 end
+-- Navigate by the same logical rectangles used to place the buttons. Retain
+-- the horizontal position when crossing a full-width row; never wrap at edges.
+function P:NextOptionControl(controls,index,direction,anchor)
+ local current=controls[index];local rect=current and current.optionRect
+ if not rect then return index,anchor end
+ local horizontal=direction=='left' or direction=='right'
+ local sign=(direction=='left' or direction=='up') and -1 or 1
+ anchor=anchor or rect.x+rect.w/2
+ local best,bestDistance,bestGap,bestCenter
+ for i,control in ipairs(controls) do
+  local r=control.optionRect
+  local usable=(not control.IsShown or control:IsShown()~=false) and (not control.IsEnabled or control:IsEnabled()~=false)
+  if i~=index and r and usable then
+   if horizontal then
+    local distance=(r.x+r.w/2-rect.x-rect.w/2)*sign
+    if r.y==rect.y and distance>0 and (not bestDistance or distance<bestDistance) then best=i;bestDistance=distance end
+   else
+    local distance=(r.y-rect.y)*sign
+    local gap=math.max(r.x-anchor,anchor-r.x-r.w,0)
+    local center=math.abs(r.x+r.w/2-anchor)
+    if distance>0 and (not bestDistance or distance<bestDistance or distance==bestDistance and (gap<bestGap or gap==bestGap and center<bestCenter)) then
+     best=i;bestDistance=distance;bestGap=gap;bestCenter=center
+    end
+   end
+  end
+ end
+ if not best then return index,anchor end
+ local target=controls[best].optionRect
+ return best,horizontal and target.x+target.w/2 or anchor
+end
+function P:CancelVoiceOptionConfirmation()
+ self.voiceRestartConfirm=nil;self.voiceConflictAccepted=nil
+ if self.voiceRestart then self.voiceRestart.text:SetText('Restart voice + reload UI') end
+ if self.voiceSave then self.voiceSave.text:SetText('Save & reload UI') end
+end
+function P:FocusOptionControl(control)
+ if InCombatLockdown() or self.voiceCapture or self.voiceWordsEditing then return end
+ local voice=self.voiceOptionsFrame and self.voiceOptionsFrame:IsShown()
+ if not voice and (not self.optionsFrame or not self.optionsFrame:IsShown()) then return end
+ local controls=voice and self.voiceControls or self.optionControls
+ for i,c in ipairs(controls or {}) do
+  if c==control then
+   if voice then
+    if self.voiceIndex~=i then self:CancelVoiceOptionConfirmation() end
+    self.voiceIndex=i;self.voiceNavX=c.optionRect.x+c.optionRect.w/2;self:UpdateVoiceOptions()
+   else
+    if self.optionIndex~=i and self.optionsReloadConfirm then self:UpdateOptions(true) end
+    self.optionIndex=i;self.optionNavX=c.optionRect.x+c.optionRect.w/2;self:HighlightOption()
+   end
+   return
+  end
+ end
+end
+function P:ConfigureOptionControl(control,x,y,width,fn)
+ control.optionRect={x=x,y=-y,w=width}
+ control:SetScript('OnEnter',function() self:FocusOptionControl(control) end)
+ control:SetScript('OnClick',function(_,...) self:FocusOptionControl(control);return fn(control,...) end)
+end
+
 local function text(parent,value,size)
  local label=parent:CreateFontString(nil,'OVERLAY');label:SetFont('Fonts\\FRIZQT__.TTF',size or 16,'OUTLINE');label:SetText(value);label:SetTextColor(1,.89,.66);return label
 end
 local function button(parent,value,x,y,width,fn)
  local b=P.NewFrame('Button',nil,parent);b:SetSize(width,36);b:SetPoint('TOPLEFT',x,y)
  local bg=b:CreateTexture(nil,'BACKGROUND');bg:SetAllPoints();bg:SetColorTexture(.30,.22,.12,1);b.fill=bg
- b.text=text(b,value);b.text:SetPoint('CENTER');b:SetScript('OnClick',fn);return b
+ b.text=text(b,value);b.text:SetPoint('CENTER');P:ConfigureOptionControl(b,x,y,width,fn);return b
+end
+function P:CancelOptionsReload()
+ self.optionsReloadConfirm=nil
+ if self.optionReload then self.optionReload.text:SetText('Reload UI') end
+end
+function P:RequestOptionsReload()
+ if not self.optionsFrame or not self.optionsFrame:IsShown() or not self.pendingOptions then return false end
+ if InCombatLockdown() then
+  self:CancelOptionsReload();self.optionWarning:SetText('Reload the UI outside combat.');return false
+ end
+ if GetCurrentKeyBoardFocus and GetCurrentKeyBoardFocus() then
+  self:CancelOptionsReload();self.optionWarning:SetText('Close the active text box and finish dictation before reloading. Your draft is kept.');return false
+ end
+ if not self.optionsReloadConfirm or GetTime()>self.optionsReloadConfirm then
+  self.optionsReloadConfirm=GetTime()+10
+  self.optionReload.text:SetText('Confirm reload')
+  self.optionWarning:SetText('Reload the interface now? Saved settings and drafts are kept; unsaved options are discarded. Finish dictation first. Select again within 10 seconds to confirm, or move away / close to cancel.')
+  return false
+ end
+ self:CancelOptionsReload();self.optionsFrame:Hide();ReloadUI();return true
 end
 function P:BuildOptions()
  if self.optionsFrame then return end
@@ -95,7 +174,7 @@ function P:BuildOptions()
  table.insert(UISpecialFrames,'PadChatOptions')
  local title=text(f,'PadChat Options',24);title:SetPoint('TOPLEFT',20,-20)
  self.optionClose=button(f,'Close',586,-14,84,function() f:Hide() end)
- local _,_,controls=self:ControllerHelp();local help=text(f,'D-pad: choose / change   '..controls);self.optionHelp=help;help:SetPoint('TOPLEFT',20,-63);help:SetSize(650,28);help:SetJustifyH('LEFT')
+ local _,_,controls=self:ControllerHelp();local help=text(f,'D-pad: move   '..controls);self.optionHelp=help;help:SetPoint('TOPLEFT',20,-63);help:SetSize(650,28);help:SetJustifyH('LEFT')
  self.optionKey=button(f,'',20,-100,310,function() self.pendingOptions.keyboard=nextChoice(keys,self.pendingOptions.keyboard);self:UpdateOptions(true) end)
  self.optionButton=button(f,'',20,-148,310,function() self.pendingOptions.button=nextChoice(buttons,self.pendingOptions.button);self:UpdateOptions(true) end)
  self.optionModifier=button(f,'',346,-148,324,function()
@@ -111,7 +190,8 @@ function P:BuildOptions()
  self.optionReset=button(f,'Reset defaults',270,-385,190,function()
   local ok,why=self:SaveOpeningBindings('F9','AUTO','NONE');if not ok then self.optionWarning:SetText(why) end
  end)
- self.optionControls={self.optionKey,self.optionButton,self.optionModifier,self.optionSave,self.optionReset,self.optionClose,self.optionVoice}
+ self.optionReload=button(f,'Reload UI',480,-385,190,function() self:RequestOptionsReload() end)
+ self.optionControls={self.optionKey,self.optionButton,self.optionModifier,self.optionSave,self.optionReset,self.optionClose,self.optionVoice,self.optionReload}
  self.optionOwner=self.NewFrame('Frame',nil,nil,'SecureHandlerStateTemplate')
  -- Options panels are deliberately unprotected. Restricted frame handles
  -- cannot Hide them during combat; PLAYER_REGEN_DISABLED handles those panels
@@ -119,12 +199,15 @@ function P:BuildOptions()
  self.optionOwner:SetAttribute('_onstate-combat',[[if newstate=='active' then self:ClearBindings() end]])
  RegisterStateDriver(self.optionOwner,'combat','[combat] active; inactive')
  self.optionActions={}
- for key,action in pairs({PADDUP='up',PADDDOWN='down',PADDLEFT='previous',PADDRIGHT='next',PAD1='activate',PAD2='close'}) do
+ for key,action in pairs({PADDUP='up',PADDDOWN='down',PADDLEFT='left',PADDRIGHT='right',PAD1='activate',PAD2='close'}) do
   local control=self.NewFrame('Button','PadChatOptionAction'..key);control:RegisterForClicks('AnyUp')
   control:SetScript('OnClick',function() self:OptionsAction(action) end);self.optionActions[key]=control
  end
+ f:SetScript('OnUpdate',function()
+  if self.optionsReloadConfirm and GetTime()>self.optionsReloadConfirm then self:UpdateOptions(true) end
+ end)
  f:SetScript('OnHide',function()
-  self.pendingOptions=nil
+  self:CancelOptionsReload();self.pendingOptions=nil
   if not InCombatLockdown() then ClearOverrideBindings(self.optionOwner) end
  end);f:Hide()
 end
@@ -138,20 +221,11 @@ end
 function P:OptionsAction(action)
  if self.voiceOptionsFrame and self.voiceOptionsFrame:IsShown() then self:VoiceOptionsAction(action);return end
  if InCombatLockdown() or not self.pendingOptions or not self.optionsFrame:IsShown() then return end
+ if action~='activate' and self.optionsReloadConfirm then self:UpdateOptions(true) end
  if action=='close' then self.optionsFrame:Hide();return end
- if action=='up' or action=='down' then
-  self.optionIndex=(self.optionIndex-1+(action=='up' and -1 or 1))%#self.optionControls+1
- elseif action=='previous' or action=='next' then
-  local field=self.optionIndex==1 and 'keyboard' or self.optionIndex==2 and 'button' or self.optionIndex==3 and 'modifier'
-  if field then
-   if field=='modifier' and (self.pendingOptions.button=='AUTO' or self.pendingOptions.button=='NONE') then
-    self.optionWarning:SetText('Choose a controller button before adding a held modifier.');return
-   end
-   local choices=field=='keyboard' and keys or field=='button' and buttons or modifiers
-   local index=1;for i,value in ipairs(choices) do if value==self.pendingOptions[field] then index=i end end
-   self.pendingOptions[field]=choices[(index-1+(action=='previous' and -1 or 1))%#choices+1]
-   self:UpdateOptions(true)
-  end
+ if action=='previous' then action='left' elseif action=='next' then action='right' end
+ if action=='up' or action=='down' or action=='left' or action=='right' then
+  self.optionIndex,self.optionNavX=self:NextOptionControl(self.optionControls,self.optionIndex,action,self.optionNavX)
  elseif action=='activate' then
   local control=self.optionControls[self.optionIndex];local fn=control:GetScript('OnClick');if fn then fn(control) end
  end
@@ -159,6 +233,7 @@ function P:OptionsAction(action)
 end
 function P:UpdateOptions(pending)
  if not self.optionsFrame then return end
+ self:CancelOptionsReload()
  if not pending then local s=self.db.bindings;self.pendingOptions={keyboard=s.keyboard,button=s.button,modifier=s.modifier} end
  local s=self.pendingOptions
  self.optionKey.text:SetText('Keyboard: '..s.keyboard)
@@ -170,7 +245,7 @@ end
 function P:ShowOptions()
  if InCombatLockdown() then self:Print('Open Options outside combat.');return end
  if self.conflictingAddon then self:Print('Disable older keyboard add-ons first.');return end
- self:Close();self:BuildOptions();local _,_,help=self:ControllerHelp();self.optionHelp:SetText('D-pad: choose / change   '..help);self:UpdateOptions();self.optionIndex=1;self:HighlightOption();self.optionsFrame:Show()
+ self:Close();self:BuildOptions();local _,_,help=self:ControllerHelp();self.optionHelp:SetText('D-pad: move   '..help);self:UpdateOptions();self.optionIndex=1;self.optionNavX=nil;self:HighlightOption();self.optionsFrame:Show()
  for key,control in pairs(self.optionActions) do SetOverrideBindingClick(self.optionOwner,true,key,control:GetName(),'LeftButton') end
 end
 

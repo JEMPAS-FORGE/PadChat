@@ -10,6 +10,13 @@ partial class VoicePTT {
  [DllImport("user32.dll")] static extern bool ClientToScreen(IntPtr window,ref OverlayPoint point);
  [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr window);
  [DllImport("user32.dll")] static extern bool IsIconic(IntPtr window);
+ [DllImport("user32.dll",SetLastError=true)] static extern bool SetWindowPos(IntPtr window,IntPtr after,int x,int y,int width,int height,uint flags);
+ static void RaiseOwnVoiceOverlay(){
+  // Reassert the OWN overlay's order without activating it or modifying WoW.
+  // TopMost=true alone does not move an existing form over a newer topmost window.
+  if(badge!=null&&!badge.IsDisposed&&badge.Visible)
+   SetWindowPos(badge.Handle,new IntPtr(-1),0,0,0,0,0x0001|0x0002|0x0010|0x0200);
+ }
  static long overlayFollowAt;
  static Rectangle VoiceOverlayBounds(Rectangle client,Rectangle work) {
   Rectangle area=Rectangle.Intersect(client,work);
@@ -17,8 +24,10 @@ partial class VoicePTT {
   if(area.Width<1||area.Height<1)return Rectangle.Empty;
   int margin=Math.Min(12,Math.Max(0,Math.Min(area.Width,area.Height)/4));
   int width=Math.Min(900,Math.Max(1,area.Width-margin*2));
-  int height=Math.Min(160,Math.Max(1,area.Height-margin*2));
+  int height=Math.Min(160+Math.Max(0,appearance.size-16)*8,Math.Max(1,area.Height-margin*2));
   int top=Math.Min(area.Top+Math.Max(margin,Math.Min(55,area.Height/8)),area.Bottom-margin-height);
+  if(appearance.position=="CENTER")top=area.Top+(area.Height-height)/2;
+  else if(appearance.position=="BOTTOM")top=area.Bottom-margin-height;
   return new Rectangle(area.Left+(area.Width-width)/2,top,width,height);
  }
  static bool PositionVoiceOverlay() {
@@ -32,7 +41,7 @@ partial class VoicePTT {
   // physical DWM rectangles with DPI-virtualised WinForms coordinates.
   if(game!=IntPtr.Zero&&GetClientRect(game,out rect)&&ClientToScreen(game,ref origin))
    client=new Rectangle(origin.x,origin.y,Math.Max(0,rect.right-rect.left),Math.Max(0,rect.bottom-rect.top));
-  Rectangle bounds=VoiceOverlayBounds(client,work);
+  ApplyOverlayFont();Rectangle bounds=VoiceOverlayBounds(client,work);
   if(bounds.IsEmpty)return false;
   if(badge.Bounds!=bounds)badge.Bounds=bounds;
   return true;
@@ -40,13 +49,16 @@ partial class VoicePTT {
  static void ShowVoiceOverlay() {
   // Badge.ShowWithoutActivation and WS_EX_NOACTIVATE preserve the game focus.
   // Bounds change only this application's window, never the game or display.
-  try{if(PositionVoiceOverlay())badge.Show();else badge.Hide();}
+  try{if(PositionVoiceOverlay()){badge.SetMicrophoneState(appearance.meter&&(phase=="recording"||phase=="probe"&&!probeResult),phase=="recording"&&overlayMicReady,level,overlayLevelAt,Now);badge.Show();badge.RenderOverlay(Now,true);RaiseOwnVoiceOverlay();}else badge.Hide();}
   catch{try{badge.Hide();}catch{}} // Display failures must not cancel speech.
  }
  static void MaintainVoiceOverlay() {
-  if(badge==null||badge.IsDisposed||!badge.Visible||Now<overlayFollowAt)return;
-  overlayFollowAt=Now+100;
-  try{if(!PositionVoiceOverlay())badge.Hide();}catch{badge.Hide();}
+  if(badge==null||badge.IsDisposed||!badge.Visible)return;
+  try{
+   if(Now>=overlayFollowAt){overlayFollowAt=Now+100;if(!PositionVoiceOverlay()){badge.Hide();return;}RaiseOwnVoiceOverlay();}
+   badge.SetMicrophoneState(appearance.meter&&(phase=="recording"||phase=="probe"&&!probeResult),phase=="recording"&&overlayMicReady,level,overlayLevelAt,Now);
+   badge.RenderOverlay(Now,false);
+  }catch{badge.Hide();} // Display failure never sends or cancels a message.
  }
  static void TestVoiceOverlay() {
   ShowVoiceOverlay(); // No badge exists in self-test: display failure is isolated.

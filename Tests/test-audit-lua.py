@@ -32,11 +32,11 @@ for point in ('prepared','staged','released','expired'):
  before=l.eval('#sent')
  l.execute("widgets.PadChatPTTAbort.scripts.OnClick();assert(not P.directVoiceToken and not P.directVoicePending)")
  for _ in range(3):
-  l.execute("P:PrepareVoiceProbe();assert(P.pttBox:GetText():find('^PCVQ1;'));P:ReadVoiceStatus('PCVS1;'..P.voiceProbeToken..';ready;0;')")
+  l.execute("P:PrepareVoiceProbe();assert(P.pttBox:GetText():find('^PCVQ2;'));P:ReadVoiceStatus('PCVS1;'..P.voiceProbeToken..';ready;0;')")
  assert l.eval('#sent')==before
  # A new probe also supersedes an abandoned token if the abort input was lost.
  scope['prepare']();scope['stage']('/s','never replay')
- l.execute("P:PrepareVoiceProbe();assert(not P.directVoiceToken and not P.directVoicePending and P.pttBox:GetText():find('^PCVQ1;'))")
+ l.execute("P:PrepareVoiceProbe();assert(not P.directVoiceToken and not P.directVoicePending and P.pttBox:GetText():find('^PCVQ2;'))")
  assert l.eval('#sent')==before
  l.execute('P:PTTReleaseFocus()')
 # The intentional release between stage and commit still sends exactly once.

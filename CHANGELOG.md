@@ -1,3 +1,30 @@
+# PadChat 0.2.2 Preview 13 - clearer Options and voice feedback
+
+## Update both parts for voice
+
+[Download PadChat-Setup.exe](https://github.com/JEMPAS-FORGE/PadChat/releases/download/v0.2.2-preview.13/PadChat-Setup.exe) with WoW closed, select the Forever `_forever_` folder containing `Wow.exe`, keep voice typing enabled, and install. Existing settings are preserved. CurseForge updates the addon only; voice users also need this matching Windows installer.
+
+## What changed
+
+- Controls, Voice, Appearance and Help pages with spatial D-pad navigation and visible choice lists.
+- Save / Discard / Stay protects pending settings when closing Options. Reload UI is available under Controls.
+- Transparent voice overlay with a smoothed mic meter and a green READY - SPEAK NOW cue after microphone samples arrive.
+- Overlay text size, position and meter options; optional ready sound is off by default.
+- Listening shows the selected Say, Party, Trade or whisper destination. A destination change during dictation stops sending.
+- Help can retrieve and copy the last failed message from the current companion session. It never automatically resends; uncertain sends are marked so you can check chat first.
+- Faster handoff after a fresh, exact addon acknowledgement; timeout and focus checks remain.
+- Trade channel cycling when that channel is available.
+- Existing launch-folder detection, unused default selection (F10 preferred), saved legacy bindings, and first-run setup checks are retained.
+
+## Verification and limits
+
+The new menu and D-pad were confirmed in-game by one user. The transparent meter/ready-cue foundation was also confirmed in earlier personal tests. Source, input, settings, recovery and matching installer-package checks pass. The new appearance choices, destination display and failed-message recovery are not yet live-verified on another PC. No clean second PC was available. This remains an unsigned preview for WoW Forever 1.60.x, Windows 10/11 x64 and English local speech.
+
+This update keeps the published CPU speech models and recognition defaults; it does not switch everyone to a smaller model or enable GPU processing. Recognition speed and accuracy vary by hardware and speech.
+
+
+---
+
 # 0.2.2-preview.11 - Unused PTT defaults for new players
 
 - Prefer F10 for a fresh keyboard voice shortcut, checking native and addon

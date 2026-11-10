@@ -7,10 +7,11 @@ def method(name):
  while depth:
   depth+=(source[end]=='{')-(source[end]=='}');end+=1
  return source[start:end]
-methods='\n'.join(method(n) for n in ['bool ValidPrefix','bool IsCharacterName','string SpokenInvite','bool TryDestination','string Clean','void BeginDelivery','void AdvanceDelivery','void Cancel'])
+methods='\n'.join(method(n) for n in ['bool ValidPrefix','bool IsCharacterName','string SpokenInvite','bool TryDestination','string Clean','void BeginDelivery','void AdvanceDelivery','void Cancel','void ReleaseOwnedVoiceTransport'])
 harness=r'''
 using System;using System.Collections.Generic;using System.Text;using System.Text.RegularExpressions;
 partial class VoicePTT {
+ static bool sendAttempted;static string recognizedForRecovery,recordingCommand;static uint deliveryCopySequence;static uint GetClipboardSequenceNumber(){return 1;}static void RetainUnsent(bool uncertain){}
  static int stage,sid=7,modifiers,sends,opens,enters,toggles;static long Now,deadline;
  static string text,command,label,line,oldClip,marker,inviteName,phase,edit,ready,body,result;
  static bool released,characterInvite,sameGame,focused,bad,apiError,dropAck,ui;

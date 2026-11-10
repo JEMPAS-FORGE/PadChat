@@ -1,82 +1,13 @@
 from pathlib import Path
-
-import json,runpy
-
-ROOT=Path(__file__).resolve().parent
-
-CHECK=ROOT/"Tests"
-
+import os,subprocess,json,sys
+r=Path(__file__).resolve().parent
+env=dict(os.environ,PYTHONUTF8='1')
+names=['test-padchat.py','test-runtime.py','test-options.py','test-invites.py','test-voice-options.py','test-voice-setup.py','test-speech-recovery.py','test-support-setup.py','test-direct-addon.py','test-direct-delivery.py','test-input-recovery.py','test-audit-lua.py','test-audit-native.py','test-audit-installer.py','test-worker-protocol.py','test-forever-launch.py','test-unused-default.py','test-fresh-keyboard-policy.py','test-options-experience.py','test-native-experience.py','test-experience.py']
 results=[]
-
-for name in ('test-padchat.py','test-runtime.py','test-options.py','test-invites.py','test-voice-options.py','test-voice-setup.py','test-speech-recovery.py','test-support-setup.py','test-direct-addon.py','test-direct-delivery.py','test-input-recovery.py','test-audit-lua.py','test-audit-native.py','test-audit-installer.py','test-worker-protocol.py','test-forever-launch.py','test-unused-default.py','test-fresh-keyboard-policy.py'):
-
- print('Running',name,flush=True)
-
- runpy.run_path(str(CHECK/name));results.append({'name':name,'passed':True})
-
-l=runpy.run_path(str(CHECK/'test-runtime.py'))['l']
-
-l.execute('''
-
-combat=false;focus=nil;P:SetText('');P:Close();P.db.controllerSetupSeen=nil
-
-C_GamePad={GetAllDeviceIDs=function() return {1} end,GetDeviceRawState=function() return {vendorID=1118,productID=654} end}
-
-P.db.bindings={keyboard='F9',button='AUTO',modifier='NONE'}
-
-P:ControllerOnboarding();assert(P.optionsFrame:IsShown() and P.db.controllerSetupSeen)
-
-P:OptionsAction('down');P:OptionsAction('next')
-
-P.optionsFrame:Hide();P:ControllerOnboarding();assert(not P.optionsFrame:IsShown())
-
--- Custom choices and native touchpad opening are not replaced.
-
-P.db.bindings.button='PADLSTICK';P.db.controllerSetupSeen=nil;P:ControllerOnboarding();assert(not P.optionsFrame:IsShown())
-
-C_GamePad.GetDeviceRawState=function() return {vendorID=1356} end
-
-P.db.bindings.button='AUTO';P:ControllerOnboarding();assert(not P.optionsFrame:IsShown() and P:ControllerOpenBinding()=='PADBACK')
-
-for _,size in ipairs({{640,360},{800,450},{1280,720},{1920,1080}}) do
-
- for _,panel in ipairs({{780,480},{690,445},{740,750}}) do
-
-  local scale=P.PanelFit(panel[1],panel[2],size[1],size[2])
-
-  assert(panel[1]*scale<=size[1]-24+.001 and panel[2]*scale<=size[2]-24+.001)
-
- end
-
-end
-
--- Status accepted only for the outstanding addon-owned request.
-
-P:ShowVoiceOptions();P:PrepareVoiceProbe();local token=P.voiceProbeToken
-
-assert(P.pttBox:GetText():find(';TEST$'))
-
-P:ReadVoiceStatus('PCVS1;999;ready;20;');assert(focus==P.pttBox)
-
-P:ReadVoiceStatus('PCVS1;'..token..';test;140;hello%20world')
-
-assert(not focus and not P.pttBox:IsShown() and P.voiceInfo:GetText():find('100%%') and P.voiceInfo:GetText():find('nothing sent'))
-
-local before=#sent;P:PrepareVoiceProbe();P:ReadVoiceStatus('PCVS1;'..P.voiceProbeToken..';test;20;hello%7Cbad');assert(#sent==before)
-
-P:PTTReleaseFocus();P.voiceOptionsFrame:Hide()
-
-local external=CreateFrame('EditBox');external:SetText('private draft');external:SetFocus();P:PrepareVoiceProbe();assert(focus==external and external:GetText()=='private draft');external:ClearFocus()
-
-P:PrepareVoiceProbe();assert(P.pttBox:GetText():find(';NORMAL$'));P:PTTReleaseFocus()
-
-P:ShowVoiceOptions();P.pendingVoice.review=true;assert(P:SaveVoiceOptions(P.pendingVoice));assert(P.db.voiceSettingsWire:find('^PCV3;') and P.db.voiceSettingsWire:find(';1;$'))
-
-''')
-
-results.append({'name':'responsive panels, controller onboarding, status ownership, test non-delivery, review settings','passed':True})
-
-(ROOT/'TEST-REPORT.json').write_text(json.dumps(results,indent=2))
-
-print('All exact candidate addon and improvements tests passed.')
-
+for name in names:
+ p=subprocess.run([sys.executable,str(r/'Tests'/name)],env=env,capture_output=True,text=True,timeout=150)
+ results.append({'name':name,'passed':p.returncode==0,'output':p.stdout,'error':p.stderr})
+ (r/'SOURCE-TEST-RESULTS.json').write_text(json.dumps(results,indent=2),encoding='utf-8')
+ print(name, 'PASS' if not p.returncode else 'FAIL: '+(p.stderr or p.stdout)[-350:],flush=True)
+print('Passed',sum(x['passed'] for x in results),'/',len(results))
+sys.exit(0 if all(x['passed'] for x in results) else 1)

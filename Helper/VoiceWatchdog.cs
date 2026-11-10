@@ -50,6 +50,7 @@ partial class VoicePTT {
    return !data.ContainsKey("error")||MessageString(data,"error",32000);
   }
   if(!MessageInteger(data,"id",0,int.MaxValue))return false;
+  if(kind=="listening")return true;
   if(kind=="level")return MessageInteger(data,"level",0,100);
   if(kind=="result"||kind=="partial")return MessageString(data,"text",32000);
   if(kind=="error")return MessageString(data,"message",32000)&&(!data.ContainsKey("microphone")||data["microphone"] is bool);
@@ -80,7 +81,7 @@ partial class VoicePTT {
  static void InvalidateSpeechSession(){
   // Invalidate first, even if clipboard cleanup or a broken process pipe throws.
   speechDeadlines.CancelProcessing();sid++;phase="idle";stage=0;released=false;
-  probeStage=0;pendingTestWords="";text=preview=line=inviteName="";
+  probeStage=0;pendingTestWords="";text=preview=line=inviteName="";recognizedForRecovery="";sendAttempted=false;
  }
  static bool CancellableVoicePhase(string state){return state=="recording"||state=="processing"||state=="result"||state=="review";}
  static void EnforceSpeechDeadline(){

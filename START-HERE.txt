@@ -1,226 +1,71 @@
-NEW IN PREVIEW 11
-New keyboard PTT prefers F10. PadChat checks your game/addon bindings and
-chooses an unused fallback if needed; it never steals an occupied key as a
-fresh default. If all candidates are used, voice stays Off until you choose.
-Existing saved keyboard/mouse controls are preserved. Finish /padchat voice
-setup and Save & reload UI; a fresh companion waits for this saved choice.
+PadChat - installation and voice setup
 
-UPDATE TO PREVIEW 11
-Setup now detects _forever_\Wow.exe and updates both the addon and Windows voice companion. Close WoW before updating. Microphone, PTT and other saved preferences are preserved.
+PadChat is a controller chat keyboard for WoW Forever with optional free, offline voice typing for keyboard, mouse and controller players.
 
-PadChat 0.2.2 Preview 11 — WoW Forever 1.60.1 / Interface 16001
+Current release: 0.2.2-preview.13. Forever 1.60.x; Windows 10/11 x64; English voice.
 
-Windows voice companion: Windows 10/11 x64, English, local recognition.
+Choose your download
 
-INSTALL BOTH PARTS
+- For voice: Download PadChat-Setup.exe: https://github.com/JEMPAS-FORGE/PadChat/releases/download/v0.2.2-preview.13/PadChat-Setup.exe. It includes the addon, Windows companion and speech models. No Python install, API key, ChatGPT subscription or paid speech service is needed.
+- Complete ZIP: Preview 13 downloads: https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.13. Extract All, then run PadChat-Setup.exe.
+- Addon only: CurseForge: https://www.curseforge.com/wow/addons/padchat. This does not install or update the Windows voice companion.
+- Printable tutorial: Installation guide: https://github.com/JEMPAS-FORGE/PadChat/blob/main/docs/PadChat-Installation-Guide.pdf.
+- Future releases: https://github.com/JEMPAS-FORGE/PadChat/releases and bug reports: https://github.com/JEMPAS-FORGE/PadChat/issues.
 
-NEW IN PREVIEW 6
-The voice test names your saved PTT buttons. Pending choices are labelled
-separately. Previous setup step goes back without changing settings.
-Connection errors explain when recording has not started. A Windows
-speech-engine startup failure has also been corrected.
+Install or update
 
-RETAINED SPEECH RECOVERY
-Escape cancels recording, processing, pending results or review in foreground
-WoW. A speech worker stuck loading/processing for two minutes is restarted and
-the affected message discarded. Release PTT and press again when ready; nothing
-resumes or sends automatically. Saved mic/bindings remain. Slow PCs may need
-shorter phrases. Waiting for optional review does not expire at this deadline.
+1. Close WoW before installing, updating or repairing.
+2. Run PadChat-Setup.exe. If using the ZIP, extract it first.
+3. Select the Forever client folder containing Wow.exe, usually C:\Program Files (x86)\World of Warcraft\_forever_ or E:\World of Warcraft\_forever_.
+4. Keep Install voice typing checked for speech. Choose whether the companion should start when you sign in to Windows, then install.
+5. Choose your microphone in the companion window, save, and close that window. PTT pauses while Windows microphone/binding configuration windows are open.
+6. Start WoW and enable PadChat at character selection. Disable older ControllerKeyboard addons and use one voice helper.
 
-1. Close WoW. Run PadChat-Setup.exe. Choose the Forever client folder containing
+Do not select Interface\AddOns or a new folder named Padchat. Shared Data may remain in the parent World of Warcraft folder. Version-checked legacy Forever folders containing WowB.exe remain supported; setup prefers the launch folder when migrating an old beta installation. Retail and other Classic clients are not supported.
 
-   Wow.exe (the shared Data folder may be in its parent) (usually World of Warcraft\_forever_).
+For manual addon-only installation, the result must be _forever_\Interface\AddOns\PadChat\PadChat.toc, without another nested PadChat folder. For voice, install both parts from the same release. Updating through CurseForge alone does not update the Windows companion. Updates preserve saved settings and other addons.
 
-   An arbitrary E:\Padchat folder is not a WoW game folder.
+Set up inside WoW
 
-2. Keep Install voice typing enabled if you want speech. Choose whether the
+Open PadChat's controller/chat-bubble minimap button. Keyboard users can also use /padchat voice.
 
-   companion starts when you sign in to Windows, then Install.
+- Controls: choose the on-screen keyboard opening key, controller button and optional held modifier. Native PlayStation touchpad click can open it; F9 is optional. Other controller identities receive an opening-control setup panel.
+- Voice: choose Voice On, microphone, saved PTT, controller button/modifier, startup preference and send-on-release or review-first mode. Click Bind push-to-talk, then press a keyboard key or middle/side mouse button. New users prefer F10 or another unused key; use the key actually shown in Options. Existing F8/custom bindings are preserved.
+- Appearance: text size, top/centre/bottom position, mic meter and optional ready sound. The sound defaults to Off. These changes preserve recognition settings and do not restart the model when voice settings are unchanged.
+- Help: safe microphone/PTT test, restart voice, failed-message recovery and optional WoW word/name hints. Guided setup is on this page.
 
-3. Select a microphone Windows detects on the gaming PC. Start WoW and enable
+D-pad directions follow the visible button layout. X/A selects and Circle/B goes back. Choice lists show the current value with *; up/down chooses, left/right pages, X/A accepts and Circle/B cancels. Mouse and controller share the same selection.
 
-   PadChat. Disable older ControllerKeyboard addons and old voice helpers.
+Page switches preserve pending edits. Save & reload UI applies them when safe. Closing with edits offers Save, Discard or Stay. A fresh companion waits for a saved keyboard/mouse PTT choice. Binding-conflict notices help avoid occupying a game action. Finish dictation before saving or reloading. Controls also includes Reload UI.
 
-4. Click PadChat's controller/chat-bubble minimap icon to open Options.
+Test without sending
 
-ADDON ONLY
+1. Keep Options open, select Help > Test saved PTT / microphone, and close other chat/search boxes.
+2. Hold your saved PTT, wait for green READY - SPEAK NOW, speak briefly, then release.
+3. The test displays recognized text without sending chat or invitations. Test controller and keyboard/mouse inputs separately.
 
-The CurseForge ZIP installs the keyboard and in-game Options, not the Windows
+The ready cue means microphone samples have arrived, including silence. The meter shows signal level, not recognition accuracy. A connection error before recording does not establish a microphone fault.
 
-speech engine. Download the matching PadChat-Setup.exe from:
+Dictate normally
 
-https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.11
+Close Options and keep WoW selected. Tap PTT to cycle channel. Hold PTT, wait for the green cue, speak, then release to send. Default controller voice is Share / Create / Back; a held modifier is optional. The overlay shows the destination, including Trade when available. Check the destination before speaking. Losing focus or changing destination during dictation cancels sending.
 
-KEYBOARD AND CONTROLLER
+Review-first mode waits for another PTT press after recognition before sending. Escape or Circle/B cancels. WoW word/name hints can help but do not guarantee recognition. Spoken invite commands remain subject to destination and name checks.
 
-F9 or /padchat opens/closes the keyboard. Native PlayStation touchpad click
+If voice or sending fails
 
-opens it too. Finger sliding is not supported. Other controller identities get
+- Check Voice On, saved PTT and microphone. Close the Windows configuration windows and return focus to WoW.
+- When safe, Help > Restart voice + reload UI restarts the companion. The Windows tray also has Restart voice. If it is closed, open PadChat Voice from the Start menu.
+- Release PTT fully before retrying. Reconnect the saved headset; selecting a different microphone requires saving the new choice.
+- Help > Copy last failed message asks for one PTT hold to retrieve it without recording. The companion copies it to the Windows clipboard; Use as draft opens it for editing without sending. The tray also has a copy action. Recovery lasts only in this companion session. An uncertain send may already be in chat: check first. There is no automatic resend or transcript file.
+- If needed, close WoW and rerun the matching installer with voice enabled to repair.
 
-a first-use Options panel you can navigate with D-pad and A/X. Choose an opening
+Privacy, compatibility and testing
 
-button (for example R3) and an optional held trigger. Hold the modifier first.
+Speech is processed locally. No audio recordings or transcript history are written by normal operation; temporary failed-message recovery is memory-only. Diagnostics may record technical status. No personal streaming setup is required.
 
-Save opening controls. Share/Create/Back is reserved for voice by default.
+The published CPU models/defaults are retained; this release does not switch everyone to a smaller model or enable GPU speech. Speed/accuracy depend on the PC, microphone and speech.
 
-Choose a combination that does not overlap your combat actions.
+Forever interface 16001 and source build 1.60.1.70862 were reviewed. This is an unsigned preview. The new menu and D-pad were user-confirmed in game; matching automated source, helper and installer checks pass. New appearance settings, destination display and failed-message recovery still need broader live testing. A clean second PC was unavailable. Do not treat automated checks as proof of every controller or protected gameplay scenario.
 
-Inside Options, D-pad changes/selects, A/X activates, B/Circle closes.
-
-The keyboard has selectable Options and Close keys; Escape also keeps the draft.
-
-VOICE SETTINGS IN THE GAME
-
-Choose Guided setup for the four steps: select a microphone, bind PTT, save
-
-and reload, then speak a safe test phrase with the Voice panel still open.
-
-Setup resumes after reload. Nothing is sent during the test.
-
-Click the minimap icon > Voice settings, or type /padchat voice.
-
-Click Bind push-to-talk, then press your preferred key or middle/side mouse
-
-button. Ctrl/Alt/Shift modifiers are supported. Controller voice button and held
-
-trigger/shoulder are separate choices. Select Microphone to cycle Windows inputs
-
-reported by WoW; Refresh lists hotplug changes. "Keep current" preserves the
-
-companion's existing input. A missing/ambiguous input is refused.
-
-Save & reload UI applies voice choices through WoW's SavedVariables. Do this
-
-somewhere safe. Pending edits are not the active shortcut until saved and applied.
-
-BINDING WARNINGS AND WOW WORDS
-
-A binding already used by WoW (such as F8 for a bag) shows the existing action.
-
-Choose a different shortcut, or explicitly accept the conflict before saving.
-
-Controller primary buttons are reserved even with a held trigger. Saved WoW
-
-bindings are not rewritten. Closing Options discards pending edits/acceptance.
-
-WoW words / names lets you type optional comma-separated recognition hints.
-
-Use up to 32 terms, 600 UTF-8 bytes total / 60 bytes per term. Put the most important names first: the decoder uses a short bounded hint list.
-
-These are local hints, not automatic substitutions or invite commands; accuracy can still vary.
-
-Save & reload applies hints. Clear them to use only the built-in WoW vocabulary.
-
-TEST VOICE WITHOUT SENDING
-
-Open Voice settings, click Test saved PTT / microphone (nothing sent), then hold your
-
-CURRENT saved PTT shortcut while this panel stays open. Speak and release.
-
-The companion reports ready/loading, shows the level/recognised words, and does
-
-not submit chat or invitations. Closing the panel during a test still prevents
-
-that test from being sent. If nothing responds, start PadChat Voice from Windows
-
-Start, check the saved shortcut and microphone permissions, then try again.
-
-The in-game status reflects the last acknowledged check, not a permanent promise
-
-that the companion is still running. Tests are foreground-only.
-
-SEND A MESSAGE
-
-Outside Voice settings, tap your voice shortcut to cycle channels; hold to speak
-
-and release to send. New setups prefer an unused F10 or another free key shown in Options. Existing saved keys stay unchanged. Controller: PlayStation Create/Share, Xbox Back/View.
-
-Select Say for your first real message. Say/Yell/General/Party/Raid/Guild and
-
-available whisper reply targets are supported. Offline/ambiguous invites are
-
-guarded; use the friend list if recognition mishears a name.
-
-OPTIONAL REVIEW
-
-In Voice settings change Send to "review, then press PTT again", Save & reload.
-
-After dictating, inspect the preview, then press PTT again to send.
-
-Escape or controller B/Circle cancels. Focus loss/disconnect also cancels.
-
-Automatic release-to-send remains the default and existing choice is preserved.
-
-RECONNECT A MICROPHONE OR CONTROLLER
-
-Interrupted audio or controller identity changes cancel affected speech; stale
-
-messages are discarded. Microphone errors refresh the speech helper; reconnect
-
-the same saved microphone, release PTT and press again. Missing/ambiguous inputs
-
-never silently switch to another microphone. If still missing, Refresh and select
-
-the input again in Voice settings. Keyboard PTT remains independent of controller
-
-reconnection. Only a fresh press begins another message.
-
-REPAIR / PRIVACY / LIMITS
-
-Close WoW and rerun Setup for update/repair. Microphone, voice preferences,
-
-learned words and other addons are preserved. Malformed discovery metadata is
-
-skipped rather than closing Setup; use Browse if automatic discovery is empty.
-
-Recognition runs locally: no API key, model download or paid speech account.
-
-No recordings or recognition history are written by the microphone test. The
-
-companion uses/restores the clipboard only for bounded addon-owned handshakes
-
-and normal native chat delivery. Game sound is independent of PadChat.
-
-This is an unsigned preview. Automated checks pass; live 70374 acceptance and a
-
-separate clean PC still need verification. No other WoW client support claimed.
-
-VOICE SETUP FEEDBACK / NEED HELP?
-
-The Saved in WoW box names your saved keyboard/mouse and controller PTT.
-Buttons above it are pending edits until Save & reload UI. Test uses the saved
-controls. The applied notice in the Windows overlay shows the companion's
-shortcut after it reads settings. Saved choices alone do not prove that happened.
-
-Close the Windows companion microphone/binding windows after saving, then return
-to WoW. Leave the in-game Voice panel open for a test which sends nothing.
-Previous setup step returns through the guide without rewriting settings.
-
-PC-VOICE-BRIDGE means the addon connection check failed before mic recording.
-It is not evidence of a broken microphone. Close active chat/search/editing or
-binding capture; use matching addon/companion and retry. If it persists, report
-the displayed state, whether keyboard/mouse or controller PTT was used, and
-controller model/connection at https://github.com/JEMPAS-FORGE/PadChat/issues.
-You can attach screenshots or short video to an issue, hiding names/private chat.
-
-Mic level is shown during an acknowledged recording test; an idle or last-check
-level is not a live meter. Working in WoW voice chat does not certify the input
-is selected or available to the separate PadChat companion.
-
-## If PTT stops responding (Preview 11)
-
-Release PTT and press again if PadChat reports an input refresh. The listener
-can repair a lost hook without reloading the speech model. It never resumes
-recording automatically.
-
-For manual recovery in WoW, open PadChat Options > Voice settings and choose
-**Restart voice + reload UI**. Read the warning and confirm within 8 seconds
-when safe, outside combat. This cancels unfinished dictation, discards unsaved
-option edits, keeps saved settings, and reloads only the UI. The already-running
-Windows companion reads the one-use request. Wait for its model to load, then
-release and press PTT again. This button cannot launch a stopped Windows app.
-
-You can also right-click PadChat beside the Windows clock and choose
-**Restart voice (discard unfinished dictation)**. If the companion is closed,
-open **PadChat Voice** from Windows Start. If it remains unresponsive, close
-WoW and rerun the matching installer to repair both parts.
+For support, include both versions, controller model/USB or Bluetooth, saved PTT, microphone and exact failed step. Hide character names and private chat in screenshots. Report an issue: https://github.com/JEMPAS-FORGE/PadChat/issues.

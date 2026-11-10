@@ -46,8 +46,9 @@ state.buttons[9]=true;state.buttons[14]=true;P:PollOpeningChord(.04);assert(P.op
 P:ShowOptions();assert(not P.open and P.optionsFrame:IsShown() and P:GetText()=='retained draft')
 assert(bindings.PAD1.name=='PadChatOptionActionPAD1' and bindings.PAD2.name=='PadChatOptionActionPAD2')
 local original=P.pendingOptions.keyboard
-P.optionActions.PADDRIGHT.scripts.OnClick();assert(P.pendingOptions.keyboard~=original)
-P.optionActions.PADDLEFT.scripts.OnClick();assert(P.pendingOptions.keyboard==original)
+P.optionActions.PADDRIGHT.scripts.OnClick();assert(P.pendingOptions.keyboard==original and P.optionIndex==1)
+P.optionActions.PADDLEFT.scripts.OnClick();assert(P.pendingOptions.keyboard==original and P.optionIndex==1)
+P.optionActions.PAD1.scripts.OnClick();assert(P.pendingOptions.keyboard~=original)
 P.optionActions.PADDDOWN.scripts.OnClick();assert(P.optionIndex==2)
 P.optionActions.PAD1.scripts.OnClick();assert(P.pendingOptions.button~='PADSOCIAL')
 P.optionActions.PAD2.scripts.OnClick();assert(not P.optionsFrame:IsShown() and not bindings.PAD1 and not bindings.PAD2)

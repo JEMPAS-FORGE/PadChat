@@ -130,7 +130,7 @@ end
 local function button(f,value,x,y,w,fn)
  local b=P.NewFrame('Button',nil,f);b:SetSize(w,36);b:SetPoint('TOPLEFT',x,y)
  local bg=b:CreateTexture(nil,'BACKGROUND');bg:SetAllPoints();bg:SetColorTexture(.30,.22,.12,1);b.fill=bg
- b.text=label(b,value,8,-4,w-16,28);b:SetScript('OnClick',fn);return b
+ b.text=label(b,value,8,-4,w-16,28);P:ConfigureOptionControl(b,x,y,w,fn);return b
 end
 function P:VoiceCaptureKey(key)
  if not self.voiceCapture then return end
@@ -167,16 +167,19 @@ function P:UpdateVoiceOptions()
  self.voicePadMod.text:SetText('Hold first: '..padNames[s.padMod])
  self.voiceReview.text:SetText('Send: '..(s.review and 'review, then press PTT again' or 'automatically on release'))
  self:UpdateSavedVoiceSummary()
- for i,c in ipairs(self.voiceControls) do local on=i==self.voiceIndex;c.fill:SetColorTexture(on and 1 or .30,on and .76 or .22,on and .23 or .12,1) end
+ for i,c in ipairs(self.voiceControls) do local on=i==self.voiceIndex;c.fill:SetColorTexture(on and 1 or .30,on and .76 or .22,on and .23 or .12,1);c.text:SetTextColor(on and .12 or 1,on and .06 or .89,on and .01 or .66) end
 end
 function P:VoiceOptionsAction(action)
  if InCombatLockdown() or not self.pendingVoice then return end
  if self.voiceWordsEditing then if action=='close' then self:EndVoiceWords(false) end return end
  if self.voiceCapture then if action=='close' then self:EndVoiceCapture('Binding cancelled.') end return end
  if action=='close' then self.voiceOptionsFrame:Hide();self:ShowOptions();return end
- if action=='up' or action=='down' then self.voiceIndex=(self.voiceIndex-1+(action=='up' and -1 or 1))%#self.voiceControls+1
- elseif action=='activate' or action=='previous' or action=='next' then
-  local c=self.voiceControls[self.voiceIndex];local fn=c:GetScript('OnClick');if fn then fn(c,action=='previous' and -1 or 1) end
+ if action=='previous' then action='left' elseif action=='next' then action='right' end
+ if action=='up' or action=='down' or action=='left' or action=='right' then
+  self:CancelVoiceOptionConfirmation()
+  self.voiceIndex,self.voiceNavX=self:NextOptionControl(self.voiceControls,self.voiceIndex,action,self.voiceNavX)
+ elseif action=='activate' then
+  local c=self.voiceControls[self.voiceIndex];local fn=c:GetScript('OnClick');if fn then fn(c,1) end
  end
  self:UpdateVoiceOptions()
 end
@@ -187,7 +190,7 @@ function P:BuildVoiceOptions()
  local bg=f:CreateTexture(nil,'BACKGROUND');bg:SetAllPoints();bg:SetTexture('Interface\\DialogFrame\\UI-DialogBox-Background');bg:SetAlpha(.98)
  table.insert(UISpecialFrames,'PadChatVoiceOptions')
  label(f,'PadChat Voice',20,-20,300,32,24)
- local _,_,controls=self:ControllerHelp();self.voiceHelp=label(f,'D-pad: choose / change   '..controls,20,-64,700,25)
+ local _,_,controls=self:ControllerHelp();self.voiceHelp=label(f,'D-pad: move   '..controls,20,-64,700,25)
  self.voiceKey=button(f,'',20,-102,700,function() self:BeginVoiceCapture() end)
  self.voiceMic=button(f,'',20,-150,700,function(_,delta)
   local list=self:GetVoiceMicrophones();table.insert(list,1,'')
@@ -226,7 +229,7 @@ function P:BuildVoiceOptions()
 end
 function P:ShowVoiceOptions()
  if InCombatLockdown() then return end
- self:BuildOptions();self:BuildVoiceOptions();self.optionsFrame:Hide();self.pendingVoice=copy(self.db.voiceOptions);self.voiceConflictAccepted=nil;self.voiceSave.text:SetText("Save & reload UI");self.voiceRestart.text:SetText("Restart voice + reload UI");self.voiceIndex=1;self:UpdateVoiceOptions();local _,_,help=self:ControllerHelp();self.voiceHelp:SetText('D-pad: choose / change   '..help);self.voiceInfo:SetText(self.voiceCompanionStatus or 'Companion status not checked. Hold your saved PTT here to test without sending. Save & reload applies changed settings.');self.voiceOptionsFrame:Show();if self.db.voiceGuideStep then self.voiceGuide.text:SetText('Setup '..self.db.voiceGuideStep..'/4: next');self.voiceInfo:SetText(self:VoiceGuideText()) end
+ self:BuildOptions();self:BuildVoiceOptions();self.optionsFrame:Hide();self.pendingVoice=copy(self.db.voiceOptions);self.voiceConflictAccepted=nil;self.voiceSave.text:SetText("Save & reload UI");self.voiceRestart.text:SetText("Restart voice + reload UI");self.voiceIndex=1;self.voiceNavX=nil;self:UpdateVoiceOptions();local _,_,help=self:ControllerHelp();self.voiceHelp:SetText('D-pad: move   '..help);self.voiceInfo:SetText(self.voiceCompanionStatus or 'Companion status not checked. Hold your saved PTT here to test without sending. Save & reload applies changed settings.');self.voiceOptionsFrame:Show();if self.db.voiceGuideStep then self.voiceGuide.text:SetText('Setup '..self.db.voiceGuideStep..'/4: next');self.voiceInfo:SetText(self:VoiceGuideText()) end
  for key,control in pairs(self.optionActions) do SetOverrideBindingClick(self.optionOwner,true,key,control:GetName(),'LeftButton') end
 end
 local voiceOwner=P.NewFrame('Frame')

@@ -65,10 +65,12 @@ partial class VoicePTT {
    if(candidate==null||candidate==watchedSettingsFile&&newest==watchedSettingsStamp)return;
    // The most recently saved account is the active one after Save & reload.
    string wire=ReadGameSettingsRecord(candidate);
+   ReadGameAppearance(candidate);
    watchedSettingsFile=candidate;watchedSettingsStamp=newest;
    if(ConsumeGameRecovery(candidate))return;
    if(wire==null)return;
    var settings=ParseGameSettings(wire);
+   if(VoiceSettingsAlreadyApplied(settings))return;
    StopMicrophoneEnumeration(true); // Every newer request revokes older device replies.
    if(phase!="idle")Cancel("Message cancelled while applying in-game voice settings");
    heldAt=0;pressSource="";keyboardHeld=false;latched=true;

@@ -88,6 +88,8 @@ partial class VoicePTT {
   menu.Items.Add("Bind push-to-talk...",null,(s,e)=>ShowVoiceBindings());
   menu.Items.Add("Restart voice (discard unfinished dictation)",null,(s,e)=>RestartVoiceNow());
   menu.Items.Add("Choose microphone...",null,(s,e)=>ShowMicrophones());
+  recoveryCopy=(ToolStripMenuItem)menu.Items.Add("Copy last failed message (no resend)",null,(s,e)=>CopyFailedMessage());
+  menu.Opening+=(s,e)=>{recoveryCopy.Enabled=recoveryText.Length>0;};
   menu.Items.Add("Help / supported connections",null,(s,e)=>Process.Start(Path.Combine(voiceRoot,"START-HERE.txt")));
   menu.Items.Add("Exit PadChat voice",null,(s,e)=>Application.Exit());
   microphoneTray=new NotifyIcon{Icon=SystemIcons.Application,Text="PadChat voice",ContextMenuStrip=menu,Visible=true};

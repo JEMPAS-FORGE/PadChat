@@ -38,7 +38,7 @@ partial class VoicePTT {
  static string DirectVoiceAck(){return "PCVD_ACK1:"+directVoiceToken+";"+directVoiceId+";";}
  static bool DirectModifiersHeld(){return CurrentShortcutModifiers()!=0||GetAsyncKeyState(0x5B)<0||GetAsyncKeyState(0x5C)<0||GetAsyncKeyState(0x0D)<0;}
  static void AdvanceDirectVoice(){
-  if(stage==20){Keys(0x11,0x41);Keys(0x11,0x43);stage=21;deadline=Now+140;return;}
+  if(stage==20){deliveryCopySequence=GetClipboardSequenceNumber();Keys(0x11,0x41);Keys(0x11,0x43);stage=21;deadline=Now+140;return;}
   if(stage==21){
    if(Clip()!=DirectVoiceAck()+"READY"){Cancel("Not sent: direct chat handoff could not be verified");return;}
    if(DirectModifiersHeld()){Cancel("Not sent: release modifier/Enter keys before voice sending");return;}
@@ -46,18 +46,19 @@ partial class VoicePTT {
   }
   if(stage==22){
    if(DirectModifiersHeld()){Cancel("Not sent: release modifier/Enter keys before voice sending");return;}
-   Bridge(0x70);stage=23;deadline=Now+160;return;
+   sendAttempted=true;Bridge(0x70);stage=23;deadline=Now+160;return;
   }
-  if(stage==23){Keys(0x11,0x41);Keys(0x11,0x43);stage=24;deadline=Now+140;return;}
+  if(stage==23){deliveryCopySequence=GetClipboardSequenceNumber();Keys(0x11,0x41);Keys(0x11,0x43);stage=24;deadline=Now+140;return;}
   if(stage==24){
    string ack=Clip();Bridge(0x7A);
    var match=Regex.Match(ack,@"\A"+Regex.Escape(DirectVoiceAck())+@"(ISSUED|ERROR|REFUSED);([01])\z");
    directVoiceUIFocus=match.Success&&match.Groups[2].Value=="1";directVoiceCopiedAck=match.Success?ack:null;
    if(match.Success&&match.Groups[1].Value=="ISSUED"){
-    directVoiceResult="direct-send-issued";Status("Send requested to "+label+": "+text,4500);
+    directVoiceResult="direct-send-issued";recognizedForRecovery="";Status("Send requested to "+label+": "+text,4500);
    }else{
     directVoiceResult=match.Success&&match.Groups[1].Value=="ERROR"?"direct-api-rejected":match.Success&&match.Groups[1].Value=="REFUSED"?"direct-send-refused":"direct-ack-missing";
-    Status("Direct send was not confirmed. It has not been retried; check chat before trying again.",6000);
+    RetainUnsent(!match.Success||match.Groups[1].Value!="REFUSED");recognizedForRecovery="";
+    Status("Send was not confirmed; nothing retried. Message is available under Help > Copy last failed message. Check chat first.",6500);
    }
    stage=25;deadline=Now+100;return;
   }
