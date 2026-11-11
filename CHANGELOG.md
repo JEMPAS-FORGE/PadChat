@@ -1,3 +1,10 @@
+## 0.2.2-preview.15 - voice readiness while moving
+
+- Fixes a reproduced cause of intermittent PC-VOICE-BRIDGE errors when starting dictation while holding movement keys.
+- Keeps PadChat's hidden readiness query intact if repeated W/A/S/D or other typed input reaches it before the companion reads the reply.
+- Still accepts valid companion status, microphone-test and recovery replies; releases its hidden focus and query state on cleanup.
+- Preserves ordinary chat/search drafts, expiry checks, saved controls, speech models and Preview 14 startup/crash recovery.
+
 ## 0.2.2-preview.14 - companion startup reliability
 
 - Added a lightweight launcher that waits for the installed Forever client and starts the matching companion.

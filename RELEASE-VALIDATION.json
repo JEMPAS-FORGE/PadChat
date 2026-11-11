@@ -1,9 +1,9 @@
 {
-  "version": "0.2.2-preview.14",
+  "version": "0.2.2-preview.15",
   "releaseAllowed": true,
-  "checkedAt": "2026-11-11T10:41:45.456663+00:00",
-  "sourceSuites": 23,
-  "packageChecks": 13,
+  "checkedAt": "2026-11-11T22:19:01.353551+00:00",
+  "sourceSuites": 24,
+  "packageChecks": 14,
   "sourceTests": [
     "test-padchat.py",
     "test-runtime.py",
@@ -18,6 +18,7 @@
     "test-input-recovery.py",
     "test-audit-lua.py",
     "test-audit-native.py",
+    "test-audit-installer.py",
     "test-worker-protocol.py",
     "test-forever-launch.py",
     "test-unused-default.py",
@@ -26,8 +27,8 @@
     "test-native-experience.py",
     "test-experience.py",
     "test-startup.py",
-    "test-audit-installer.py",
-    "test-startup-migration.py"
+    "test-startup-migration.py",
+    "test-probe-movement.py"
   ],
   "packageTests": [
     "shipping companion self-test",
@@ -42,7 +43,8 @@
     "bundled speech content: Thunder Bluff, Wailing Caverns",
     "bundled speech content: Friendly-Realm, Friendly Two, Friendly Three, Friendly Four",
     "bundled WoW vocabulary sample",
-    "embedded payload/source/addon/installer bundle consistency"
+    "embedded payload/source/addon/installer bundle consistency",
+    "shipping addon readiness while moving"
   ],
   "gameBuild": "1.60.1.70888",
   "interface": 16001,
@@ -50,11 +52,13 @@
   "publishedCpuBackendAndModelsRetained": true,
   "unchangedBackendAndModelFiles": 541,
   "personalRuntimeChangedDuringPublication": false,
-  "liveEvidence": "User confirms their separate corrected startup/helper pairing works in game. Personal running helper, models and settings preserved.",
+  "movementRegression": "Repeated WASD overwrites the old readiness query; the fixed source and actual addon ZIP preserve it while accepting valid status/test/recovery replies and clearing on expiry or cancellation.",
+  "liveEvidence": "Post-reload live acceptance of this movement readiness fix is pending.",
   "limitations": [
-    "New public launcher exercised using isolated real Windows processes, not a real Windows reboot.",
-    "No clean second PC available.",
-    "Physical controller/combat/repeated-session acceptance remains broader than automated checks."
+    "The reproduced defect has not been established as the sole cause of the reported intermittent incident.",
+    "Broader physical controller/combat/repeated-session acceptance remains unverified.",
+    "No real Windows reboot or clean second-PC acceptance test available."
   ],
+  "sourceTestRerun": "Initial native overlay fixture detected a foreground change; dependent experience fixture lacked its generated source. Both unchanged suites passed a sequential rerun; first-run evidence retained locally.",
   "outstandingKnownTestFailures": 0
 }

@@ -1,13 +1,19 @@
+## Voice while moving - Preview 15
+
+This preview fixes a reproduced readiness-check failure: held movement keys could overwrite PadChat's hidden connection reply, causing PC-VOICE-BRIDGE before recording began. The active query is now protected until a valid companion response or cleanup. Other causes of a bridge error, such as an older companion or a focused chat/search box, still need their normal checks.
+
+The fix passes automated regressions, including the actual packaged addon. The author's intermittent running case matches this defect, but a successful post-update in-game test is still pending. This is not a claim that every voice/connection error is resolved.
+
 # PadChat - installation and voice setup
 
 PadChat is a controller chat keyboard for WoW Forever with optional free, offline voice typing for keyboard, mouse and controller players.
 
-**Current release: 0.2.2-preview.14. Forever 1.60.x; Windows 10/11 x64; English voice.**
+**Current release: 0.2.2-preview.15. Forever 1.60.x; Windows 10/11 x64; English voice.**
 
 ## Choose your download
 
-- **For voice:** [Download PadChat-Setup.exe](https://github.com/JEMPAS-FORGE/PadChat/releases/download/v0.2.2-preview.14/PadChat-Setup.exe). It includes the addon, Windows companion and speech models. No Python install, API key, ChatGPT subscription or paid speech service is needed.
-- **Complete ZIP:** [Preview 14 downloads](https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.14). Extract All, then run PadChat-Setup.exe.
+- **For voice:** [Download PadChat-Setup.exe](https://github.com/JEMPAS-FORGE/PadChat/releases/download/v0.2.2-preview.15/PadChat-Setup.exe). It includes the addon, Windows companion and speech models. No Python install, API key, ChatGPT subscription or paid speech service is needed.
+- **Complete ZIP:** [Preview 15 downloads](https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.15). Extract All, then run PadChat-Setup.exe.
 - **Addon only:** [CurseForge](https://www.curseforge.com/wow/addons/padchat). This does not install or update the Windows voice companion.
 - **Printable tutorial:** [Installation guide](https://github.com/JEMPAS-FORGE/PadChat/blob/main/docs/PadChat-Installation-Guide.pdf).
 - [Future releases](https://github.com/JEMPAS-FORGE/PadChat/releases) and [bug reports](https://github.com/JEMPAS-FORGE/PadChat/issues).

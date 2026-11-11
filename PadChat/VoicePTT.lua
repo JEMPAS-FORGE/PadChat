@@ -198,6 +198,7 @@ function CK:VoiceDestination()
 end
 
 function CK:PTTReleaseFocus()
+    self.voiceProbeToken=nil;self.voiceProbeDeadline=nil;self.voiceProbeMarker=nil
     if self.pttBox then self.pttBox:ClearFocus(); self.pttBox:Hide() end
 end
 
@@ -254,7 +255,11 @@ function CK:InitPTT()
         if key=='F10' then CK:PreparePTT() elseif key=='F11' then CK:PTTReleaseFocus() end
     end)
     box:SetScript('OnEscapePressed',function() CK:PTTReleaseFocus() end)
-    box:SetScript('OnTextChanged',function() CK:ReadVoiceStatus(box:GetText()) end)
+    box:SetScript('OnTextChanged',function()
+        if CK.voiceProbeWriting then return end
+        CK:ReadVoiceStatus(box:GetText())
+        CK:RestoreVoiceProbeMarker()
+    end)
     box:Hide();self.pttBox=box
     local prepare=CK.NewFrame('Button','PadChatPTTPrepare')
     prepare:RegisterForClicks('AnyUp');prepare:SetScript('OnClick',function() CK:PreparePTT() end)
@@ -295,6 +300,18 @@ function CK:InitPTT()
     bind()
 end
 
+function CK:RestoreVoiceProbeMarker()
+ -- A held movement key can replace the selected query before Ctrl+C reads it.
+ -- Protect only our active transport; valid companion replies clear the token
+ -- in ReadVoiceStatus first. Ordinary chat/search fields remain untouched.
+ local marker=self.voiceProbeMarker
+ if not marker or not self.voiceProbeToken or not self.voiceProbeDeadline or GetTime()>self.voiceProbeDeadline then return end
+ if self.pttBox:GetText()~=marker then
+  self.voiceProbeWriting=true;self.pttBox:SetText(marker);self.voiceProbeWriting=nil
+  self.pttBox:HighlightText()
+ end
+end
+
 function CK:PrepareVoiceProbe()
  local focus=GetCurrentKeyBoardFocus and GetCurrentKeyBoardFocus()
  if focus and focus~=self.pttBox or self.voiceCapture then
@@ -309,7 +326,8 @@ function CK:PrepareVoiceProbe()
  local cmd,label=self:VoiceDestination()
  if self.voiceRecoveryRequested then mode='RECOVER' end
  local function wire(value) return ((value or ''):gsub('[^A-Za-z0-9 ._%-]',function(c) return string.format('%%%02X',c:byte()) end)) end
- self.pttBox:SetText('PCVQ2;'..self.voiceProbeToken..';'..mode..';'..wire(cmd)..';'..wire(label))
+ self.voiceProbeMarker='PCVQ2;'..self.voiceProbeToken..';'..mode..';'..wire(cmd)..';'..wire(label)
+ self.pttBox:SetText(self.voiceProbeMarker)
  self.pttBox:Show();self.pttBox:SetFocus();self.pttBox:HighlightText()
 end
 function CK:ReadVoiceStatus(value)

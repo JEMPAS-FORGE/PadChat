@@ -2,7 +2,7 @@ from pathlib import Path
 import os,subprocess,json,sys
 r=Path(__file__).resolve().parent
 env=dict(os.environ,PYTHONUTF8='1')
-names=['test-padchat.py','test-runtime.py','test-options.py','test-invites.py','test-voice-options.py','test-voice-setup.py','test-speech-recovery.py','test-support-setup.py','test-direct-addon.py','test-direct-delivery.py','test-input-recovery.py','test-audit-lua.py','test-audit-native.py','test-audit-installer.py','test-worker-protocol.py','test-forever-launch.py','test-unused-default.py','test-fresh-keyboard-policy.py','test-options-experience.py','test-native-experience.py','test-experience.py','test-startup.py','test-startup-migration.py']
+names=['test-padchat.py','test-runtime.py','test-options.py','test-invites.py','test-voice-options.py','test-voice-setup.py','test-speech-recovery.py','test-support-setup.py','test-direct-addon.py','test-direct-delivery.py','test-input-recovery.py','test-audit-lua.py','test-audit-native.py','test-audit-installer.py','test-worker-protocol.py','test-forever-launch.py','test-unused-default.py','test-fresh-keyboard-policy.py','test-options-experience.py','test-native-experience.py','test-experience.py','test-startup.py','test-startup-migration.py','test-probe-movement.py']
 results=[]
 for name in names:
  p=subprocess.run([sys.executable,str(r/'Tests'/name)],env=env,capture_output=True,text=True,timeout=150)

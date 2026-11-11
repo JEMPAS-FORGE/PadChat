@@ -27,7 +27,7 @@ with tempfile.TemporaryDirectory(prefix='Startup-',dir=r/'Tests') as temp:
  # loads models, hooks input, captures audio, uses clipboard or sends to WoW.
  helper=d/'Helper.cs';helper.write_text(r'''
 using System;using System.IO;using System.Diagnostics;using System.Threading;
-[assembly:System.Reflection.AssemblyInformationalVersion("0.2.2-preview.14")]
+[assembly:System.Reflection.AssemblyInformationalVersion("0.2.2-preview.15")]
 class FakeVoice {
  static void Main(string[] args){
   string root=Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar));
@@ -42,7 +42,7 @@ class FakeVoice {
  build(app/'PadChatVoice.exe',[helper])
  game_source=d/'Game.cs';game_source.write_text('using System;[assembly:System.Reflection.AssemblyFileVersion("1.60.1.70888")] class FakeGame {static void Main(){Console.ReadLine();}}')
  build(game/'Wow.exe',[game_source])
- (d/'install.json').write_text(json.dumps({'Game':str(game),'Version':'0.2.2-preview.14','Voice':True,'Startup':True}))
+ (d/'install.json').write_text(json.dumps({'Game':str(game),'Version':'0.2.2-preview.15','Voice':True,'Startup':True}))
  def count():return len((d/'starts.txt').read_text().splitlines()) if (d/'starts.txt').exists() else 0
  def wait(check,description,seconds=12):
   end=time.monotonic()+seconds
