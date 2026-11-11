@@ -152,7 +152,9 @@ partial class VoicePTT {
   else {Type type=Type.GetTypeFromProgID("WScript.Shell");object shell=Activator.CreateInstance(type);
   try{
    dynamic shortcut=type.InvokeMember("CreateShortcut",System.Reflection.BindingFlags.InvokeMethod,null,shell,new object[]{path});
-   shortcut.TargetPath=System.Windows.Forms.Application.ExecutablePath;shortcut.WorkingDirectory=voiceRoot;shortcut.WindowStyle=7;shortcut.Save();
+   string launcher=Path.Combine(voiceRoot,"PadChatLauncher.exe");
+   if(!File.Exists(launcher))throw new IOException("PadChat startup launcher is missing. Run the matching installer to repair.");
+   shortcut.TargetPath=launcher;shortcut.Arguments="";shortcut.WorkingDirectory=voiceRoot;shortcut.WindowStyle=7;shortcut.Save();
    System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shortcut);
   }finally{System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shell);}}
   string statePath=Path.Combine(dataRoot,"install.json");

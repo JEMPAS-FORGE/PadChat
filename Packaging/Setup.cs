@@ -32,7 +32,7 @@ class InstallState { public string Game,Version; public bool Voice,Startup; }
 
 class Engine {
 
-  public const string Version="0.2.2-preview.13";
+  public const string Version="0.2.2-preview.14";
 
  public readonly string Root; public readonly bool Test;
 
@@ -155,6 +155,16 @@ class Engine {
  public void StopHelper(){
 
   if(Test)return;
+
+  // Stop automatic restarts before replacing/removing its managed App folder.
+  string launcher=Path.Combine(Root,"App","PadChatLauncher.exe");
+  if(File.Exists(launcher)){
+   using(var p=Process.Start(new ProcessStartInfo(launcher,"--stop"){UseShellExecute=false,CreateNoWindow=true,WindowStyle=ProcessWindowStyle.Hidden})){if(!p.WaitForExit(5000))throw new IOException("PadChat startup launcher did not respond.");}
+   for(int n=0;n<60;n++){
+    bool running=false;foreach(var p in Process.GetProcessesByName("PadChatLauncher")){try{running|=string.Equals(p.MainModule.FileName,launcher,StringComparison.OrdinalIgnoreCase);}catch{}finally{p.Dispose();}}
+    if(!running)break;if(n==59)throw new IOException("PadChat startup launcher is still closing. Try again shortly.");System.Threading.Thread.Sleep(100);
+   }
+  }
 
   string helper=Path.Combine(Root,"App","PadChatVoice.exe");
 
@@ -289,6 +299,8 @@ class Engine {
 
   Directory.CreateDirectory(directory);
 
+  if(Test){File.WriteAllText(Path.Combine(directory,label+".lnk"),Json.Serialize(new{TargetPath=target,Arguments=arguments}));return;}
+
   Type t=Type.GetTypeFromProgID("WScript.Shell");dynamic shell=Activator.CreateInstance(t);
 
   dynamic link=shell.CreateShortcut(Path.Combine(directory,label+".lnk"));link.TargetPath=target;link.Arguments=arguments;link.WorkingDirectory=Path.GetDirectoryName(target);link.Save();
@@ -303,7 +315,7 @@ class Engine {
 
  void Integrate(InstallState s){
 
-  if(Test){Directory.CreateDirectory(StartupPath);Directory.CreateDirectory(MenuPath);File.WriteAllText(Path.Combine(MenuPath,"registration.json"),Json.Serialize(s));if(s.Startup)File.WriteAllText(Path.Combine(StartupPath,"PadChat.lnk"),"mock");else if(File.Exists(Path.Combine(StartupPath,"PadChat.lnk")))File.Delete(Path.Combine(StartupPath,"PadChat.lnk"));return;}
+  if(Test){Directory.CreateDirectory(StartupPath);Directory.CreateDirectory(MenuPath);File.WriteAllText(Path.Combine(MenuPath,"registration.json"),Json.Serialize(s));}
 
   string startup=Path.Combine(StartupPath,"PadChat.lnk");if(File.Exists(startup))File.Delete(startup);
 
@@ -311,13 +323,20 @@ class Engine {
 
   foreach(string label in new[]{"PadChat Voice","Choose microphone"}){string p=Path.Combine(MenuPath,label+".lnk");if(File.Exists(p))File.Delete(p);}
 
-  if(s.Voice){Shortcut(MenuPath,"PadChat Voice",Path.Combine(Root,"App","PadChatVoice.exe"),"");Shortcut(MenuPath,"Choose microphone",Path.Combine(Root,"App","PadChatVoice.exe"),"--microphone");if(s.Startup)Shortcut(StartupPath,"PadChat",Path.Combine(Root,"App","PadChatVoice.exe"),"");}
+  // Rollback can restore a pre-launcher package. Restore its matching shortcuts
+  // too; never point an older restored installation at a missing new launcher.
+  string launcher=Path.Combine(Root,"App","PadChatLauncher.exe");
+  bool supervised=File.Exists(launcher);
+  string entry=supervised?launcher:Path.Combine(Root,"App","PadChatVoice.exe");
+  if(s.Voice){Shortcut(MenuPath,"PadChat Voice",entry,supervised?"--voice":"");Shortcut(MenuPath,"Choose microphone",entry,"--microphone");if(s.Startup)Shortcut(StartupPath,"PadChat",entry,"");}
 
   Shortcut(MenuPath,"PadChat Help",Path.Combine(Root,"Docs","START-HERE.txt"),"");Shortcut(MenuPath,"Uninstall PadChat",Path.Combine(Root,"Uninstall.exe"),"");
 
+  if(Test)return;
+
   using(var key=Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\PadChat")){
 
-   key.SetValue("DisplayName","PadChat for WoW Forever");key.SetValue("DisplayVersion",Version);key.SetValue("Publisher","PadChat contributors");key.SetValue("UninstallString","\""+Path.Combine(Root,"Uninstall.exe")+"\"");key.SetValue("InstallLocation",Root);key.SetValue("NoModify",1);key.SetValue("NoRepair",1);
+   key.SetValue("DisplayName","PadChat for WoW Forever");key.SetValue("DisplayVersion",s.Version);key.SetValue("Publisher","PadChat contributors");key.SetValue("UninstallString","\""+Path.Combine(Root,"Uninstall.exe")+"\"");key.SetValue("InstallLocation",Root);key.SetValue("NoModify",1);key.SetValue("NoRepair",1);
 
   }
 
@@ -382,7 +401,7 @@ class SetupForm:Form {
 
   voice=new CheckBox{Text="Install voice typing (English, processed locally; includes speech models)",Checked=old==null||old.Voice,Location=new Point(24,218),Size=new Size(690,28)};
 
-  startup=new CheckBox{Text="Start voice helper automatically when I sign in to Windows",Checked=old==null||old.Startup,Location=new Point(24,250),Size=new Size(690,28)};
+  startup=new CheckBox{Text="Start with Windows; launch voice automatically when WoW Forever opens",Checked=old==null||old.Startup,Location=new Point(24,250),Size=new Size(690,28)};
 
   voice.CheckedChanged+=(s,a)=>startup.Enabled=voice.Checked;startup.Enabled=voice.Checked;
 
@@ -424,7 +443,7 @@ class SetupForm:Form {
 
    status.Text="Installed. Start WoW and enable PadChat. Use touchpad click or controller setup; F9 is optional.";
 
-   if(withVoice)Process.Start(Path.Combine(engine.Root,"App","PadChatVoice.exe"),"--microphone");
+   if(withVoice)Process.Start(new ProcessStartInfo(Path.Combine(engine.Root,"App","PadChatLauncher.exe"),"--microphone"){UseShellExecute=false,CreateNoWindow=true,WindowStyle=ProcessWindowStyle.Hidden});
 
    MessageBox.Show(this,"PadChat is installed.\n\n1. Choose your microphone in the window that opens.\n2. Start WoW and enable PadChat. Disable older ControllerKeyboard add-ons.\n3. Click PadChat on the minimap, choose Help, then Guided setup. Select your microphone/PTT, Save & reload, and test without sending.\n4. Open chat using touchpad click or controller setup. F9 is optional. Default keyboard PTT: F10 or another unused key shown in Voice options. Controller: Share/Create/Back. Tap to cycle; hold, wait for the green ready cue, speak and release to send.\n\nThe models stay on your PC; no online account or token charges.","PadChat installed");Close();
 
@@ -528,6 +547,14 @@ class Program {
   e.Install(game,true,true,payload,uninstaller,false);Check(e.ReadState().Voice,"Voice install state");
 
   string addon=Path.Combine(game,"Interface","AddOns","PadChat");Check(File.Exists(Path.Combine(addon,"PadChat.toc")),"Addon installed");Check(File.Exists(Path.Combine(data,"test-os","Startup","PadChat.lnk")),"Startup registered");
+
+  string startupLink=Path.Combine(data,"test-os","Startup","PadChat.lnk"),menu=Path.Combine(data,"test-os","StartMenu");
+  Check(File.ReadAllText(startupLink).Contains("PadChatLauncher.exe"),"Startup bypasses launcher");
+  Check(File.ReadAllText(Path.Combine(menu,"PadChat Voice.lnk")).Contains("--voice")&&File.ReadAllText(Path.Combine(menu,"Choose microphone.lnk")).Contains("--microphone"),"Menu launch modes lost");
+  // Simulate a legacy installation's direct-to-helper entry points.
+  foreach(string link in new[]{startupLink,Path.Combine(menu,"PadChat Voice.lnk"),Path.Combine(menu,"Choose microphone.lnk")})File.WriteAllText(link,"old PadChatVoice.exe");
+  e.Install(game,true,true,payload,uninstaller,false);
+  foreach(string link in new[]{startupLink,Path.Combine(menu,"PadChat Voice.lnk"),Path.Combine(menu,"Choose microphone.lnk")})Check(File.ReadAllText(link).Contains("PadChatLauncher.exe")&&!File.ReadAllText(link).Contains("PadChatVoice.exe"),"Legacy shortcut was not replaced");
 
   File.WriteAllText(Path.Combine(data,"voice-microphone.json"),"{\"name\":\"Test microphone\",\"hostapi\":\"MME\"}");
 

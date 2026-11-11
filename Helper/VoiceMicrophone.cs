@@ -91,7 +91,7 @@ partial class VoicePTT {
   recoveryCopy=(ToolStripMenuItem)menu.Items.Add("Copy last failed message (no resend)",null,(s,e)=>CopyFailedMessage());
   menu.Opening+=(s,e)=>{recoveryCopy.Enabled=recoveryText.Length>0;};
   menu.Items.Add("Help / supported connections",null,(s,e)=>Process.Start(Path.Combine(voiceRoot,"START-HERE.txt")));
-  menu.Items.Add("Exit PadChat voice",null,(s,e)=>Application.Exit());
+  menu.Items.Add("Exit PadChat voice",null,(s,e)=>ExitVoiceAndLauncher());
   microphoneTray=new NotifyIcon{Icon=SystemIcons.Application,Text="PadChat voice",ContextMenuStrip=menu,Visible=true};
   microphoneTray.DoubleClick+=(s,e)=>ShowMicrophones();
   UpdateShortcutLabels();

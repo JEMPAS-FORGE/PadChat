@@ -56,6 +56,7 @@ def main():
  cuda=app/'Backend/_internal/ctranslate2/cudnn64_9.dll'
  if cuda.exists():cuda.unlink()
  compile(app/'PadChatVoice.exe',sorted((ROOT/'Helper').glob('*.cs')))
+ compile(app/'PadChatLauncher.exe',[ROOT/'Packaging/Launcher.cs'])
  (PAYLOAD/'Docs').mkdir(exist_ok=True)
  for p in ('START-HERE.txt','LICENSE.txt','VALIDATION.md','CHANGELOG.md','README.md','COMPATIBILITY.md','BUILD.md','DEPENDENCIES.json'):
 
@@ -84,7 +85,7 @@ def main():
 
  compile(OUT/'PadChat-Setup.exe',[ROOT/'Packaging/Setup.cs',ROOT/'Packaging/Discovery.cs'],('/resource:'+str(archive)+',payload.zip','/resource:'+str(ROOT/'Uninstall.exe')+',Uninstall.exe'))
 
- with zipfile.ZipFile(OUT/'PadChat-0.2.2-preview.13.zip','w',zipfile.ZIP_DEFLATED) as z:
+ with zipfile.ZipFile(OUT/'PadChat-0.2.2-preview.14.zip','w',zipfile.ZIP_DEFLATED) as z:
 
   for p in (ROOT/'PadChat').iterdir():
 
@@ -98,7 +99,7 @@ def main():
   for name in ('portable-build.py','build-candidate.py','run-tests.py','INSTALL.txt','RELEASE-VALIDATION.json','LICENSE','LICENSE.txt','START-HERE.txt','VALIDATION.md','CHANGELOG.md','README.md','COMPATIBILITY.md','BUILD.md','DEPENDENCIES.json'):
    if (ROOT/name).exists():z.write(ROOT/name,name)
 
- with zipfile.ZipFile(OUT/'PadChat-Windows-Voice-0.2.2-preview.13.zip','w',zipfile.ZIP_DEFLATED,compresslevel=1) as z:
+ with zipfile.ZipFile(OUT/'PadChat-Windows-Voice-0.2.2-preview.14.zip','w',zipfile.ZIP_DEFLATED,compresslevel=1) as z:
 
   for name in ('PadChat-Setup.exe','START-HERE.txt','LICENSE.txt','VALIDATION.md'):
 

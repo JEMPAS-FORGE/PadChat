@@ -1,8 +1,18 @@
+## 0.2.2-preview.14 - companion startup reliability
+
+- Added a lightweight launcher that waits for the installed Forever client and starts the matching companion.
+- Automatically recovers an unexpectedly exited helper with bounded retry delays; never replays a message.
+- Stops the speech helper after game exit and starts it on the next game launch.
+- Installer and in-game startup settings use the same launcher; old installer-owned shortcuts are replaced on upgrade.
+- Start-menu microphone and binding requests are routed to the existing companion without duplicates.
+- Explicit tray Exit stops automatic recovery until PadChat is opened again or the next Windows sign-in.
+- Preserves voice settings and the published free CPU models. CurseForge remains addon-only; voice users must update through Setup.
+
 # PadChat 0.2.2 Preview 13 - clearer Options and voice feedback
 
 ## Update both parts for voice
 
-[Download PadChat-Setup.exe](https://github.com/JEMPAS-FORGE/PadChat/releases/download/v0.2.2-preview.13/PadChat-Setup.exe) with WoW closed, select the Forever `_forever_` folder containing `Wow.exe`, keep voice typing enabled, and install. Existing settings are preserved. CurseForge updates the addon only; voice users also need this matching Windows installer.
+[Download PadChat-Setup.exe](https://github.com/JEMPAS-FORGE/PadChat/releases/download/v0.2.2-preview.14/PadChat-Setup.exe) with WoW closed, select the Forever `_forever_` folder containing `Wow.exe`, keep voice typing enabled, and install. Existing settings are preserved. CurseForge updates the addon only; voice users also need this matching Windows installer.
 
 ## What changed
 

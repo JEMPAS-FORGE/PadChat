@@ -188,7 +188,7 @@ partial class VoicePTT {
   try{
    MaintainInputListener();
    DrainVoiceInputs();
-   if(stopEvent!=null&&stopEvent.WaitOne(0)){Application.Exit();return;}
+   if(ProcessStopRequested()||(stopEvent!=null&&stopEvent.WaitOne(0))){Application.Exit();return;}
    if(bindingEvent!=null&&bindingEvent.WaitOne(0))ShowVoiceBindings();
    if(microphoneEvent!=null&&microphoneEvent.WaitOne(0))ShowMicrophones();
    MaintainMicrophoneEnumeration();
@@ -262,6 +262,7 @@ partial class VoicePTT {
   }
   if(args.Length>0&&args[0]=="--input-thread-test"){TestInputThread();return;}
   if(args.Length>0&&args[0]=="--self-test"){
+   TestStartupRelease();
    TestVoiceOverlay();TestInputRecovery();TestInputRouting();TestDirectVoiceWire();TestDeliveryTiming();TestSpeechWatchdog();TestWorkerShutdown();
    TestVoiceRecovery();TestVoiceDiagnostics();
    TestGameVoiceSettings();
@@ -303,13 +304,14 @@ partial class VoicePTT {
    microphoneEvent=new System.Threading.EventWaitHandle(false,System.Threading.EventResetMode.AutoReset,"PadChat.Microphone.v1");
    bindingEvent=new System.Threading.EventWaitHandle(false,System.Threading.EventResetMode.AutoReset,"PadChat.Bindings.v1");
    stopEvent=new System.Threading.EventWaitHandle(false,System.Threading.EventResetMode.AutoReset,"PadChat.Stop.v1");
+   SetupProcessStop();
    LoadVoiceShortcut();LoadGameVoiceSettings();LoadAppearance();SetupMicrophoneMenu();
    try{InstallKeyboardVoice();}catch(Exception ex){inputRetryAt=Now+5000;WorkerError("Input listener: "+ex.Message);WriteHealth("input-error");Status("Voice input could not start. Retrying shortly.\n"+ex.Message,8000);}
    try{if(voiceEnabled)StartWorker();}catch(Exception ex){WorkerError(ex.Message);Status("PadChat voice could not start. Run Setup again to repair.\n"+ex.Message,8000);}
    if(args.Length>0&&args[0]=="--bindings")ShowVoiceBindings();
    if(args.Length>0&&args[0]=="--microphone")ShowMicrophones();
    timer=new Timer{Interval=20};timer.Tick+=Tick;timer.Start();
-   try{Application.Run();}finally{RemoveKeyboardVoice();CloseNativeSony();StopMicrophoneEnumeration(true);StopWorker();if(microphoneTray!=null)microphoneTray.Dispose();microphoneEvent.Dispose();bindingEvent.Dispose();stopEvent.Dispose();}
+   try{Application.Run();}finally{RemoveKeyboardVoice();CloseNativeSony();StopMicrophoneEnumeration(true);StopWorker();if(microphoneTray!=null)microphoneTray.Dispose();microphoneEvent.Dispose();bindingEvent.Dispose();stopEvent.Dispose();if(processStopEvent!=null)processStopEvent.Dispose();}
   }
  }
 }

@@ -59,3 +59,5 @@ isolated installer/backend self-tests and source/package checks before distribut
 
 No experimental multi-client code is included.
 
+
+Preview 14 also compiles Packaging/Launcher.cs into App/PadChatLauncher.exe. Keep its informational version, helper informational version, installer version and install.json version aligned. Run Tests/test-startup.py for policy and isolated OS lifecycle coverage.

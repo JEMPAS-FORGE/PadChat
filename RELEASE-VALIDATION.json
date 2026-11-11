@@ -1,9 +1,9 @@
 {
-  "version": "0.2.2-preview.13",
+  "version": "0.2.2-preview.14",
   "releaseAllowed": true,
-  "checkedAt": "2026-11-10T14:29:08.845082+00:00",
-  "sourceSuites": 21,
-  "packageChecks": 12,
+  "checkedAt": "2026-11-11T10:41:45.456663+00:00",
+  "sourceSuites": 23,
+  "packageChecks": 13,
   "sourceTests": [
     "test-padchat.py",
     "test-runtime.py",
@@ -18,17 +18,20 @@
     "test-input-recovery.py",
     "test-audit-lua.py",
     "test-audit-native.py",
-    "test-audit-installer.py",
     "test-worker-protocol.py",
     "test-forever-launch.py",
     "test-unused-default.py",
     "test-fresh-keyboard-policy.py",
     "test-options-experience.py",
     "test-native-experience.py",
-    "test-experience.py"
+    "test-experience.py",
+    "test-startup.py",
+    "test-audit-installer.py",
+    "test-startup-migration.py"
   ],
   "packageTests": [
     "shipping companion self-test",
+    "shipping launcher lifecycle policy",
     "shipping companion native input thread stall/restart",
     "shipping installer discovery",
     "shipping installer full isolated install/update/rollback/uninstall",
@@ -41,16 +44,17 @@
     "bundled WoW vocabulary sample",
     "embedded payload/source/addon/installer bundle consistency"
   ],
-  "gameBuild": "1.60.1.70862",
+  "gameBuild": "1.60.1.70888",
   "interface": 16001,
-  "foreverSourceRef": "9dc84f0d3bbae1768ac3405b3716000bd93eda06",
+  "foreverSourceRef": "4cd0ab752a77164f654ccbca9d0c1fe8dafceebe",
   "publishedCpuBackendAndModelsRetained": true,
+  "unchangedBackendAndModelFiles": 541,
   "personalRuntimeChangedDuringPublication": false,
-  "liveEvidence": "One user confirmed new Controls/Voice/Appearance/Help menu and D-pad navigation after reload. Earlier personal transparent meter/ready cue tests were confirmed.",
+  "liveEvidence": "User confirms their separate corrected startup/helper pairing works in game. Personal running helper, models and settings preserved.",
   "limitations": [
-    "New appearance choices, destination display and failed-message recovery have automated coverage, not broad live acceptance.",
+    "New public launcher exercised using isolated real Windows processes, not a real Windows reboot.",
     "No clean second PC available.",
-    "Unsigned preview; English local speech; accuracy and speed depend on hardware and speech."
+    "Physical controller/combat/repeated-session acceptance remains broader than automated checks."
   ],
   "outstandingKnownTestFailures": 0
 }

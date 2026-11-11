@@ -2,12 +2,12 @@ PadChat - installation and voice setup
 
 PadChat is a controller chat keyboard for WoW Forever with optional free, offline voice typing for keyboard, mouse and controller players.
 
-Current release: 0.2.2-preview.13. Forever 1.60.x; Windows 10/11 x64; English voice.
+Current release: 0.2.2-preview.14. Forever 1.60.x; Windows 10/11 x64; English voice.
 
 Choose your download
 
-- For voice: Download PadChat-Setup.exe: https://github.com/JEMPAS-FORGE/PadChat/releases/download/v0.2.2-preview.13/PadChat-Setup.exe. It includes the addon, Windows companion and speech models. No Python install, API key, ChatGPT subscription or paid speech service is needed.
-- Complete ZIP: Preview 13 downloads: https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.13. Extract All, then run PadChat-Setup.exe.
+- For voice: Download PadChat-Setup.exe: https://github.com/JEMPAS-FORGE/PadChat/releases/download/v0.2.2-preview.14/PadChat-Setup.exe. It includes the addon, Windows companion and speech models. No Python install, API key, ChatGPT subscription or paid speech service is needed.
+- Complete ZIP: Preview 14 downloads: https://github.com/JEMPAS-FORGE/PadChat/releases/tag/v0.2.2-preview.14. Extract All, then run PadChat-Setup.exe.
 - Addon only: CurseForge: https://www.curseforge.com/wow/addons/padchat. This does not install or update the Windows voice companion.
 - Printable tutorial: Installation guide: https://github.com/JEMPAS-FORGE/PadChat/blob/main/docs/PadChat-Installation-Guide.pdf.
 - Future releases: https://github.com/JEMPAS-FORGE/PadChat/releases and bug reports: https://github.com/JEMPAS-FORGE/PadChat/issues.
@@ -66,6 +66,19 @@ Speech is processed locally. No audio recordings or transcript history are writt
 
 The published CPU models/defaults are retained; this release does not switch everyone to a smaller model or enable GPU speech. Speed/accuracy depend on the PC, microphone and speech.
 
-Forever interface 16001 and source build 1.60.1.70862 were reviewed. This is an unsigned preview. The new menu and D-pad were user-confirmed in game; matching automated source, helper and installer checks pass. New appearance settings, destination display and failed-message recovery still need broader live testing. A clean second PC was unavailable. Do not treat automated checks as proof of every controller or protected gameplay scenario.
+Forever interface 16001 and source build 1.60.1.70888 were reviewed. This is an unsigned preview. The new menu and D-pad were user-confirmed in game; matching automated source, helper and installer checks pass. New appearance settings, destination display and failed-message recovery still need broader live testing. A clean second PC was unavailable. Do not treat automated checks as proof of every controller or protected gameplay scenario.
 
 For support, include both versions, controller model/USB or Bluetooth, saved PTT, microphone and exact failed step. Hide character names and private chat in screenshots. Report an issue: https://github.com/JEMPAS-FORGE/PadChat/issues.
+
+Automatic startup and recovery
+
+Keep Start with Windows enabled in Setup. A small launcher waits for your selected WoW Forever client, starts the matching voice companion when the game opens, and closes the speech helper after the game exits. It uses no microphone while waiting. If the companion exits unexpectedly, the launcher retries with a bounded delay; unfinished dictation is discarded, never sent again automatically.
+
+Setup replaces the old direct-to-helper Startup and Start-menu shortcuts together. The in-game startup setting uses the same launcher. Your microphone, saved PTT, vocabulary and speech preferences are retained. When the model is ready, use PTT and wait for the green READY - SPEAK NOW cue before speaking.
+
+If you choose Exit PadChat voice from the tray, automatic recovery stops for that Windows session. Open PadChat Voice from Windows Start to resume. If Windows has disabled PadChat under Task Manager > Startup apps, enable it there, or open PadChat Voice manually. No startup option can override a Windows-disabled startup entry.
+
+CurseForge installs the addon only. Install or update the Windows companion using the matching PadChat-Setup.exe above. The addon cannot start or update a Windows program itself. A bridge error after an addon-only update can mean the old companion is still installed: close WoW and run the current installer with voice enabled. Avoid launching old retained installers or companion copies.
+
+If startup still fails, open PadChat Voice from Windows Start. Run Setup again to repair a missing launcher or mismatched installation. Technical startup state is in %LOCALAPPDATA%\PadChat\launcher-status.json; another-companion-running means a different PadChat companion already owns the voice session. Exit that old companion from its tray menu, then use the current Start-menu entry. Do not delete your settings.
+

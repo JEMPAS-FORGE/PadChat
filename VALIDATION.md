@@ -1,8 +1,7 @@
-# Preview 13 validation
+# Preview 14 validation scope
 
-The new menu and D-pad were confirmed in-game by one user. The transparent meter/ready-cue foundation was also confirmed in earlier personal tests. Source, input, settings, recovery and matching installer-package checks pass. The new appearance choices, destination display and failed-message recovery are not yet live-verified on another PC. No clean second PC was available. This remains an unsigned preview for WoW Forever 1.60.x, Windows 10/11 x64 and English local speech.
+Run `run-tests.py` for source and isolated startup lifecycle checks, then `test-package.py` against the matching built payload/installer. The release gate records the final results in RELEASE-VALIDATION.json.
 
-This update keeps the published CPU speech models and recognition defaults; it does not switch everyone to a smaller model or enable GPU processing. Recognition speed and accuracy vary by hardware and speech.
+New checks use fake game/helper processes and isolated named synchronization objects. They do not record a microphone, type into a game, alter a running personal helper, or restart WoW. Startup/update fixtures test shortcut migration and preserve user preferences.
 
-
-Final report: RELEASE-VALIDATION.json. Tests do not capture user audio or submit messages. Source and artifact hashes are verified before publication.
+Limitations: no real Windows reboot, clean second PC, or broad physical-controller/mixed-monitor/live-combat acceptance of the new public launcher. Existing live confirmation applies to the user's separate repaired setup. Recognition defaults and bundled CPU models are unchanged.
