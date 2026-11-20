@@ -1,9 +1,10 @@
 {
-  "version": "0.2.2-preview.15",
+  "version": "0.2.2-preview.17",
   "releaseAllowed": true,
-  "checkedAt": "2026-11-11T22:19:01.353551+00:00",
+  "checkedAt": "2026-11-20T22:09:59.815687+00:00",
   "sourceSuites": 24,
   "packageChecks": 14,
+  "shippingZipInviteRegressionPassed": true,
   "sourceTests": [
     "test-padchat.py",
     "test-runtime.py",
@@ -46,19 +47,11 @@
     "embedded payload/source/addon/installer bundle consistency",
     "shipping addon readiness while moving"
   ],
-  "gameBuild": "1.60.1.70888",
+  "gameBuild": "1.60.1.71037",
   "interface": 16001,
-  "foreverSourceRef": "4cd0ab752a77164f654ccbca9d0c1fe8dafceebe",
-  "publishedCpuBackendAndModelsRetained": true,
+  "foreverSourceRef": "734f065329cff4992835b01a84f210a297db91b6",
+  "outstandingKnownTestFailures": 0,
   "unchangedBackendAndModelFiles": 541,
-  "personalRuntimeChangedDuringPublication": false,
-  "movementRegression": "Repeated WASD overwrites the old readiness query; the fixed source and actual addon ZIP preserve it while accepting valid status/test/recovery replies and clearing on expiry or cancellation.",
-  "liveEvidence": "Post-reload live acceptance of this movement readiness fix is pending.",
-  "limitations": [
-    "The reproduced defect has not been established as the sole cause of the reported intermittent incident.",
-    "Broader physical controller/combat/repeated-session acceptance remains unverified.",
-    "No real Windows reboot or clean second-PC acceptance test available."
-  ],
-  "sourceTestRerun": "Initial native overlay fixture detected a foreground change; dependent experience fixture lacked its generated source. Both unchanged suites passed a sequential rerun; first-run evidence retained locally.",
-  "outstandingKnownTestFailures": 0
+  "liveGameplayVerified": false,
+  "personalRuntimeChanged": false
 }

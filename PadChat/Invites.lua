@@ -20,7 +20,11 @@ function CK:InviteUnavailable(game)
     if game.clientProgram~=(BNET_CLIENT_WOW or 'WoW') then return 'Playing another game' end
     if game.wowProjectID~=WOW_PROJECT_ID then return 'Different WoW version' end
     if not game.isInCurrentRegion then return 'Different region' end
-    if not game.playerGuid or not game.realmID or game.realmID==0 then return 'Not in a character yet' end
+    local hasRealmInfo = game.hasRealmInfo
+    if hasRealmInfo == nil then
+        hasRealmInfo = game.realmID ~= nil and game.realmID ~= 0
+    end
+    if not game.playerGuid or not hasRealmInfo then return 'Not in a character yet' end
     if WOW_PROJECT_ID==WOW_PROJECT_CLASSIC and GetRealmID and game.realmID~=GetRealmID() then return 'Different realm' end
     local faction=UnitFactionGroup and UnitFactionGroup('player')
     local cross=C_PartyInfo and C_PartyInfo.CanFormCrossFactionParties and C_PartyInfo.CanFormCrossFactionParties()

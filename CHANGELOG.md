@@ -1,3 +1,8 @@
+## 0.2.2-preview.17 - Battle.net invites on WoW Forever
+
+- WoW Forever build 71037 reports whether Battle.net friends have realm information separately from their numeric realm ID. PadChat now uses that signal when available so eligible friends still appear in the invite list.
+- Preserves invite filters and support for older Forever builds.
+
 ## 0.2.2-preview.15 - voice readiness while moving
 
 - Fixes a reproduced cause of intermittent PC-VOICE-BRIDGE errors when starting dictation while holding movement keys.

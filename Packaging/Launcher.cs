@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Web.Script.Serialization;
 
-[assembly:System.Reflection.AssemblyInformationalVersion("0.2.2-preview.15")]
+[assembly:System.Reflection.AssemblyInformationalVersion("0.2.2-preview.17")]
 
 // No audio, input hooks, clipboard, UI focus changes or game control here.
 interface ILauncherHost {
@@ -59,7 +59,7 @@ sealed class InstalledLauncherHost:ILauncherHost {
  readonly string app,root,helper,game;
  readonly bool valid;
  string lastState;DateTime nextWrite;
- public const string Version="0.2.2-preview.15";
+ public const string Version="0.2.2-preview.17";
  public InstalledLauncherHost(string directory){
   app=Path.GetFullPath(directory).TrimEnd(Path.DirectorySeparatorChar);
   root=Path.GetDirectoryName(app);helper=Path.Combine(app,"PadChatVoice.exe");

@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Diagnostics;
 
-[assembly:System.Reflection.AssemblyInformationalVersion("0.2.2-preview.15")]
+[assembly:System.Reflection.AssemblyInformationalVersion("0.2.2-preview.17")]
 
 partial class VoicePTT {
  static EventWaitHandle processStopEvent;

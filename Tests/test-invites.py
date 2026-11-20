@@ -70,6 +70,18 @@ assert(not CK:InviteByVoice('OtherGame'));assert(#sent==count)
 assert(not CK:InviteByVoice('BigDog/quit'));assert(#sent==count)
 assert(CK:InviteByVoice('Online Friend'));assert(sent[#sent]=='character:Online-Friend')
 assert(CK:InviteByVoice('Second Alt'));assert(sent[#sent]=='bn:105')
+-- Build 71037 provides hasRealmInfo separately from the optional numeric realm ID.
+local updated=accounts[1].games[1]
+updated.hasRealmInfo=true;updated.realmID=nil
+assert(CK:InviteByVoice('BigDog#123'));assert(sent[#sent]=='bn:101')
+updated.hasRealmInfo=false;updated.realmID=4
+local before=#sent
+assert(not CK:InviteByVoice('BigDog#123'));assert(#sent==before)
+assert(CK.notice:find('Not in a character yet'))
+updated.hasRealmInfo=nil;updated.realmID=0
+assert(not CK:InviteByVoice('BigDog#123'));assert(#sent==before)
+updated.realmID=4
+assert(CK:InviteByVoice('BigDog#123'));assert(sent[#sent]=='bn:101')
 -- Friend order changes: invite uses stable account + game ID, never an index.
 accounts[1],accounts[5]=accounts[5],accounts[1]
 assert(CK:InviteByKey('b10g101'));assert(sent[#sent]=='bn:101')
@@ -80,3 +92,4 @@ combat=false;accounts[4].games[2].wowProjectID=1
 assert(not CK:InviteByVoice('Second Alt'));assert(#sent==count)
 print('Passed all-friends roster, offline/other-game labels, exact voice resolution, duplicate and multi-account refusal, selection without sending, stable IDs, stale-state and combat checks.')
 ''')
+
